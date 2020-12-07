@@ -1,6 +1,7 @@
 import { mapState } from 'vuex';
+import { END_POINT } from '@/config';
 import storage from '@/utils/storage';
-import { formatTime } from '@/utils/help';
+import { queryWarehouse, queryDimensionList, queryVariablesList } from '@/views/api.js';
 
 export default {
   computed: {
@@ -13,14 +14,6 @@ export default {
     systemStatus() {
       console.log('系统状态更新为：', this.$t(this.statusMap.title));
     },
-  },
-  created() {
-    this.timeInterval = setInterval(() => {
-      this.formatTime = formatTime(new Date());
-    }, 1000);
-  },
-  beforeDestroy() {
-    this.timeInterval && clearInterval(this.timeInterval);
   },
   data() {
     return {
@@ -42,11 +35,37 @@ export default {
         { title: 'Pausing', value: 0 },
         { title: 'Charging', value: 2 },
       ],
-      formatTime: formatTime(new Date()),
-      timeInterval: null,
     };
   },
   methods: {
+    initWS() {
+      const getToken = encodeURIComponent(storage.get('scada_user_token'));
+      this.ws = new WebSocket(`ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`);
+      this.ws.onopen = (e) => {
+        console.log('WS onopen ===', e);
+      };
+      this.ws.onclose = (e) => {
+        console.log('WS onclose ===', e);
+      };
+      this.ws.onerror = (e) => {
+        console.log('WS onerror ===', e);
+      };
+      this.ws.onmessage = (e) => {
+        const jsonData = JSON.parse(e.data);
+      };
+    },
+    async queryWarehouse() {
+      const res = await queryWarehouse();
+      console.log('queryWarehouse res', res);
+    },
+    async queryDimensionList() {
+      const res = await queryDimensionList({ parameter: 1 });
+      console.log('queryDimensionList res', res);
+    },
+    async queryVariablesList() {
+      const res = await queryVariablesList();
+      console.log('queryVariablesList res', res);
+    },
     // 系统状态更新
     radioChange(e) {
       this.$store.commit('SET_SYSTEM_STATUS', e.target.value);

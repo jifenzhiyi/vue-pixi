@@ -55,14 +55,11 @@ class Request {
     newConfig = Object.assign(newConfig, options);
     newConfig.url = url;
     newConfig.method === 'GET'
-      ? newConfig.params.accessToken = storage.get('wms_user_token')
-      : newConfig.data.accessToken = storage.get('wms_user_token');
+      ? newConfig.params.accessToken = storage.get('scada_user_token')
+      : newConfig.data.accessToken = storage.get('scada_user_token');
     newConfig.method === 'GET'
-      ? newConfig.params.warehouseId = storage.get('wms_warehouse_id')
-      : newConfig.data.warehouseId = storage.get('wms_warehouse_id');
-    newConfig.method === 'GET'
-      ? newConfig.params.pageUrl = storage.get('wms_ajax_config')
-      : newConfig.data.pageUrl = storage.get('wms_ajax_config');
+      ? newConfig.params.warehouseId = storage.get('scada_warehouseId')
+      : newConfig.data.warehouseId = storage.get('scada_warehouseId');
     newConfig.method === 'GET'
       ? newConfig.data = null
       : newConfig.params = null;
