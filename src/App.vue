@@ -25,20 +25,5 @@ export default {
       return getLocaleMessage(this.language).antLocale || defaultLanguage;
     },
   },
-  watch: {
-    language() {
-      this.appInit();
-    },
-  },
-  created() {
-    if (this.$route.name !== 'login' && this.$route.name !== 'error') {
-      this.appInit();
-    }
-  },
-  methods: {
-    appInit() {
-      console.log('页面初始化');
-    },
-  },
 };
 </script>

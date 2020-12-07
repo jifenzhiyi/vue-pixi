@@ -41,3 +41,34 @@ li { list-style:none; }
 .middle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 .ant-form-item { margin-bottom: 5px !important; }
 .ant-form-explain { padding-top: 5px; }
+.radio_css {
+  &:last-child { margin-right: 0; }
+  &.s0 {
+    color: #fff;
+    .ant-radio-checked .ant-radio-inner {
+      border-color: #808099;
+      &::after { background-color: #808099; }
+    }
+  }
+  &.s1 {
+    color: #fff;
+    .ant-radio-checked .ant-radio-inner {
+      border-color: #e1021d;
+      &::after { background-color: #e1021d; }
+    }
+  }
+  &.s2 {
+    color: #fff;
+    .ant-radio-checked .ant-radio-inner {
+      border-color: #037aff;
+      &::after { background-color: #037aff; }
+    }
+  }
+  &.s3 {
+    color: #fff;
+    .ant-radio-checked .ant-radio-inner {
+      border-color: #009e63;
+      &::after { background-color: #009e63; }
+    }
+  }
+}

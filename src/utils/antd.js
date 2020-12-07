@@ -9,6 +9,7 @@ import {
   message,
   Menu,
   Modal,
+  Radio,
   Select,
 } from 'ant-design-vue';
 
@@ -19,6 +20,7 @@ Vue.use(Form);
 Vue.use(Icon);
 Vue.use(Input);
 Vue.use(Menu);
+Vue.use(Radio);
 Vue.use(Select);
 
 Vue.prototype.$message = message;
