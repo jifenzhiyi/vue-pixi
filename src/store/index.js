@@ -12,8 +12,13 @@ export default new Vuex.Store({
     warehouseId: storage.get('scada_warehouseId') || '', // 选中的仓库
     warehouseIds: storage.get('scada_warehouseIds') || [], // 仓库列表
     menuList: storage.get('scada_menuList') || [],
+    systemStatus: storage.get('scada_system_status') || 0, // 系统状态
   },
   mutations: {
+    // 设置系统状态
+    SET_SYSTEM_STATUS(state, status) {
+      state.systemStatus = status;
+    },
     // 设置管理员权限
     SET_MENULIST(state, list) {
       state.menuList = list;

@@ -3,7 +3,7 @@
     <div :class="['status', `s${systemStatus}`]">
       <h3>系统状态</h3>
       <a-radio-group
-        v-model="systemStatus"
+        :value="systemStatus"
         @change="radioChange">
         <a-radio
           v-for="item in systemStatusMap"

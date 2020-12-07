@@ -11,5 +11,6 @@ export default (store) => {
     mutation.type === 'SET_WAREHOUSE_ID' && storage.set('scada_warehouseId', state.warehouseId);
     mutation.type === 'SET_WAREHOUSEIDS' && storage.set('scada_warehouseIds', state.warehouseIds);
     mutation.type === 'SET_MENULIST' && storage.set('scada_menuList', state.menuList);
+    mutation.type === 'SET_SYSTEM_STATUS' && storage.set('scada_system_status', state.systemStatus);
   });
 };
