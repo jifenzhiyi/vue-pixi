@@ -9,13 +9,18 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     language: storage.get('scada_lang') || 'zh-CN',
-    warehouseIds: storage.get('scada_warehouseIds') || [],
+    warehouseId: storage.get('scada_warehouseId') || '', // 选中的仓库
+    warehouseIds: storage.get('scada_warehouseIds') || [], // 仓库列表
     menuList: storage.get('scada_menuList') || [],
   },
   mutations: {
     // 设置管理员权限
     SET_MENULIST(state, list) {
       state.menuList = list;
+    },
+    // 选中仓库
+    SET_WAREHOUSE_ID(state, id) {
+      state.warehouseId = id;
     },
     // 设置仓库列表
     SET_WAREHOUSEIDS(state, list) {

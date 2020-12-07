@@ -14,6 +14,7 @@ import './icons';
 
 Vue.config.productionTip = false;
 Vue.prototype.$storage = storage;
+Vue.prototype.$version = config.version;
 Vue.prototype.$isPC = isPC;
 Vue.use(createComp);
 console.info(`%cv${config.version} (${new Date().toLocaleString()})`, 'color: red');

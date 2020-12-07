@@ -59,7 +59,6 @@ export default {
     async login(values) {
       const res = await login(values);
       if (res) {
-        console.log('login res', res);
         storage.set('scada_user_name', res.data.name);
         storage.set('scada_user_token', res.data.accessToken);
         this.$store.commit('SET_MENULIST', res.data.menuList.map((one) => {
@@ -69,6 +68,7 @@ export default {
           obj.buttonType = one.buttonType;
           return obj;
         }));
+        this.$store.commit('SET_WAREHOUSE_ID', res.data.warehouseIds[0]);
         this.$store.commit('SET_WAREHOUSEIDS', res.data.warehouseIds);
         this.$notice_success({
           minfo: '登录成功',
