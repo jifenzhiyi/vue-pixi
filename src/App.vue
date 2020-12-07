@@ -1,32 +1,44 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+    <a-config-provider :locale="antLocale">
+      <router-view />
+    </a-config-provider>
   </div>
 </template>
 
-<style lang="less">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import { mapState } from 'vuex';
+import role from '@/mixins/role';
+import { getLocaleMessage, defaultLanguage } from '@/locale';
 
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
+export default {
+  name: 'App',
+  data() {
+    return {
+      locale: {},
+    };
+  },
+  mixins: [role],
+  computed: {
+    ...mapState(['language']),
+    antLocale() {
+      return getLocaleMessage(this.language).antLocale || defaultLanguage;
+    },
+  },
+  watch: {
+    language() {
+      this.appInit();
+    },
+  },
+  created() {
+    if (this.$route.name !== 'login' && this.$route.name !== 'error') {
+      this.appInit();
     }
-  }
-}
-</style>
+  },
+  methods: {
+    appInit() {
+      console.log('页面初始化');
+    },
+  },
+};
+</script>
