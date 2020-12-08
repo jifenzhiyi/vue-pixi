@@ -1,12 +1,12 @@
 <template>
   <div class="main">
     <div class="box">
-      <a-spin
-        tip="Loading..."
-        :spinning="loading" />
-      <canvas
-        v-if="!loading"
-        ref="gameView"></canvas>
+      <div class="abs middle">
+        <a-spin
+          tip="Loading..."
+          :spinning="loading" />
+      </div>
+      <canvas ref="gameView"></canvas>
     </div>
     <div class="abs top">
       <div class="time">{{ formatTime }}</div>
@@ -18,6 +18,7 @@
 <script>
 import role from '@/mixins/role';
 import { formatTime } from '@/utils/help.js';
+import Scene from '@/factory';
 
 export default {
   name: 'ScadaCanvas',
@@ -26,28 +27,33 @@ export default {
     return {
       ws: null,
       loading: true,
-      formatTime: formatTime(new Date()),
+      application: null,
       timeInterval: null,
+      warehouseInfo: null,
+      formatTime: formatTime(new Date()),
     };
   },
   created() {
     this.timeInterval = setInterval(() => {
       this.formatTime = formatTime(new Date());
     }, 1000);
-    if (this.$route.name !== 'login') {
-      this.loading = false;
-      // Promise.all([
-      //   this.queryWarehouse(),
-      //   this.queryDimensionList(),
-      // ]).then(() => {
-      //   this.loading = false;
-      // });
-    }
+    // this.$store.commit('SET_PARAMS', { key: 'floorDirection', value: 'row' });
   },
   mounted() {
-    // this.initWS();
+    if (this.$route.name !== 'login') {
+      Promise.all([
+        this.queryWarehouse(),
+        this.queryDimensionList(),
+      ]).then(() => {
+        this.loading = false;
+        this.application = new Scene(this.$refs.gameView, this.warehouseInfo);
+        this.initWS();
+      });
+    }
   },
   beforeDestroy() {
+    this.application && this.application.destroy();
+    this.application = null;
     this.ws && this.ws.close();
     this.timeInterval && clearInterval(this.timeInterval);
   },

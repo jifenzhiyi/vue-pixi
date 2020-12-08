@@ -4,6 +4,16 @@ export const debounce = (fn, wait) => {
   timeout = setTimeout(fn, wait);
 };
 
+export const thottle = (t, fn) => {
+  let timer;
+  return () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn();
+    }, t);
+  };
+};
+
 export const getNewDate = (time) => time.replace('T', ' ');
 
 export const convertArrayToMap = (array, key) => {

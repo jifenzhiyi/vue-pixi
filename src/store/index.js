@@ -1,8 +1,9 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import storage from '@/utils/storage';
-import { loadLanguageAsync } from '@/locale';
-import localInit from './plugins/localInit';
+import storage from '@/utils/storage.js';
+import { loadLanguageAsync } from '@/locale/index.js';
+import localInit from './plugins/localInit.js';
+import factory from './factory.js';
 
 Vue.use(Vuex);
 
@@ -46,4 +47,5 @@ export default new Vuex.Store({
     },
   },
   plugins: [localInit],
+  modules: { factory },
 });

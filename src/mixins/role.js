@@ -39,8 +39,11 @@ export default {
   },
   methods: {
     initWS() {
+      let isFirst = true;
       const getToken = encodeURIComponent(storage.get('scada_user_token'));
-      this.ws = new WebSocket(`ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`);
+      this.ws = new WebSocket(
+        `ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`,
+      );
       this.ws.onopen = (e) => {
         console.log('WS onopen ===', e);
       };
@@ -52,11 +55,20 @@ export default {
       };
       this.ws.onmessage = (e) => {
         const jsonData = JSON.parse(e.data);
+        jsonData.status != null && this.$store.commit('SET_SYSTEM_STATUS', jsonData.status);
+        if (isFirst) {
+          isFirst = false;
+          this.application.init(jsonData);
+        } else {
+          this.application.update(jsonData);
+        }
       };
     },
     async queryWarehouse() {
       const res = await queryWarehouse();
-      console.log('queryWarehouse res', res);
+      if (res) {
+        res.data.rows.length > 0 && (this.warehouseInfo = res.data.rows[0]);
+      }
     },
     async queryDimensionList() {
       const res = await queryDimensionList({ parameter: 1 });
@@ -76,7 +88,7 @@ export default {
         if (key === 'model') {
           this.state.model = 'view';
         } else {
-          key === 'robotErr' ? this.state[key] = '' : this.state[key] = '-';
+          key === 'robotErr' ? (this.state[key] = '') : (this.state[key] = '-');
         }
       });
     },

@@ -3,6 +3,7 @@
     <div :class="['status', `s${systemStatus}`]">
       <h3>系统状态</h3>
       <a-radio-group
+        class="radio_group"
         :value="systemStatus"
         @change="radioChange">
         <a-radio
@@ -48,6 +49,10 @@ aside {
     &.s2 { background: #037aff; }
     &.s3 { background: #009e63; }
     h3 { color: #fff; }
+    .radio_group {
+      display: flex;
+      justify-content: space-between;
+    }
   }
 }
 .radio_css { color: #ccc; }
