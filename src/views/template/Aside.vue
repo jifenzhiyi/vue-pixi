@@ -1,7 +1,7 @@
 <template>
   <aside>
     <div :class="['status', `s${systemStatus}`]">
-      <h3>系统状态</h3>
+      <h3>{{ $t('SystemStatus') }}</h3>
       <a-radio-group
         class="radio_group"
         :value="systemStatus"
@@ -35,6 +35,7 @@ aside {
   width: 320px;
   display: flex;
   margin-left: 10px;
+  position: relative;
   flex-direction: column;
   .status {
     height: 90px;

@@ -3,15 +3,20 @@ import store from '@/store/index.js';
 import colorConfig from '@/utils/colorConfig.js';
 import { thottle } from '@/utils/help.js';
 import { isPC } from '@/utils/device.js';
+import sound from './sound';
+import { createGraphics, loadTextures, getMinAndSec } from './func.js';
 
+let nowStamp;
 const deviceIsPC = isPC();
 const { params } = store.state.factory;
 const floorPadding = 10;
 const floorMargin = 20;
+const sprites = { rect: null };
 
 class Scene {
-  constructor(el, warehouseInfo, events) {
+  constructor(el, warehouseInfo, events, spaceInfoBox) {
     this.el = el;
+    this.spaceInfoBox = spaceInfoBox;
     const { mapWidth, mapLength, spaceWidth, spaceLength } = warehouseInfo;
     // const { warehouseLayerNo } = warehouseInfo; // warehouseType
     this.mapWidth = mapLength * 10;
@@ -47,19 +52,19 @@ class Scene {
       }, // 工作站数量
       robotMapOfError: {}, // 机器错误信息
     }; // 场景内容信息
-    this.createScene(el); // 场景创建
-    // loadTextures().then(res => {
-    //   textures = res
-    //   this.events.onSceneCreated && this.events.onSceneCreated()
-    // })
+    this.textures = null;
+    this.allowSound = false; // 提示音
+    loadTextures().then((res) => {
+      this.textures = res;
+      this.createScene(el); // 场景创建
+      this.events.onInitWS && this.events.onInitWS();
+    });
   }
 
   resize() {
     this.el.style.display = 'none';
-    setTimeout(() => {
-      this.app.renderer.resize(this.el.parentElement.clientWidth, this.el.parentElement.clientHeight);
-      this.el.style.display = 'block';
-    }, 0);
+    this.app && this.app.renderer.resize(this.el.parentElement.clientWidth, this.el.parentElement.clientHeight);
+    this.el.style.display = 'block';
   }
 
   createScene(el) {
@@ -139,6 +144,11 @@ class Scene {
     floor.robotSprites.name = 'robotSprites';
     floor.robotSprites.position.set(floorPadding, floorPadding);
     floorContainer.addChild(floor.robotSprites);
+    // 特殊容器 手势边框等等
+    floor.other = new PIXI.Container();
+    floor.other.name = 'other';
+    floor.other.position.set(floorPadding, floorPadding);
+    floorContainer.addChild(floor.other);
     // 主容器
     const buildingContainer = this.building.buildingContainer;
     buildingContainer.x = Math.floor(this.app.screen.width / (devicePixelRatio * 2));
@@ -147,7 +157,7 @@ class Scene {
     buildingContainer.pivot.y = Math.floor(buildingContainer.height / 2);
     this.app.stage.addChild(buildingContainer);
     this.resize();
-    window.addEventListener('resize', thottle(200, this.resize.bind(this)));
+    window.addEventListener('resize', thottle(300, this.resize.bind(this)));
     // 浏览器 tab 页切换到后台时将机器的移动速度置为 0，即无动画
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
@@ -169,15 +179,21 @@ class Scene {
   }
 
   init(data) {
-    const { spaces } = data; // terminals, robots, containers, containerDetail
+    nowStamp = +new Date();
+    const { spaces, terminals, robots } = data; // containers, containerDetail
     spaces && this.initSpaces(spaces);
-    // terminals && this.initTerminals(terminals)
+    terminals && this.initTerminals(terminals);
+    robots && this.initRobots(robots);
     // containers && this.initContainers(containers, containerDetail)
-    // robots && this.initRobots(robots)
-    // sprites.hoverBorder = createRect(this.spaceWidth, this.spaceLength, this.colorConfig.hoverBorderColor, 'hoverBorder')
-    // sprites.fromBorder = createRect(this.spaceWidth, this.spaceLength, this.colorConfig.fromBorderColor, 'fromBorder')
-    // sprites.toBorder = createRect(this.spaceWidth, this.spaceLength, this.colorConfig.toBorderColor, 'toBorder')
-    // building.buildingSprite.addChild(sprites.hoverBorder, sprites.fromBorder, sprites.toBorder)
+    sprites.hoverBorder = createGraphics(
+      this.spaceWidth,
+      this.spaceLength,
+      this.colorConfig.hoverBorderColor,
+      'hoverBorder',
+    );
+    // sprites.fromBorder = createGraphics(this.spaceWidth, this.spaceLength, this.colorConfig.fromBorderColor, 'fromBorder')
+    // sprites.toBorder = createGraphics(this.spaceWidth, this.spaceLength, this.colorConfig.toBorderColor, 'toBorder')
+    this.building.buildingContainer.addChild(sprites.hoverBorder); // , sprites.fromBorder, sprites.toBorder
     // this.params.testStatus()
     return Promise.resolve(this.info);
   }
@@ -199,7 +215,6 @@ class Scene {
       const spaceSprite = PIXI.Sprite.from('textures/space1.jpg');
       spaceSprite.width = this.spaceWidth;
       spaceSprite.height = this.spaceLength;
-      spaceSprite.interactive = true;
       spacesIdLayer.addChild(spaceSprite);
       space.spaceSprite = spaceSprite;
       space.spacesIdLayer = spacesIdLayer;
@@ -219,6 +234,14 @@ class Scene {
         this.info.spaceCountOfCharger += 1;
       }
       // TODO添加事件
+      if (deviceIsPC) {
+        // 添加事件
+        spaceSprite.interactive = true;
+        spaceSprite.on('mouseover', this.spaceMouseOver.bind(spaceSprite, space, this));
+        spaceSprite.on('mouseout', this.spaceMouseOut.bind(spaceSprite, this));
+        // spaceSprite.on('click', this.spaceUp.bind(spaceSprite, space, this))
+        // spaceSprite.on('rightclick', this.spaceRightUp.bind(spaceSprite, space, this))
+      }
       // if (deviceIsPC) {
       //   spaceSprite.on('mouseover', this.spaceMouseOver.bind(spaceSprite, space, this))
       //   spaceSprite.on('mouseout', this.spaceMouseOut.bind(spaceSprite, space, this))
@@ -236,13 +259,251 @@ class Scene {
       // }
       // const spacesIdLayer2 = new PIXI.Container();
     }
+    // linkId
+    for (let i = 0; i < spaces.length; i++) {
+      if (spaces[i].status === -9) i++; // 状态-9跳过
+      const { x, y, z, linkId } = spaces[i];
+      if (linkId) {
+        const spacesPathSprite = this.building.floors[z].spacesPathSprite;
+        const linkIds = linkId.trim().split(' ');
+        linkIds.forEach((toId) => {
+          const { x: x1, y: y1 } = this.info.spaceMap[toId];
+          spacesPathSprite.moveTo(x, y);
+          spacesPathSprite.lineTo((x + x1) / 2, (y + y1) / 2);
+        });
+      }
+    }
+  }
+
+  initTerminals(terminals) {
+    this.info.terminalCount.sum = terminals.length;
+    this.info.terminalMap = {};
+    for (let i = 0; i < terminals.length; i++) {
+      if (terminals[i].status === -1) i++;
+      const terminal = terminals[i];
+      const { terminalId, spaceId, status } = terminal;
+      const space = this.info.spaceMap[spaceId];
+      if (!space) continue; // 货架对应的space不存在
+      this.info.terminalCount[`terminalCountOf${status}`]++;
+      const { posX, posY, posZ, x, y, z } = space;
+      space.terminalId = terminalId; // 记录点位存在工作站Id
+      if (posZ !== 0) continue;
+      const terminalContainer = new PIXI.Container();
+      // 0, terminal 本体
+      const terminalSprite = PIXI.Sprite.from('textures/space1.jpg');
+      terminalSprite.tint = this.colorConfig.terminalColorMap[status];
+      terminalSprite.width = this.spaceWidth;
+      terminalSprite.height = this.spaceLength;
+      terminalSprite.anchor.set(0.5);
+      terminalContainer.position.set(x, y);
+      terminalContainer.addChild(terminalSprite);
+      this.building.floors[z].terminalSprites.addChild(terminalContainer);
+      // 工作站列表， 给右侧栏使用
+      this.info.terminalMap[terminalId] = { terminalId, spaceId, posX, posY, posZ, status, terminalContainer };
+    }
+  }
+
+  initRobots(robots) {
+    this.info.robotCount.sum = robots.length;
+    this.info.robotMap = {};
+    for (let i = 0; i < robots.length; i++) {
+      if (robots[i] === -9) {
+        this.info.robotCount.sum--;
+        continue;
+      }
+      const robot = robots[i];
+      const { robotId, spaceId, orientation, status } = robot;
+      const space = this.info.spaceMap[spaceId];
+      if (!space) continue;
+      const { posX, posY, posZ, x, y, z } = space;
+      space.robotId = robotId; // 记录点位存在机器人Id
+      space.robotStatus = status; // 记录点位存在机器人Id
+      robot.posX = posX;
+      robot.posY = posY;
+      robot.posZ = posZ;
+      const robotContainer = new PIXI.Container();
+      const robotSprites = this.building.floors[z].robotSprites;
+      robotSprites.addChild(robotContainer);
+      // 1, 本体
+      const isRobot = robotId.startsWith('R');
+      const robotSprite = new PIXI.Sprite(isRobot ? this.textures.robot : this.textures.lift);
+      robotContainer.position.set(x, y);
+      robotSprite.width = isRobot ? 6 : 12;
+      robotSprite.height = isRobot ? 6 : 12;
+      robotSprite.anchor.set(0.5);
+      orientation && (robotSprite.rotation = (-orientation * Math.PI) / 180);
+      robotContainer.addChild(robotSprite);
+      robotSprite.oldScale = robotSprite.scale.x;
+      // 2, id
+      const idSprite = new PIXI.Text(robotId, this.colorConfig.robotIdStyle);
+      idSprite.anchor.set(0.5, 1.2);
+      idSprite.scale.set(0.5);
+      idSprite.visible = false;
+      robotContainer.addChild(idSprite);
+      // 3, errorTextBox
+      const errorTextBox = PIXI.Sprite.from('textures/errorTextBox.png');
+      errorTextBox.tint = 0xff0000;
+      errorTextBox.alpha = 0.8;
+      errorTextBox.anchor.set(0, 0.5);
+      errorTextBox.position.x = 5;
+      errorTextBox.visible = false;
+      robotContainer.addChild(errorTextBox);
+      // 4, errorText
+      const errorText = new PIXI.Text('', this.colorConfig.errorTextStyle);
+      errorText.anchor.set(0, 0.5);
+      errorText.scale.set(0.3);
+      errorText.position.x = 6;
+      errorText.visible = false;
+      robotContainer.addChild(errorText);
+      robot.robotContainer = robotContainer;
+      robotSprite.calculateBounds();
+      // 机器列表，给右侧栏用
+      this.info.robotMap[robotId] = robot;
+      // 设置机器颜色、错误代码
+      this.setRobotState(robot);
+    }
+  }
+
+  setRobotState(robot, oldStatus) {
+    const { robotId, robotContainer, status } = robot; // spaceId,
+    const [robotSprite, , errorTextBox, errorText] = robotContainer.children;
+    status === -1 ? (robotContainer.visible = params.showOfflineRobots) : (robotContainer.visible = true);
+    if (oldStatus == null) {
+      // 地图初始化
+      if (status > 10) {
+        // 当状态大于10 机器有问题
+        this.robotStatusControl(robot);
+      } else {
+        // 机器状态正常
+        robotSprite.tint = this.colorConfig.robotColorMap[status];
+        this.info.robotCount[`robotCountOf${status}`]++;
+      }
+      return;
+    }
+    // 地图更新
+    if (oldStatus <= 10 && status <= 10) {
+      robotSprite.tint = this.colorConfig.robotColorMap[status]; // 颜色更新
+      this.info.robotCount[`robotCountOf${oldStatus}`]--;
+      this.info.robotCount[`robotCountOf${status}`]++;
+    } else if (oldStatus <= 10 && status > 10) {
+      this.robotStatusControl(robot, oldStatus); // 机器出问题了
+    } else if (oldStatus > 10 && status <= 10) {
+      // 问题机器变正常了
+      console.log(
+        '问题机器变正常了 robotId',
+        robotId,
+        'status',
+        status,
+        'oldStatus',
+        oldStatus,
+        '是否已进入预报错队列：',
+        robotContainer.errTimer,
+      );
+      if (robotContainer.errTimer) {
+        clearTimeout(robotContainer.errTimer);
+        robotContainer.errTimer = null;
+      } else {
+        errorTextBox.visible = false;
+        errorText.visible = false;
+        errorText.text = '';
+        delete this.info.robotMapOfError[robotId];
+        robotSprite.tint = this.colorConfig.robotColorMap[status];
+        // 机器数量统计：有问题 -1，新状态 +1
+        this.info.robotCount[`robotCountOf${status}`]++;
+        this.info.robotCount.robotCountOf99--;
+        // TODO 关闭闪烁
+        // const robotSpriteTween = TweenMax.getTweensOf(robotSprite.scale)[0]
+        // if (robotSpriteTween) {
+        //   robotSpriteTween.kill();
+        //   robotSprite.scale.set(robotSprite.oldScale);
+        // }
+      }
+    }
+  }
+
+  // 添加 warn 计时（时间到达后 显示错误代码，机器变红，闪烁，统计）
+  robotStatusControl(robot, oldStatus) {
+    const { robotId, robotContainer, status } = robot;
+    const [robotSprite, , errorTextBox, errorText] = robotContainer.children;
+    robotContainer.errTimer = setTimeout(() => {
+      this.allowSound && sound.play();
+      // 错误代码和超时分钟数
+      robotContainer.overtime
+        ? (this.info.robotMapOfError[robotId] = `${robotId}, e${status - 10}, ${robotContainer.overtime}min`)
+        : (this.info.robotMapOfError[robotId] = `${robotId}, e${status - 10}`);
+      robotContainer.overtime
+        ? (errorText.text = `${robotId}, e${status - 10}, ${robotContainer.overtime}min`)
+        : (errorText.text = `${robotId}, e${status - 10}`);
+      errorText.visible = true;
+      errorTextBox.visible = true;
+      errorTextBox.width = errorText.width + 2;
+      // 机器变红
+      robotSprite.tint = 0xff0000;
+      // 机器闪烁
+      // const oldScale = robotSprite.oldScale;
+      // TweenMax.fromTo(
+      //   robotSprite.scale,
+      //   0.35,
+      //   {
+      //     x: oldScale,
+      //     y: oldScale,
+      //   },
+      //   {
+      //     x: oldScale * 3,
+      //     y: oldScale * 3,
+      //     repeat: -1,
+      //   },
+      // );
+      // 机器数量统计：有问题
+      oldStatus && this.info.robotCount[`robotCountOf${oldStatus}`]--;
+      console.log('有问题 robotId', robotId, 'status', status, 'oldStatus', oldStatus);
+      this.info.robotCount.robotCountOf99++;
+      this.info.robotMap[robotId].status = status; // 更新机器人状态
+      robotContainer.errTimer = null;
+      this.events.onUpdateInfo(this.info);
+    }, params.ErrRobotTimeout * 1000);
+  }
+
+  spaceMouseOver(space, $root) {
+    $root.showInfoTimer && clearTimeout($root.showInfoTimer);
+    const { spaceId, terminalId, robotId, robotStatus, posX, posY, posZ, x, y, z, spaceSprite } = space; // status
+    const status = robotStatus || 0;
+    sprites.hoverBorder.setParent($root.building.floors[z].other);
+    sprites.hoverBorder.position.set(x - 5, y - 5);
+    sprites.hoverBorder.visible = true;
+    // const container = building.containerMap[spaceId] || {}
+    // // 200ms内光标所在的space不变化才显示space信息
+    $root.showInfoTimer = setTimeout(() => {
+      store.commit('SET_CONFIG_ONE', { key: 'spaceId', value: spaceId });
+      store.commit('SET_CONFIG_ONE', { key: 'posX', value: posX });
+      store.commit('SET_CONFIG_ONE', { key: 'posY', value: posY });
+      store.commit('SET_CONFIG_ONE', { key: 'posZ', value: posZ });
+      store.commit('SET_CONFIG_ONE', { key: 'terminalId', value: terminalId || '-' });
+      store.commit('SET_CONFIG_ONE', { key: 'robotId', value: robotId || '-' });
+      store.commit('SET_CONFIG_ONE', { key: 'robotErr', value: status <= 10 ? '' : status - 10 });
+      // e && $root.showLinkedLater()
+      // mutations.set('containerId', container.containerId || '-')
+      const { x: left, y: top } = spaceSprite.getGlobalPosition();
+      const { width, height } = spaceSprite.getBounds();
+      $root.spaceInfoBox.style.left = `${left + width * 0.6}px`;
+      $root.spaceInfoBox.style.top = `${top - height * 0.6}px`;
+      $root.spaceInfoBox.style.display = 'block';
+    }, 200);
+  }
+
+  spaceMouseOut($root) {
+    sprites.hoverBorder.visible = false;
+    $root.showInfoTimer && clearTimeout($root.showInfoTimer);
+    $root.spaceInfoBox.style.display = 'none';
+    store.commit('CONFIG_RESET');
   }
 
   update(data) {
-    const { spaces } = data; // terminals, robots, containers, containerDetail
+    nowStamp = +new Date();
+    const { spaces, terminals, robots } = data; // containers, containerDetail
     spaces && this.updateSpaces(spaces);
-    // terminals && this.updateTerminals(terminals)
-    // robots && this.updateRobots(robots)
+    terminals && this.updateTerminals(terminals);
+    robots && this.updateRobots(robots);
     // this.updateContainers(containers, containerDetail)
     // this.doMove()
     return Promise.resolve(this.info);
@@ -271,6 +532,179 @@ class Scene {
         oldSpace.status = status;
       }
     }
+  }
+
+  updateTerminals(terminals) {
+    for (let i = 0; i < terminals.length; i++) {
+      const terminal = terminals[i];
+      const { spaceId, status } = terminal;
+      const oldTerminal = this.info.terminalMap[spaceId];
+      const { terminalContainer, status: oldStatus } = oldTerminal;
+      if (status !== oldStatus) {
+        terminalContainer.getChildAt(0).tint = this.colorConfig.terminalColorMap[status];
+        oldTerminal.status = status;
+        // 状态变化更改计数
+        this.info.terminalCount[`terminalCountOf${oldStatus}`]--;
+        this.info.terminalCount[`terminalCountOf${status}`]++;
+        // 刷新工作站状态， 给右侧栏使用
+        this.info.terminalMap[spaceId].status = status;
+      }
+    }
+  }
+
+  updateRobots(robots) {
+    const len = robots.length;
+    for (let i = 0; i < len; i++) {
+      const robot = robots[i];
+      const {
+        robotId,
+        spaceId,
+        voltage,
+        orientation,
+        endId: endIdNew,
+        lastUpdateTimeStamp,
+        status,
+        // containerId,
+        // terminalId,
+        // frequence,
+      } = robot;
+      const endIdList = endIdNew ? endIdNew.split(',') : [];
+      const endId = endIdList[0]; // endId 第一个坐标点
+      const space = this.info.spaceMap[spaceId]; // 当前的位置
+      if (!space) continue; // robot对应的space不存在 直接跳过
+      const { posX, posY, posZ } = space; // x, y, z
+      const oldRobot = this.info.robotMap[robotId]; // 原机器人信息
+      oldRobot.lastUpdateTimeStamp = lastUpdateTimeStamp;
+      oldRobot.posX = posX;
+      oldRobot.posY = posY;
+      oldRobot.posZ = posZ;
+      if (!oldRobot) continue; // 若oldRobot不存在，则是新增的robot，走robot初始化逻辑
+      const { robotContainer, status: oldStatus, orientation: oldOrientation } = oldRobot;
+      // spaceId: oldSpaceId,
+      const [, , errorTextBox, errorText] = robotContainer.children;
+      // 定时循环关闭
+      if (robotContainer.loop) {
+        clearInterval(robotContainer.loop);
+        robotContainer.loop = null;
+        robotContainer.overtime = 0;
+        if (oldRobot.status > 10) {
+          errorText.text = `${robotId}, e${oldRobot.status - 10}`;
+        } else {
+          errorTextBox.visible = false;
+          errorText.visible = false;
+          errorText.text = '';
+        }
+      }
+      // 错误信息显示
+      if (endId !== undefined && endId !== spaceId) {
+        const { min, sec } = getMinAndSec(nowStamp, lastUpdateTimeStamp);
+        if (sec > params.RobotTimeout) {
+          robotContainer.overtime = min;
+          robot.status > 10
+            ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
+            : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+          errorTextBox.width = errorText.width + 2;
+          errorTextBox.visible = true;
+          errorText.visible = true;
+          robotContainer.loop = setInterval(() => {
+            ++robotContainer.overtime;
+            robot.status > 10
+              ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
+              : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+            errorTextBox.width = errorText.width + 2;
+          }, 60 * 1000);
+        } else {
+          robotContainer.loop = setTimeout(() => {
+            robotContainer.overtime = Math.floor(params.RobotTimeout / 60);
+            robot.status > 10
+              ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
+              : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+            errorTextBox.width = errorText.width + 2;
+            errorTextBox.visible = true;
+            errorText.visible = true;
+            robotContainer.loop = setInterval(() => {
+              ++robotContainer.overtime;
+              robot.status > 10
+                ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
+                : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+              errorTextBox.width = errorText.width + 2;
+            }, 60 * 1000);
+          }, (params.RobotTimeout - sec) * 1000);
+        }
+      }
+      // const oldSpace = this.info.spaceMap[oldSpaceId];
+      // const { x: oldX, y: oldY, z: oldZ } = oldSpace;
+      // 机器列表，给右侧栏用
+      oldRobot.status = status;
+      oldRobot.voltage = voltage;
+      oldRobot.orientation = orientation;
+      // 若机器人 status 变化需要重新设置颜色, orientation 变化需要改变方向
+      if (status !== oldStatus || orientation !== oldOrientation) {
+        // 设置机器颜色、错误代码
+        robot.robotContainer = robotContainer;
+        this.setRobotState(robot, oldStatus);
+      }
+      // todo：以下两行代码移到下方的 if 代码块内
+      // const endSpace = this.info.spaceMap[endId]
+      // const { x: endX, y: endY } = endSpace // 需要移动的第一个点位
+      // this.robotlineTo(space, endSpace, robotContainer);
+      // // TODO 节流控制运动轨迹的生成
+      // throttle(function () {
+      //   if (oldRobot.startId) {
+      //     window.Scene.robotlineClear(oldRobot.startId, oldRobot.setTime)
+      //     oldRobot.startId = null
+      //   }
+      //   if (!oldRobot.startId && spaceId !== endId) {
+      //     // if (robotId === 'R6') {
+      //     //   console.log('endIdNew', endIdNew, 'endId', endId, 'startId', oldRobot.startId)
+      //     //   console.log('list', endIdList)
+      //     // }
+      //     oldRobot.startId = spaceId
+      //     window.Scene.robotlineTo2(space, endIdList)
+      //   }
+      // }, 1000)()
+      // if (oldRobot.startId && spaceId === endId) {
+      //   this.robotlineClear(oldRobot.startId, oldRobot.setTime)
+      //   oldRobot.startId = null
+      // }
+      // oldRobot.endId = endIdNew
+      // if (spaceId !== oldSpaceId) {
+      //   oldRobot.spaceId = spaceId
+      //   this.robotMapBySpaceId[oldSpaceId] = ''
+      //   this.robotMapBySpaceId[spaceId] = oldRobot
+      //   // todo: 如果机器人的移动伴随楼层转换，则执行不同的逻辑。包括不需要显示机器的路径（endId 与 spaceId 不同），
+      //   if (z !== oldZ) { // 楼层转换
+      //     robotContainer.setParent(building.floors[z].robotSprites)
+      //     // 添加转换闪烁动画， 如不需要，注释掉即可
+      //     let i = 0
+      //     const yoyo = setInterval(() => {
+      //       i > 5 ? clearInterval(yoyo) : i += 1
+      //       robotContainer.setParent(building.floors[i % 2 === 1 ? oldZ : z].robotSprites)
+      //     }, 100)
+      //   } else { // 同层移动
+      //     let offsetX, offsetY
+      //     if (spaceId !== oldSpaceId) {
+      //       offsetX = x - oldX
+      //       offsetY = y - oldY
+      //     }
+      //     const key = `${oldSpaceId}->${spaceId}`
+      //     this.waitingMoveListByRobotId[robotId] = this.waitingMoveList[key] = {
+      //       robotContainer, x, y, endX, endY, offsetX, offsetY,
+      //     }
+      //   }
+      //   // 机器列表，给右侧栏用
+      //   this.info.robotMap[robotId].spaceId = spaceId
+      //   this.info.robotMap[robotId].posX = posX
+      //   this.info.robotMap[robotId].posY = posY
+      //   this.info.robotMap[robotId].posZ = posZ
+      // }
+      // oldRobot.containerId = containerId
+      // oldRobot.terminalId = terminalId
+      // oldRobot.frequence = frequence
+    }
+    setTimeout(() => {
+      this.events.onUpdateInfo(this.info);
+    }, params.ErrRobotTimeout * 1000);
   }
 
   // 绑定事件 拖动,点击,放大缩小等

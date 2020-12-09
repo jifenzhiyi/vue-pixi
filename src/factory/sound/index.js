@@ -1,14 +1,14 @@
-import source from './01.mp3'
-import { Howl } from 'howler'
+import { Howl } from 'howler';
+import source from './01.mp3';
 
 const sound = new Howl({
   src: [source],
-  onplayerror (soundId, err) {
-    console.log(soundId, err)
+  onplayerror(soundId, err) {
+    console.log(soundId, err);
   },
-  onunlock (e) {
-    console.log('unlocked!')
+  onunlock() {
+    console.log('unlocked!');
   },
-})
+});
 
-export default sound
+export default sound;

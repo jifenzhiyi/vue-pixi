@@ -33,7 +33,12 @@ module.exports = {
     'vue/html-closing-bracket-newline': ['error', { singleline: 'never', multiline: 'never' }],
     'vue/max-attributes-per-line': 1, // vue 每行的最大属性
     'vue/require-valid-default-prop': 0,
+    'one-var': 0,
+    'one-var-declaration-per-line': 0,
+    'no-bitwise': 0,
+    'no-continue': 0,
     'no-trailing-spaces': 0,
     'object-curly-newline': 0,
+    'class-methods-use-this': 0,
   },
 };

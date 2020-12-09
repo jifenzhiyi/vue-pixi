@@ -8,6 +8,17 @@
       </div>
       <canvas ref="gameView"></canvas>
     </div>
+    <div
+      ref="spaceInfo"
+      class="space-info">
+      <p class="posX">posX: <strong>{{ config.posX }}</strong></p>
+      <p class="posY">posY: <strong>{{ config.posY }}</strong></p>
+      <p class="posZ">posZ: <strong>{{ config.posZ }}</strong></p>
+      <p class="spaceId">spaceId: <strong>{{ config.spaceId }}</strong></p>
+      <p class="robotId">robotId: <strong>{{ config.robotId }}<span v-html="config.robotErr"/></strong></p>
+      <p class="containerId">containerId: <strong>{{ config.containerId }}</strong></p>
+      <p class="terminalId">terminalId: <strong>{{ config.terminalId }}</strong></p>
+    </div>
     <div class="abs top">
       <div class="time">{{ formatTime }}</div>
       <div :class="['status', `s${systemStatus}`]">{{ $t(statusMap.title) }}</div>
@@ -16,12 +27,18 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+import Scene from '@/factory';
 import role from '@/mixins/role';
 import { formatTime } from '@/utils/help.js';
-import Scene from '@/factory';
 
 export default {
   name: 'ScadaCanvas',
+  computed: {
+    ...mapState({
+      config: (state) => state.factory.config,
+    }),
+  },
   mixins: [role],
   data() {
     return {
@@ -37,17 +54,20 @@ export default {
     this.timeInterval = setInterval(() => {
       this.formatTime = formatTime(new Date());
     }, 1000);
-    // this.$store.commit('SET_PARAMS', { key: 'floorDirection', value: 'row' });
   },
   mounted() {
     if (this.$route.name !== 'login') {
       Promise.all([
         this.queryWarehouse(),
         this.queryDimensionList(),
-      ]).then(() => {
+      ]).then((res) => {
         this.loading = false;
-        this.application = new Scene(this.$refs.gameView, this.warehouseInfo);
-        this.initWS();
+        if (res[0] === 'success' && res[1] === 'success') {
+          this.application = new Scene(this.$refs.gameView, this.warehouseInfo, {
+            onInitWS: this.initWS,
+            onUpdateInfo: this.updateInfo,
+          }, this.$refs.spaceInfo);
+        }
       });
     }
   },
@@ -82,6 +102,21 @@ export default {
       height: 100%;
       display: block;
     }
+  }
+  .space-info {
+    z-index: 10;
+    padding: 8px;
+    display: none;
+    color: #fff;
+    top: 0; left: 0;
+    font-size: 14px;
+    user-select: none;
+    border-radius: 3px;
+    position: absolute;
+    pointer-events: none;
+    transition: all 350ms;
+    background: rgba(0, 0, 0, 0.7);
+    p { white-space: nowrap; margin: 0; }
   }
   .top {
     height: 30px;

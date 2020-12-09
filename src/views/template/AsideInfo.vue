@@ -1,5 +1,5 @@
 <template>
-  <div class="aside-info">
+  <div class="abs aside-info">
     <div class="nav">
       <div
         v-for="item in tabList"
@@ -47,8 +47,14 @@ export default {
 
 <style lang="less" scoped>
 .aside-info {
-  margin-top: 10px;
+  left: 0;
+  bottom: 0;
+  top: 100px;
+  width: 100%;
+  display: flex;
+  overflow: hidden;
   border-radius: 4px;
+  flex-direction: column;
   .nav {
     display: flex;
     border-top: solid 1px #ddd;
@@ -73,7 +79,8 @@ export default {
     }
   }
   .content {
-    padding: 15px;
+    overflow: auto;
+    padding: 0 15px;
     border: solid 1px #ddd;
     border-top: 0;
   }
