@@ -23,6 +23,39 @@
       <div class="time">{{ formatTime }}</div>
       <div :class="['status', `s${systemStatus}`]">{{ $t(statusMap.title) }}</div>
     </div>
+    <div class="abs bottom">
+      <a-button-group>
+        <a-button icon="menu"></a-button>
+        <a-button
+          icon="audio"
+          class="btnCss"
+          @click="allowSound">
+          <span
+            v-show="!params.allowSound"
+            class="abs audioCss">\</span>
+        </a-button>
+        <a-button
+          icon="sync"
+          @click="refresh"></a-button>
+        <a-button
+          icon="camera"
+          @click="screenshot"></a-button>
+      </a-button-group>
+      <a-button-group>
+        <a-button
+          icon="zoom-out"
+          @click="zoomer(-0.1)"></a-button>
+        <a-button
+          class="btnCss"
+          @click="zoomer()">1:1</a-button>
+        <a-button
+          icon="zoom-in"
+          @click="zoomer(0.1)"></a-button>
+        <a-button
+          :icon="params.fullScreen ? 'shrink' : 'arrows-alt'"
+          @click="toggleScreen"></a-button>
+      </a-button-group>
+    </div>
   </div>
 </template>
 
@@ -37,6 +70,7 @@ export default {
   computed: {
     ...mapState({
       config: (state) => state.factory.config,
+      params: (state) => state.factory.params,
     }),
   },
   mixins: [role],
@@ -76,6 +110,26 @@ export default {
     this.application = null;
     this.ws && this.ws.close();
     this.timeInterval && clearInterval(this.timeInterval);
+  },
+  methods: {
+    allowSound() {
+      this.$store.commit('SET_PARAMS', { key: 'allowSound', value: !this.params.allowSound });
+    },
+    refresh() {
+      location.reload();
+    },
+    screenshot() {
+      this.application && this.application.takeScreenshot();
+    },
+    toggleScreen() {
+      this.$store.commit('SET_PARAMS', { key: 'fullScreen', value: !this.params.fullScreen });
+    },
+    zoomer(offset) {
+      if (this.application) {
+        this.application.zoom(offset);
+        this.application.resize();
+      }
+    },
   },
 };
 </script>
@@ -141,6 +195,21 @@ export default {
       &.s2::before { background: #037aff; }
       &.s3::before { background: #009e63; }
     }
+  }
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    bottom: 10px; left: 10px; right: 10px;
+  }
+}
+.btnCss {
+  padding: 0;
+  width: 32px;
+  .audioCss {
+    top: 0;
+    left: 2px;
+    font-size: 21px;
+    position: absolute !important;
   }
 }
 </style>

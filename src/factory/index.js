@@ -53,7 +53,6 @@ class Scene {
       robotMapOfError: {}, // 机器错误信息
     }; // 场景内容信息
     this.textures = null;
-    this.allowSound = false; // 提示音
     loadTextures().then((res) => {
       this.textures = res;
       this.createScene(el); // 场景创建
@@ -426,7 +425,7 @@ class Scene {
     const { robotId, robotContainer, status } = robot;
     const [robotSprite, , errorTextBox, errorText] = robotContainer.children;
     robotContainer.errTimer = setTimeout(() => {
-      this.allowSound && sound.play();
+      params.allowSound && sound.play();
       // 错误代码和超时分钟数
       robotContainer.overtime
         ? (this.info.robotMapOfError[robotId] = `${robotId}, e${status - 10}, ${robotContainer.overtime}min`)
@@ -801,6 +800,18 @@ class Scene {
       buildingSprite.y = Math.floor(this.app.screen.height / 2);
       buildingSprite.scale.set(1);
     }
+  }
+
+  takeScreenshot() {
+    console.log('takeScreenshot');
+    this.app.renderer.extract.canvas(this.app.stage).toBlob((b) => {
+      const a = document.createElement('a');
+      document.body.append(a);
+      a.download = 'screenshot';
+      a.href = URL.createObjectURL(b);
+      a.click();
+      a.remove();
+    }, 'image/png');
   }
 }
 

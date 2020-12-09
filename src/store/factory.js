@@ -30,6 +30,8 @@ export default {
       showOfflineRobots: storage.get('showOfflineRobots') || false, // 展示离线机器人
       ErrRobotTimeout: storage.get('ErrRobotTimeout') || 10,
       RobotTimeout: storage.get('RobotTimeout') || 60, // 默认60
+      allowSound: false,
+      fullScreen: storage.get('fullScreen') || false,
     },
     config: {
       posX: '-',
