@@ -57,6 +57,7 @@ class Scene {
       this.textures = res;
       this.createScene(el); // 场景创建
       this.events.onInitWS && this.events.onInitWS();
+      this.events.onMarkerList && this.events.onMarkerList();
     });
   }
 
@@ -122,6 +123,7 @@ class Scene {
     floor.spacesPathSprite.name = 'spacesPathSprite';
     floor.spacesPathSprite.position.set(floorPadding, floorPadding);
     floor.spacesPathSprite.alpha = 0.3;
+    floor.spacesPathSprite.visible = params.showLinks;
     floorContainer.addChild(floor.spacesPathSprite);
     // 工作站容器
     floor.terminalSprites = new PIXI.Container();
@@ -207,18 +209,32 @@ class Scene {
       space.y = posX * 10;
       space.z = posZ || 0;
       const spacesIdLayer = new PIXI.Container();
-      spacesIdLayer.width = this.spaceWidth;
-      spacesIdLayer.height = this.spaceLength;
+      const spacesIdLayer2 = new PIXI.Container();
+      spacesIdLayer.width = spacesIdLayer2.width = this.spaceWidth;
+      spacesIdLayer.height = spacesIdLayer2.height = this.spaceLength;
       spacesIdLayer.pivot.set(this.spaceWidth / 2, this.spaceLength / 2);
       spacesIdLayer.position.set(space.x, space.y);
+      spacesIdLayer2.pivot.set(this.spaceWidth / 2, this.spaceLength / 2);
+      spacesIdLayer2.position.set(space.x, space.y);
+      // 本体1
       const spaceSprite = PIXI.Sprite.from('textures/space1.jpg');
       spaceSprite.width = this.spaceWidth;
       spaceSprite.height = this.spaceLength;
       spacesIdLayer.addChild(spaceSprite);
       space.spaceSprite = spaceSprite;
-      space.spacesIdLayer = spacesIdLayer;
+      // 本体2
+      const spaceSprite2 = PIXI.Sprite.from('textures/space1.png');
+      spaceSprite2.width = this.spaceWidth;
+      spaceSprite2.height = this.spaceLength;
+      spacesIdLayer2.addChild(spaceSprite2);
+      // 点位id
+      const idSprite = new PIXI.Text(spaceId, { fill: this.colorConfig.spaceIdColor });
+      idSprite.scale.set(0.1);
+      idSprite.anchor.set(-0.6, -1.2);
+      idSprite.visible = params.showSpaceId;
+      spacesIdLayer2.addChild(idSprite);
       const floor = this.building.floors[space.z];
-      const { spacesContainer, spacesContainerOfMarked } = floor;
+      const { spacesContainer, spacesContainer2, spacesContainerOfMarked } = floor;
       if (status === 1) {
         this.info.spaceMapOfMark[spaceId] = space;
         spaceSprite.tint = this.colorConfig.spaceColorMap['-1'];
@@ -226,6 +242,7 @@ class Scene {
       } else {
         spaceSprite.tint = this.colorConfig.spaceColorMap[type];
         spacesContainer.addChild(spacesIdLayer);
+        spacesContainer2.addChild(spacesIdLayer2);
       }
       this.info.spaceMap[spaceId] = space;
       if (type === 7) {
@@ -296,6 +313,8 @@ class Scene {
       terminalSprite.anchor.set(0.5);
       terminalContainer.position.set(x, y);
       terminalContainer.addChild(terminalSprite);
+      // 1, terminal 高亮边框
+      // terminalContainer.addChild(createGraphics(this.spaceWidth, this.spaceLength, 0x0000ff));
       this.building.floors[z].terminalSprites.addChild(terminalContainer);
       // 工作站列表， 给右侧栏使用
       this.info.terminalMap[terminalId] = { terminalId, spaceId, posX, posY, posZ, status, terminalContainer };
@@ -812,6 +831,36 @@ class Scene {
       a.click();
       a.remove();
     }, 'image/png');
+  }
+
+  // TODO markers创建
+  initMarkers(markers) {
+    // const len = markers.length;
+    markers.forEach((item) => {
+      const { marker, posX, posY, posZ } = item;
+      const markerBox = PIXI.Sprite.from('textures/space-marker1.png');
+      markerBox.width = 10;
+      markerBox.height = 10;
+      markerBox.anchor.set(0.5);
+      markerBox.position.set(posY * 10, posX * 10);
+      if (/^T\d+/.test(marker)) {
+        // 工作站
+        markerBox.tint = this.colorConfig.markerBoxColor.isT.tint; // 底色
+        this.colorConfig.markerTextStyle.fill = this.colorConfig.markerBoxColor.isT.fill; // 字色
+      } else {
+        // 非工作站
+        markerBox.tint = this.colorConfig.markerBoxColor.noT.tint; // 底色
+        this.colorConfig.markerTextStyle.fill = this.colorConfig.markerBoxColor.noT.fill; // 字色
+      }
+      this.colorConfig.markerTextStyle.fontSize = 44 - (marker.length - 1) * 10;
+      const idSprite = new PIXI.Text(marker, this.colorConfig.markerTextStyle);
+      idSprite.visible = true;
+      idSprite.scale.set(2);
+      idSprite.anchor.set(0.5);
+      markerBox.addChild(idSprite);
+      this.building.floors[posZ].markerSprites.addChild(markerBox);
+      // building.floors[posZ].markerSprites.addChild(idSprite)
+    });
   }
 }
 

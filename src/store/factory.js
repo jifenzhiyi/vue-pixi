@@ -28,6 +28,8 @@ export default {
       floorDirection: storage.get('scada_floor_direction') || 'column', // row column
       moveSpeed: storage.get('scada_move_speed') || 1.5,
       showOfflineRobots: storage.get('showOfflineRobots') || false, // 展示离线机器人
+      showSpaceId: storage.get('showSpaceId') || false, // 展示spaceId
+      showLinks: storage.get('showLinks') || true, // 展示通道
       ErrRobotTimeout: storage.get('ErrRobotTimeout') || 10,
       RobotTimeout: storage.get('RobotTimeout') || 60, // 默认60
       allowSound: false,

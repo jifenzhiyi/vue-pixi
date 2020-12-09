@@ -1,7 +1,7 @@
 import { mapState } from 'vuex';
 import { END_POINT } from '@/config';
 import storage from '@/utils/storage';
-import { queryWarehouse, queryDimensionList, queryVariablesList } from '@/views/api.js';
+import { queryWarehouse, queryDimensionList, queryMarkerList, queryVariablesList } from '@/views/api.js';
 
 export default {
   computed: {
@@ -77,6 +77,11 @@ export default {
     async queryDimensionList() {
       const res = await queryDimensionList({ parameter: 1 });
       return res ? 'success' : 'error';
+    },
+    async queryMarkerList() {
+      const res = await queryMarkerList();
+      // console.log('queryMarkerList res', res);
+      res && res.data && res.data.rows.length > 0 && this.application.initMarkers(res.data.rows);
     },
     async queryVariablesList() {
       const res = await queryVariablesList();

@@ -96,9 +96,11 @@ export default {
         this.queryDimensionList(),
       ]).then((res) => {
         this.loading = false;
-        if (res[0] === 'success' && res[1] === 'success') {
+        const result = res.every((o) => o === 'success');
+        if (result) {
           this.application = new Scene(this.$refs.gameView, this.warehouseInfo, {
             onInitWS: this.initWS,
+            onMarkerList: this.queryMarkerList,
             onUpdateInfo: this.updateInfo,
           }, this.$refs.spaceInfo);
         }
