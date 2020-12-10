@@ -17,8 +17,7 @@ class Scene {
   constructor(el, warehouseInfo, events, spaceInfoBox) {
     this.el = el;
     this.spaceInfoBox = spaceInfoBox;
-    const { mapWidth, mapLength, spaceWidth, spaceLength } = warehouseInfo;
-    // const { warehouseLayerNo } = warehouseInfo; // warehouseType
+    const { mapWidth, mapLength, spaceWidth, spaceLength, warehouseLayerNo } = warehouseInfo;
     this.mapWidth = mapLength * 10;
     this.mapLength = mapWidth * 10;
     this.spaceWidth = spaceLength * 10;
@@ -29,8 +28,13 @@ class Scene {
       floors: {}, // 楼层
       buildingContainer: new PIXI.Container(), // 主容器
     };
+    const floors = (warehouseLayerNo || '0').trim().split(' ');
+    floors.forEach((floorIndex) => {
+      this.building.floors[floorIndex] = { visible: true };
+    });
     this.colorConfig = colorConfig;
     this.info = {
+      floorsCount: floors.length,
       spaceCount: 0, // 点位数量
       spaceMap: {}, // 储存点位信息
       spaceMapOfMark: {}, // 标红的点位信息
@@ -68,6 +72,18 @@ class Scene {
     this.el.style.display = 'block';
   }
 
+  // 楼层排列方式更新
+  floorDirectionChange(value, floor = 0) {
+    const child = this.building.buildingContainer.children[0];
+    if (value === 'Horizontal') {
+      child.x = (this.mapWidth + floorPadding * 2 + floorMargin) * floor;
+      child.y = 0;
+    } else {
+      child.x = 0;
+      child.y = (this.mapLength + floorPadding * 2 + floorMargin) * floor;
+    }
+  }
+
   createScene(el) {
     const devicePixelRatio = window.devicePixelRatio || 1;
     this.app = new PIXI.Application({
@@ -81,94 +97,96 @@ class Scene {
     this.app.renderer.autoResize = true;
     this.app.renderer.plugins.interaction.moveWhenInside = true;
     // TODO 暂时只创建1层楼
-    const i = 0;
-    this.building.floors[i] = {};
-    const floor = this.building.floors[i];
-    // 地板容器
-    const floorContainer = new PIXI.Container();
-    floorContainer.name = 'floorContainer';
-    if (params.floorsDirection === 'row') {
-      floorContainer.x = (this.mapWidth + floorPadding * 2 + floorMargin) * i;
-      floorContainer.y = 0;
-    } else {
-      floorContainer.x = 0;
-      floorContainer.y = (this.mapLength + floorPadding * 2 + floorMargin) * i;
-    }
-    this.building.buildingContainer.addChild(floorContainer);
-    // 地板边框
-    const floorBorder = new PIXI.Graphics();
-    floorBorder.name = 'floorBorder';
-    floorBorder.lineStyle(2, 0x000000, 1, 0.5, true);
-    floorBorder.beginFill(this.colorConfig.floorBgColor);
-    floorBorder.drawRect(0, 0, this.mapWidth + floorPadding * 2 + 20, this.mapLength + floorPadding * 2 + 20);
-    floorBorder.endFill();
-    floorContainer.addChild(floorBorder);
-    // 点位容器1
-    floor.spacesContainer = new PIXI.Container();
-    floor.spacesContainer.name = 'spacesContainer';
-    floor.spacesContainer.position.set(floorPadding, floorPadding);
-    floorContainer.addChild(floor.spacesContainer);
-    // 点位容器2
-    floor.spacesContainer2 = new PIXI.Container();
-    floor.spacesContainer2.name = 'spacesContainer2';
-    floor.spacesContainer2.position.set(floorPadding, floorPadding);
-    floorContainer.addChild(floor.spacesContainer2);
-    // 点位标记容器
-    floor.spacesContainerOfMarked = new PIXI.Container();
-    floor.spacesContainerOfMarked.name = 'spacesContainerOfMarked';
-    floor.spacesContainerOfMarked.position.set(floorPadding, floorPadding);
-    floorContainer.addChild(floor.spacesContainerOfMarked);
-    // 点位路径容器
-    floor.spacesPathSprite = new PIXI.Graphics();
-    floor.spacesPathSprite.lineStyle(1, this.colorConfig.spacesPathColor, 1, 0.5, true);
-    floor.spacesPathSprite.name = 'spacesPathSprite';
-    floor.spacesPathSprite.position.set(floorPadding, floorPadding);
-    floor.spacesPathSprite.alpha = 0.3;
-    floor.spacesPathSprite.visible = params.showLinks;
-    floorContainer.addChild(floor.spacesPathSprite);
-    // 工作站容器
-    floor.terminalSprites = new PIXI.Container();
-    floor.terminalSprites.name = 'terminalSprites';
-    floor.terminalSprites.position.set(floorPadding, floorPadding);
-    floorContainer.addChild(floor.terminalSprites);
-    // 货架容器
-    floor.containerSprites = new PIXI.Container();
-    floor.containerSprites.name = 'containerSprites';
-    floor.containerSprites.position.set(floorPadding, floorPadding);
-    floorContainer.addChild(floor.containerSprites);
-    // 标记容器
-    floor.markerSprites = new PIXI.Container();
-    floor.markerSprites.name = 'markerSprites';
-    floor.markerSprites.position.set(floorPadding, floorPadding);
-    floorContainer.addChild(floor.markerSprites);
-    // 机器人容器
-    floor.robotSprites = new PIXI.Container();
-    floor.robotSprites.name = 'robotSprites';
-    floor.robotSprites.position.set(floorPadding, floorPadding);
-    floorContainer.addChild(floor.robotSprites);
-    // 特殊容器 手势边框等等
-    floor.other = new PIXI.Container();
-    floor.other.name = 'other';
-    floor.other.position.set(floorPadding, floorPadding);
-    floorContainer.addChild(floor.other);
-    // 主容器
-    const buildingContainer = this.building.buildingContainer;
-    buildingContainer.x = Math.floor(this.app.screen.width / (devicePixelRatio * 2));
-    buildingContainer.y = Math.floor(this.app.screen.height / (devicePixelRatio * 2));
-    buildingContainer.pivot.x = Math.floor(buildingContainer.width / 2);
-    buildingContainer.pivot.y = Math.floor(buildingContainer.height / 2);
-    this.app.stage.addChild(buildingContainer);
-    this.resize();
-    window.addEventListener('resize', thottle(300, this.resize.bind(this)));
-    // 浏览器 tab 页切换到后台时将机器的移动速度置为 0，即无动画
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
-        store.commit('SET_PARAMS', { key: 'moveSpeed', value: 0 });
+    Object.keys(this.building.floors).forEach((i) => {
+      const floor = this.building.floors[i];
+      // 地板容器
+      const floorContainer = new PIXI.Container();
+      floorContainer.name = 'floorContainer';
+      if (params.floorDirection === 'Horizontal') {
+        floorContainer.x = (this.mapWidth + floorPadding * 2 + floorMargin) * i;
+        floorContainer.y = 0;
       } else {
-        store.commit('SET_PARAMS', { key: 'moveSpeed', value: 1.5 });
+        floorContainer.x = 0;
+        floorContainer.y = (this.mapLength + floorPadding * 2 + floorMargin) * i;
       }
+      this.building.buildingContainer.addChild(floorContainer);
+      // 地板边框
+      const floorBorder = new PIXI.Graphics();
+      floorBorder.name = 'floorBorder';
+      floorBorder.lineStyle(2, 0x000000, 1, 0.5, true);
+      floorBorder.beginFill(this.colorConfig.floorBgColor);
+      floorBorder.drawRect(0, 0, this.mapWidth + floorPadding * 2 + 20, this.mapLength + floorPadding * 2 + 20);
+      floorBorder.endFill();
+      floorContainer.addChild(floorBorder);
+      // 点位容器1
+      floor.spacesContainer = new PIXI.Container();
+      floor.spacesContainer.name = 'spacesContainer';
+      floor.spacesContainer.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.spacesContainer);
+      // 点位容器2
+      floor.spacesContainer2 = new PIXI.Container();
+      floor.spacesContainer2.name = 'spacesContainer2';
+      floor.spacesContainer2.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.spacesContainer2);
+      // 点位标记容器
+      floor.spacesContainerOfMarked = new PIXI.Container();
+      floor.spacesContainerOfMarked.name = 'spacesContainerOfMarked';
+      floor.spacesContainerOfMarked.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.spacesContainerOfMarked);
+      // 点位路径容器
+      floor.spacesPathSprite = new PIXI.Graphics();
+      floor.spacesPathSprite.lineStyle(1, this.colorConfig.spacesPathColor, 1, 0.5, true);
+      floor.spacesPathSprite.name = 'spacesPathSprite';
+      floor.spacesPathSprite.position.set(floorPadding, floorPadding);
+      floor.spacesPathSprite.alpha = 0.3;
+      floor.spacesPathSprite.visible = params.showLinks;
+      floorContainer.addChild(floor.spacesPathSprite);
+      // 工作站容器
+      floor.terminalSprites = new PIXI.Container();
+      floor.terminalSprites.name = 'terminalSprites';
+      floor.terminalSprites.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.terminalSprites);
+      // 货架容器
+      floor.containerSprites = new PIXI.Container();
+      floor.containerSprites.name = 'containerSprites';
+      floor.containerSprites.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.containerSprites);
+      // 标记容器
+      floor.markerSprites = new PIXI.Container();
+      floor.markerSprites.name = 'markerSprites';
+      floor.markerSprites.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.markerSprites);
+      // 机器人容器
+      floor.robotSprites = new PIXI.Container();
+      floor.robotSprites.name = 'robotSprites';
+      floor.robotSprites.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.robotSprites);
+      // 特殊容器 手势边框等等
+      floor.other = new PIXI.Container();
+      floor.other.name = 'other';
+      floor.other.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.other);
+      // 主容器
+      const buildingContainer = this.building.buildingContainer;
+      buildingContainer.x = Math.floor(this.app.screen.width / (devicePixelRatio * 2));
+      buildingContainer.y = Math.floor(this.app.screen.height / (devicePixelRatio * 2));
+      buildingContainer.pivot.x = Math.floor(buildingContainer.width / 2);
+      buildingContainer.pivot.y = Math.floor(buildingContainer.height / 2);
+      this.app.stage.addChild(buildingContainer);
+      this.resize();
+      window.addEventListener('resize', thottle(300, this.resize.bind(this)));
+      // 浏览器 tab 页切换到后台时将机器的移动速度置为 0，即无动画
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          store.commit('SET_PARAMS', { key: 'moveSpeed', value: 0 });
+        } else {
+          store.commit('SET_PARAMS', { key: 'moveSpeed', value: 1.5 });
+        }
+      });
+      this.domEvent();
     });
-    this.domEvent();
+    // for (let floorIndex in building.floors) {
+    // this.building.floors[i] = {};
   }
 
   destroy() {

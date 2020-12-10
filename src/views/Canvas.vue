@@ -25,7 +25,9 @@
     </div>
     <div class="abs bottom">
       <a-button-group>
-        <a-button icon="menu"></a-button>
+        <a-button
+          icon="menu"
+          @click="popHide"></a-button>
         <a-button
           icon="audio"
           class="btnCss"
@@ -56,6 +58,7 @@
           @click="toggleScreen"></a-button>
       </a-button-group>
     </div>
+    <configure @on-change="floorDirectionChange" />
   </div>
 </template>
 
@@ -64,9 +67,11 @@ import { mapState } from 'vuex';
 import Scene from '@/factory';
 import role from '@/mixins/role';
 import { formatTime } from '@/utils/help.js';
+import Configure from 'comps/pop/Configure.vue';
 
 export default {
   name: 'ScadaCanvas',
+  components: { Configure },
   computed: {
     ...mapState({
       config: (state) => state.factory.config,
@@ -96,7 +101,6 @@ export default {
       ]).then((res) => {
         this.loading = false;
         const result = res.every((o) => o === 'success');
-        console.log('mounted result', result);
         if (result) {
           this.application = new Scene(this.$refs.gameView, this.warehouseInfo, {
             onInitWS: this.initWS,
@@ -115,6 +119,9 @@ export default {
     this.timeInterval && clearInterval(this.timeInterval);
   },
   methods: {
+    popHide() {
+      this.$store.commit('SET_CONFIGURE_SHOW');
+    },
     allowSound() {
       this.$store.commit('SET_PARAMS', { key: 'allowSound', value: !this.params.allowSound });
     },
@@ -132,6 +139,10 @@ export default {
         this.application.zoom(offset);
         this.application.resize();
       }
+    },
+    floorDirectionChange(value) {
+      console.log('floorDirectionChange value', value);
+      this.application && this.application.floorDirectionChange(value);
     },
   },
 };

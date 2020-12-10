@@ -16,7 +16,6 @@ export default {
       return this.systemStatusMap.find((o) => o.value === this.systemStatus);
     },
     factoryMap() {
-      console.log('factoryConfig', this.factoryConfig);
       return this.factoryConfig;
     },
   },
@@ -75,7 +74,6 @@ export default {
     },
     async queryWarehouse() {
       const res = await queryWarehouse();
-      console.log('queryWarehouse res', res);
       if (res) {
         res.data.rows.length > 0 && (this.warehouseInfo = res.data.rows[0]);
       }

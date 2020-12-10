@@ -1,5 +1,5 @@
 <template>
-  <div class="main">
+  <div class="scada">
     <scada-header v-show="!fullScreen" />
     <div :class="['content', fullScreen && 'fullScreen']">
       <scada-canvas />
@@ -30,7 +30,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.main {
+.scada {
   height: 100%;
   display: flex;
   flex-direction: column;

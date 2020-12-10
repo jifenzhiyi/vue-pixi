@@ -29,4 +29,10 @@ export default {
   Status: 'Status',
   voltage: 'Voltage',
   Robot: 'AGV',
+  Setting: 'Setting',
+  Floors: 'Floors',
+  FloorsLayout: 'Floor arrangement',
+  FloorN: 'Floor {floor}',
+  Horizontal: 'Horizontal',
+  Vertical: 'Vertical',
 };

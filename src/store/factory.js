@@ -3,6 +3,7 @@ import storage from '@/utils/storage';
 export default {
   state: {
     factoryConfig: {
+      floorsCount: 0, // 楼层数量
       spaceCount: 0, // 点位数量
       spaceCountOfCharger: 0, // 充电桩数量
       containerCount: 0, // 货架数量
@@ -28,7 +29,7 @@ export default {
       containerMap: {},
     },
     params: {
-      floorDirection: storage.get('scada_floor_direction') || 'column', // row column
+      floorDirection: storage.get('scada_floor_direction') || 'Horizontal', // Horizontal Vertical
       moveSpeed: storage.get('scada_move_speed') || 1.5,
       showOfflineRobots: storage.get('showOfflineRobots') || false, // 展示离线机器人
       showSpaceId: storage.get('showSpaceId') || false, // 展示spaceId

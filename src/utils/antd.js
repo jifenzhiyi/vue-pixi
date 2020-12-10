@@ -12,6 +12,7 @@ import {
   Radio,
   Select,
   Spin,
+  Switch,
 } from 'ant-design-vue';
 
 Vue.use(Button);
@@ -24,6 +25,7 @@ Vue.use(Menu);
 Vue.use(Radio);
 Vue.use(Select);
 Vue.use(Spin);
+Vue.use(Switch);
 
 Vue.prototype.$message = message;
 Vue.prototype.$modal = Modal;

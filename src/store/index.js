@@ -14,8 +14,13 @@ export default new Vuex.Store({
     warehouseIds: storage.get('scada_warehouseIds') || [], // 仓库列表
     menuList: storage.get('scada_menuList') || [],
     systemStatus: storage.get('scada_system_status') || 0, // 系统状态
+    popShowConfigure: false,
   },
   mutations: {
+    // 设置弹出层是否显示
+    SET_CONFIGURE_SHOW(state) {
+      state.popShowConfigure = !state.popShowConfigure;
+    },
     // 设置系统状态
     SET_SYSTEM_STATUS(state, status) {
       state.systemStatus = status;
