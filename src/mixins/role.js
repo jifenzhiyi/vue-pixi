@@ -1,7 +1,13 @@
 import { mapState } from 'vuex';
 import { END_POINT } from '@/config';
 import storage from '@/utils/storage';
-import { queryWarehouse, queryDimensionList, queryMarkerList, queryVariablesList } from '@/views/api.js';
+import {
+  queryWarehouse,
+  queryDimensionList,
+  queryMarkerList,
+  queryVariablesList,
+  updateSystemStatus,
+} from '@/views/api.js';
 
 export default {
   computed: {
@@ -51,7 +57,7 @@ export default {
       };
       this.ws.onmessage = (e) => {
         const jsonData = JSON.parse(e.data);
-        jsonData.status != null && this.$store.commit('SET_SYSTEM_STATUS', jsonData.status);
+        jsonData.status != null && this.$store.commit('SET_SYSTEM_STATUS', Number(jsonData.status));
         if (isFirst) {
           isFirst = false;
           this.application.init(jsonData).then((res) => {
@@ -69,6 +75,7 @@ export default {
     },
     async queryWarehouse() {
       const res = await queryWarehouse();
+      console.log('queryWarehouse res', res);
       if (res) {
         res.data.rows.length > 0 && (this.warehouseInfo = res.data.rows[0]);
       }
@@ -76,11 +83,19 @@ export default {
     },
     async queryDimensionList() {
       const res = await queryDimensionList({ parameter: 1 });
-      return res ? 'success' : 'error';
+      if (res && res.data && res.data.length > 0) {
+        const containerTypeMap = {};
+        res.data.forEach((item) => {
+          item.width *= 10;
+          item.length *= 10;
+          item.height *= 10;
+          containerTypeMap[item.type] = item;
+        });
+        this.application.updateContainersType(containerTypeMap);
+      }
     },
     async queryMarkerList() {
       const res = await queryMarkerList();
-      // console.log('queryMarkerList res', res);
       res && res.data && res.data.rows.length > 0 && this.application.initMarkers(res.data.rows);
     },
     async queryVariablesList() {
@@ -88,8 +103,10 @@ export default {
       console.log('queryVariablesList res', res);
     },
     // 系统状态更新
-    radioChange(e) {
+    async radioChange(e) {
       this.$store.commit('SET_SYSTEM_STATUS', e.target.value);
+      const data = { code: 7, parameter: e.target.value, objectId: 'System' };
+      await updateSystemStatus(data);
     },
     // 更新仓库id
     warehouseChange(val) {

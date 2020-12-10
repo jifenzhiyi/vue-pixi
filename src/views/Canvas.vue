@@ -93,14 +93,15 @@ export default {
     if (this.$route.name !== 'login') {
       Promise.all([
         this.queryWarehouse(),
-        this.queryDimensionList(),
       ]).then((res) => {
         this.loading = false;
         const result = res.every((o) => o === 'success');
+        console.log('mounted result', result);
         if (result) {
           this.application = new Scene(this.$refs.gameView, this.warehouseInfo, {
             onInitWS: this.initWS,
             onMarkerList: this.queryMarkerList,
+            onDimensionList: this.queryDimensionList,
             onUpdateInfo: this.updateInfo,
           }, this.$refs.spaceInfo);
         }

@@ -4,7 +4,7 @@ import colorConfig from '@/utils/colorConfig.js';
 import { thottle } from '@/utils/help.js';
 import { isPC } from '@/utils/device.js';
 import sound from './sound';
-import { createGraphics, loadTextures, getMinAndSec } from './func.js';
+import { createGraphics, loadTextures, getMinAndSec, calcShapeColorByFrquence, calcShapeColorByType } from './func.js';
 
 let nowStamp;
 const deviceIsPC = isPC();
@@ -58,6 +58,7 @@ class Scene {
       this.createScene(el); // 场景创建
       this.events.onInitWS && this.events.onInitWS();
       this.events.onMarkerList && this.events.onMarkerList();
+      this.events.onDimensionList && this.events.onDimensionList();
     });
   }
 
@@ -181,11 +182,11 @@ class Scene {
 
   init(data) {
     nowStamp = +new Date();
-    const { spaces, terminals, robots } = data; // containers, containerDetail
+    const { spaces, terminals, robots, containers } = data;
     spaces && this.initSpaces(spaces);
     terminals && this.initTerminals(terminals);
     robots && this.initRobots(robots);
-    // containers && this.initContainers(containers, containerDetail)
+    containers && this.initContainers(containers);
     sprites.hoverBorder = createGraphics(
       this.spaceWidth,
       this.spaceLength,
@@ -222,6 +223,7 @@ class Scene {
       spaceSprite.height = this.spaceLength;
       spacesIdLayer.addChild(spaceSprite);
       space.spaceSprite = spaceSprite;
+      space.spacesIdLayer = spacesIdLayer;
       // 本体2
       const spaceSprite2 = PIXI.Sprite.from('textures/space1.png');
       spaceSprite2.width = this.spaceWidth;
@@ -382,6 +384,61 @@ class Scene {
     }
   }
 
+  initContainers(containers) {
+    let validLen = 0;
+    this.info.containerMap = {};
+    for (let i = 0; i < containers.length; i++) {
+      const container = containers[i];
+      const { spaceId, status, containerId } = container;
+      if (status === -9 || !spaceId) continue;
+      validLen++;
+      const space = this.info.spaceMap[spaceId];
+      if (!space) continue;
+      const { z } = space;
+      space.containerId = containerId; // 记录点位存在货架Id
+      const sprite = this.createContainer(container);
+      sprite && this.building.floors[z].containerSprites.addChild(sprite);
+    }
+    this.info.containerCount = validLen;
+  }
+
+  createContainer(container) {
+    const { containerId, spaceId, frequence, orientation, type } = container;
+    const space = this.info.spaceMap[spaceId];
+    const { x, y } = space;
+    const containerContainer = new PIXI.Container();
+    // 0, 本体
+    const containerSprite = PIXI.Sprite.from('textures/container.png');
+    params.showContainersType === 'type' && (containerSprite.tint = calcShapeColorByType(type));
+    params.showContainersType === 'frequence' && (containerSprite.tint = calcShapeColorByFrquence(frequence));
+    containerContainer.position.set(x, y);
+    const { width, length } = this.containerTypeMap[type];
+    // return null;
+    containerSprite.width = width;
+    containerSprite.height = length;
+    containerSprite.anchor.set(0.5);
+    orientation && (containerSprite.rotation = (orientation * Math.PI) / 2);
+    containerContainer.addChild(containerSprite);
+    // 1, 高亮边框
+    containerContainer.addChild(createGraphics(this.spaceWidth, this.spaceLength, 0x0000ff));
+    // 2, 高亮框选选中
+    containerContainer.addChild(
+      createGraphics(this.spaceWidth, this.spaceLength, 0x00ffff, undefined, false, false, 0.3),
+    );
+    // 3, containerId
+    const idSprite = new PIXI.Text(containerId, this.colorConfig.containerIdStyle);
+    idSprite.anchor.set(0.5, -0.8);
+    idSprite.scale.set(0.3);
+    idSprite.visible = false;
+    containerContainer.addChild(idSprite);
+    this.info.containerMap[containerId] = container;
+    // if (!['N', undefined, 'T-virtual'].includes(terminalId)) {
+    //   console.log('error includes 1')
+    //   this.pendingContainerMap[containerId] = container
+    // }
+    return containerContainer;
+  }
+
   setRobotState(robot, oldStatus) {
     const { robotId, robotContainer, status } = robot; // spaceId,
     const [robotSprite, , errorTextBox, errorText] = robotContainer.children;
@@ -484,23 +541,25 @@ class Scene {
 
   spaceMouseOver(space, $root) {
     $root.showInfoTimer && clearTimeout($root.showInfoTimer);
-    const { spaceId, terminalId, robotId, robotStatus, posX, posY, posZ, x, y, z, spaceSprite } = space; // status
+    const { spaceId, terminalId, robotId, containerId, robotStatus, posX, posY, posZ, x, y, z, spaceSprite } = space;
     const status = robotStatus || 0;
     sprites.hoverBorder.setParent($root.building.floors[z].other);
     sprites.hoverBorder.position.set(x - 5, y - 5);
     sprites.hoverBorder.visible = true;
-    // const container = building.containerMap[spaceId] || {}
-    // // 200ms内光标所在的space不变化才显示space信息
+    // 200ms内光标所在的space不变化才显示space信息
     $root.showInfoTimer = setTimeout(() => {
-      store.commit('SET_CONFIG_ONE', { key: 'spaceId', value: spaceId });
-      store.commit('SET_CONFIG_ONE', { key: 'posX', value: posX });
-      store.commit('SET_CONFIG_ONE', { key: 'posY', value: posY });
-      store.commit('SET_CONFIG_ONE', { key: 'posZ', value: posZ });
-      store.commit('SET_CONFIG_ONE', { key: 'terminalId', value: terminalId || '-' });
-      store.commit('SET_CONFIG_ONE', { key: 'robotId', value: robotId || '-' });
-      store.commit('SET_CONFIG_ONE', { key: 'robotErr', value: status <= 10 ? '' : status - 10 });
+      const config = {
+        posX,
+        posY,
+        posZ,
+        spaceId: spaceId || '-',
+        robotId: robotId || '-',
+        robotErr: status <= 10 ? '' : status - 10,
+        containerId: containerId || '-',
+        terminalId: terminalId || '-',
+      };
+      store.commit('SET_CONFIG_ALL', config);
       // e && $root.showLinkedLater()
-      // mutations.set('containerId', container.containerId || '-')
       const { x: left, y: top } = spaceSprite.getGlobalPosition();
       const { width, height } = spaceSprite.getBounds();
       $root.spaceInfoBox.style.left = `${left + width * 0.6}px`;
@@ -518,11 +577,11 @@ class Scene {
 
   update(data) {
     nowStamp = +new Date();
-    const { spaces, terminals, robots } = data; // containers, containerDetail
+    const { spaces, terminals, robots, containers } = data; // containers, containerDetail
     spaces && this.updateSpaces(spaces);
     terminals && this.updateTerminals(terminals);
     robots && this.updateRobots(robots);
-    // this.updateContainers(containers, containerDetail)
+    containers && this.updateContainers(containers);
     // this.doMove()
     return Promise.resolve(this.info);
   }
@@ -532,6 +591,7 @@ class Scene {
     for (let i = 0; i < len; i++) {
       const { spaceId, status, type } = spaces[i];
       const oldSpace = this.info.spaceMap[spaceId];
+      if (!oldSpace) continue;
       const { spaceSprite, spacesIdLayer, status: oldStatus, z } = oldSpace;
       const floor = this.building.floors[z];
       const { spacesContainer, spacesContainerOfMarked } = floor;
@@ -725,6 +785,139 @@ class Scene {
     }, params.ErrRobotTimeout * 1000);
   }
 
+  // 删除货架视图
+  removeContainer(containerId) {
+    // const container = this.info.containerMap[containerId];
+    // const { spaceId, containerContainer } = container;
+    // const { z } = this.info.spaceMap[spaceId]
+    // TweenMax.to(containerContainer, 0.1, {
+    //   alpha: 0,
+    //   repeat: 8,
+    //   yoyo: true,
+    //   onComplete () {
+    //     // 删除货架模型
+    //     building.floors[z].containerSprites.removeChild(containerContainer)
+    //   },
+    // })
+    delete this.info.containerMap[containerId];
+    this.info.containerCount--; // 货架数量减少
+  }
+
+  updateContainers(containers) {
+    const len = containers.length;
+    for (let i = 0; i < len; i++) {
+      const container = containers[i];
+      if (container.status === -9) {
+        this.removeContainer(container.containerId);
+        continue;
+      }
+      // const { containerId, spaceId, type, status, orientation, terminalId, frequence, zoneId } = container;
+      // const space = this.info.spaceMap[spaceId];
+      // if (!space) continue;
+      // const { x, y, z } = space;
+      // const oldContainer = this.containerMap[containerId];
+      // // 若 oldContainer 不存在，则是新增的 container，走 container 初始化逻辑
+      // if (!oldContainer) {
+      //   const containerContainer = this.createContainer(container);
+      //   this.info.containers.containerCount++; // 货架数量增加
+      //   building.floors[z].containerSprites.addChild(containerContainer);
+      //   TweenMax.to(containerContainer.getChildAt(0), 0.1, {
+      //     alpha: 0,
+      //     repeat: 7,
+      //     yoyo: true,
+      //   });
+      //   continue;
+      // }
+      // const {
+      //   spaceId: oldSpaceId,
+      //   containerContainer,
+      //   orientation: oldOrientation,
+      //   type: oldType,
+      //   frequence: oldFrequence,
+      //   zoneId: oldZoneId,
+      // } = oldContainer;
+      // // const { containerId: oldContainerId } = oldContainer
+      // const oldSpace = this.spaceMap[oldSpaceId];
+      // const { x: oldX, y: oldY, z: oldZ } = oldSpace;
+
+      // // 货架移动了，包括更新货架位置
+      // if (spaceId !== oldSpaceId) {
+      //   oldContainer.spaceId = spaceId;
+      //   this.containerMapBySpaceId[oldSpaceId] = '';
+      //   this.containerMapBySpaceId[spaceId] = oldContainer;
+
+      //   // const offsetX = x - oldX
+      //   // const offsetY = y - oldY
+      //   // const spaceNum = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) / 10
+
+      //   const key = `${oldSpaceId}->${spaceId}`;
+      //   const waitingMoveItem = this.waitingMoveList[key];
+
+      //   if (z !== oldZ) {
+      //     // 楼层变了
+      //     // console.log('楼层转换', z, oldZ)
+
+      //     containerContainer.setParent(building.floors[z].containerSprites);
+      //     containerContainer.position.set(x, y);
+
+      //     // 添加转换闪烁动画， 如不需要，注释掉即可
+      //     let i = 0;
+      //     const yoyo = setInterval(() => {
+      //       if (i > 5) {
+      //         clearInterval(yoyo);
+      //       } else {
+      //         i++;
+      //       }
+
+      //       if (i % 2 === 1) {
+      //         containerContainer.setParent(building.floors[oldZ].containerSprites);
+      //         containerContainer.position.set(oldX, oldY);
+      //       } else {
+      //         containerContainer.setParent(building.floors[z].containerSprites);
+      //         containerContainer.position.set(x, y);
+      //       }
+      //     }, 100);
+      //   } else {
+      //     // 楼层不变
+      //     if (waitingMoveItem) {
+      //       // 同层驼动
+      //       waitingMoveItem.containerContainerPosition = containerContainer.position;
+      //     } else {
+      //       // 同层更新货架位置。该货架的移动不伴随机器移动，则认为该货架做了位置更新（更新货架位置的动画时间不同于移动货架的时间）（新增货架的逻辑在前面处理）
+      //       TweenMax.to(containerContainer.position, 1, { x, y });
+      //     }
+      //   }
+      // }
+      // const containerSprite = containerContainer.getChildAt(0);
+
+      // if (orientation !== undefined && orientation !== oldOrientation) {
+      //   // console.log('orientation 变化', orientation, 'oldContainerId', oldContainerId)
+      //   oldContainer.orientation = orientation;
+      //   TweenMax.to(containerSprite, 0.2, { rotation: (orientation * Math.PI) / 2 });
+      // }
+
+      // if (frequence !== oldFrequence || type !== oldType) {
+      //   oldContainer.frequence = frequence;
+      //   oldContainer.type = type;
+      //   const tint =
+      //     params.showContainersType === 'type' ? calcShapeColorByType(type) : calcShapeColorByFrquence(frequence);
+      //   console.log('tint 3', tint);
+      //   tint && (containerSprite.tint = tint);
+      // }
+
+      // zoneId !== oldZoneId && (oldContainer.zoneId = zoneId);
+
+      // if (!['N', undefined, 'T-virtual'].includes(terminalId)) {
+      //   this.pendingContainerMap[containerId] = oldContainer;
+      // } else {
+      //   // 以下代码可能导致性能问题
+      //   delete this.pendingContainerMap[containerId];
+      // }
+
+      // oldContainer.terminalId = terminalId;
+    }
+  }
+
   // 绑定事件 拖动,点击,放大缩小等
   domEvent() {
     let preX;
@@ -861,6 +1054,10 @@ class Scene {
       this.building.floors[posZ].markerSprites.addChild(markerBox);
       // building.floors[posZ].markerSprites.addChild(idSprite)
     });
+  }
+
+  updateContainersType(containerTypeMap) {
+    this.containerTypeMap = containerTypeMap;
   }
 }
 

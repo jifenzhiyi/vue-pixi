@@ -23,6 +23,9 @@ export default {
       robotMapOfError: {},
       terminalMap: {},
       robotMap: {},
+      spaceMap: {},
+      spaceMapOfMark: {},
+      containerMap: {},
     },
     params: {
       floorDirection: storage.get('scada_floor_direction') || 'column', // row column
@@ -30,6 +33,7 @@ export default {
       showOfflineRobots: storage.get('showOfflineRobots') || false, // 展示离线机器人
       showSpaceId: storage.get('showSpaceId') || false, // 展示spaceId
       showLinks: storage.get('showLinks') || true, // 展示通道
+      showContainersType: storage.get('showContainersType') || 'frequence', // 货架显示方式 frequence热度 type类型
       ErrRobotTimeout: storage.get('ErrRobotTimeout') || 10,
       RobotTimeout: storage.get('RobotTimeout') || 60, // 默认60
       allowSound: false,
