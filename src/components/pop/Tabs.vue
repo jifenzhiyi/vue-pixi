@@ -19,6 +19,7 @@
 </template>
 
 <script>
+import storage from '@/utils/storage';
 import PopChild from './Child.vue';
 
 export default {
@@ -34,53 +35,53 @@ export default {
           key: 0,
           tab: 'Space',
           list: [
-            { label: '位置', value: true, type: 'switch' },
-            { label: '通道', value: true, type: 'switch' },
-            { label: '货架泊位', value: true, type: 'switch' },
-            { label: '无效位置', value: true, type: 'switch' },
-            { label: '等待位', value: true, type: 'switch' },
-            { label: '安全位置', value: true, type: 'switch' },
-            { label: '位置编号', value: false, type: 'switch', desc: '如果界面卡顿, 请关闭此选项' },
+            { label: 'SpacePlace', value: true, type: 'switch' },
+            { label: 'LinkPlace', value: true, type: 'switch' },
+            { label: 'ContainerSlot', value: true, type: 'switch' },
+            { label: 'InvalidSpace', value: true, type: 'switch' },
+            { label: 'waitingSpace', value: true, type: 'switch' },
+            { label: 'SafeSpace', value: true, type: 'switch' },
+            { label: 'spaceId', param: 'showSpaceId', value: storage.get('showSpaceId') || false, type: 'switch', desc: 'TipOfStuck' },
           ],
         },
         {
           key: 1,
           tab: 'Robot',
           list: [
-            { label: '机器人', value: true, type: 'switch' },
-            { label: '离线机器人', value: false, type: 'switch' },
-            { label: '机器人路径', value: true, type: 'switch' },
-            { label: '机器人编号', value: false, type: 'switch' },
-            { label: '机器人移动速度', value: 1.5, type: 'input_num', num: 0.1 },
-            { label: '机器人超时', value: 60, type: 'input', unit: '秒' },
-            { label: '异常机器人报警', value: true, type: 'switch' },
-            { label: '异常机器人超时', value: 10, type: 'input', unit: '秒' },
+            { label: 'Robot', value: true, type: 'switch' },
+            { label: 'OfflineRobot', value: false, type: 'switch' },
+            { label: 'robotPath', value: true, type: 'switch' },
+            { label: 'robotId', value: false, type: 'switch' },
+            { label: 'robotMoveSpeed', value: 1.5, type: 'input_num', num: 0.1 },
+            { label: 'RobotTimeout', value: 60, type: 'input', unit: '秒' },
+            { label: 'AbnormalAlarm', value: true, type: 'switch' },
+            { label: 'AbnormalTimeout', value: 10, type: 'input', unit: '秒' },
           ],
         },
         {
           key: 2,
           tab: 'Container', 
           list: [
-            { label: '货架', value: true, type: 'switch' },
-            { label: '货架编号', value: false, type: 'switch' },
+            { label: 'Container', value: true, type: 'switch' },
+            { label: 'ContainerId', value: false, type: 'switch' },
             {
-              label: '货架显示方式',
+              label: 'ShowTypeOfContainer',
               value: 'frequence',
               type: 'radio',
               options: [
-                { label: '热度', value: 'frequence' },
-                { label: '类型', value: 'type' },
+                { label: 'Frequently', value: 'frequence' },
+                { label: 'Type', value: 'type' },
               ], // 货架显示方式 frequence热度 type类型
             },
             // { label: '空满状态', value: false, type: 'switch' },
           ],
         },
-        { key: 3, tab: 'Terminal', list: [{ label: '工作站', value: true, type: 'switch' }] },
+        { key: 3, tab: 'Terminal', list: [{ label: 'Terminal', value: true, type: 'switch' }] },
         {
           key: 4,
           tab: 'Others',
           list: [
-            { label: '标记', value: true, type: 'switch' },
+            { label: 'Marker', value: true, type: 'switch' },
             { label: 'stats', value: false, type: 'switch' },
           ],
         },

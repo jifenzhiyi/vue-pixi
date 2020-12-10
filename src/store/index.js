@@ -15,8 +15,18 @@ export default new Vuex.Store({
     menuList: storage.get('scada_menuList') || [],
     systemStatus: storage.get('scada_system_status') || 0, // 系统状态
     popShowConfigure: false,
+    application: null, // 全局保存工程
   },
   mutations: {
+    // 设置工程
+    SET_APPLICATION(state, app) {
+      state.application = app;
+    },
+    // 删除工程
+    DESTROY_APPLICATION(state) {
+      state.application && state.application.destroy();
+      state.application = null;
+    },
     // 设置弹出层是否显示
     SET_CONFIGURE_SHOW(state) {
       state.popShowConfigure = !state.popShowConfigure;

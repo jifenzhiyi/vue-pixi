@@ -1077,6 +1077,13 @@ class Scene {
   updateContainersType(containerTypeMap) {
     this.containerTypeMap = containerTypeMap;
   }
+
+  showSpaceId(flag) {
+    const container = this.building.floors[0].spacesContainer2;
+    container.children.forEach((item) => {
+      item.children[1].visible = flag;
+    });
+  }
 }
 
 export default Scene;

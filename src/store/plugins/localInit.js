@@ -14,6 +14,7 @@ export default (store) => {
     if (mutation.type === 'SET_PARAMS') {
       storage.set('scada_floor_direction', state.factory.params.floorDirection);
       storage.set('scada_move_speed', state.factory.params.moveSpeed);
+      storage.set('showSpaceId', state.factory.params.showSpaceId);
     }
   });
 };

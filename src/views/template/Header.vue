@@ -30,7 +30,7 @@
           <a @click="logout">
             <a-icon
               slot="icon"
-              type="logout" />退出登录</a>
+              type="logout" />{{$t('Logout')}}</a>
         </a-menu-item>
       </a-menu>
     </a-dropdown>

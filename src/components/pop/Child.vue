@@ -6,11 +6,13 @@
         class="layer"
         v-for="item in list"
         :key="item.label">
-        <div class="label">{{ item.label }}</div>
+        <div class="label">{{$t(item.label)}}</div>
         <div class="text">
           <a-switch
             v-if="item.type === 'switch'"
-            v-model="item.value" />
+            v-model="item.value"
+            @focus="focus(item.param)"
+            @change="switchChange" />
           <a-input
             v-if="item.type === 'input'"
             v-model="item.value"
@@ -34,27 +36,50 @@
               v-for="o in item.options"
               :key="o.value"
               :value="o.value"
-              :class="o.value === item.value && 'colorR'">{{ o.label }}</a-radio>
+              :class="o.value === item.value && 'colorR'">{{$t(o.label)}}</a-radio>
           </a-radio-group>
         </div>
         <div
           class="desc"
-          v-if="item.desc"><a-icon type="question-circle" /> {{ item.desc }}</div>
+          v-if="item.desc"><a-icon type="question-circle" /> {{$t(item.desc)}}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'PopChild',
   props: ['title', 'list'],
+  computed: {
+    ...mapState({
+      application: (state) => state.application,
+    }),
+  },
+  data() {
+    return {
+      param: '',
+    };
+  },
   methods: {
     plus() {
       console.log('plus');
     },
     minus() {
       console.log('minus');
+    },
+    focus(param) {
+      this.param = param;
+    },
+    switchChange(value) {
+      if (this.param) {
+        this.$store.commit('SET_PARAMS', { key: this.param, value });
+        this.application && this.application[this.param](value);
+      } else {
+        console.log('该功能正在开发。。。请稍后');
+      }
     },
   },
 };

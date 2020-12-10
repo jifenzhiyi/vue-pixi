@@ -74,6 +74,7 @@ export default {
   components: { Configure },
   computed: {
     ...mapState({
+      application: (state) => state.application,
       config: (state) => state.factory.config,
       params: (state) => state.factory.params,
     }),
@@ -83,7 +84,6 @@ export default {
     return {
       ws: null,
       loading: true,
-      application: null,
       timeInterval: null,
       warehouseInfo: null,
       formatTime: formatTime(new Date()),
@@ -102,19 +102,18 @@ export default {
         this.loading = false;
         const result = res.every((o) => o === 'success');
         if (result) {
-          this.application = new Scene(this.$refs.gameView, this.warehouseInfo, {
+          this.$store.commit('SET_APPLICATION', new Scene(this.$refs.gameView, this.warehouseInfo, {
             onInitWS: this.initWS,
             onMarkerList: this.queryMarkerList,
             onDimensionList: this.queryDimensionList,
             onUpdateInfo: this.updateInfo,
-          }, this.$refs.spaceInfo);
+          }, this.$refs.spaceInfo));
         }
       });
     }
   },
   beforeDestroy() {
-    this.application && this.application.destroy();
-    this.application = null;
+    this.$store.commit('DESTROY_APPLICATION');
     this.ws && this.ws.close();
     this.timeInterval && clearInterval(this.timeInterval);
   },
