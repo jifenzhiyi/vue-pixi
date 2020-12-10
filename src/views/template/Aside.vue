@@ -13,22 +13,33 @@
           :value="item.value">{{ $t(item.title) }}</a-radio>
       </a-radio-group>
     </div>
-    <aside-info />
+    <aside-info v-show="modeStatus === 'view' || modeStatus === 'mark'" />
+    <aside-edit v-show="modeStatus === 'edit'" />
+    <aside-batch v-show="modeStatus === 'batch'" />
   </aside>
 </template>
 
 <script>
-import role from '@/mixins/role';
-import asideInfo from './AsideInfo';
+import { mapState } from 'vuex';
+import role from '@/mixins/role.js';
+import asideInfo from './AsideInfo.vue';
+import asideEdit from './AsideEdit.vue';
+import asideBatch from './AsideBatch.vue';
 
 export default {
   name: 'ScadaAside',
+  computed: {
+    ...mapState(['modeStatus']),
+  },
   mixins: [role],
   components: {
     asideInfo,
+    asideEdit,
+    asideBatch,
   },
 };
 </script>
+    AsideBatch
 
 <style lang="less" scoped>
 aside {

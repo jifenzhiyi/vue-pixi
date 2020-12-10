@@ -60,4 +60,9 @@ export default {
   Frequently: '热度',
   Type: '类型',
   Marker: '标记',
+  EditMode: '编辑模式',
+  ExitEditMode: '退出编辑模式',
+  SpaceMode: '标记地面模式',
+  ExitSpaceMode: '退出标记地面模式',
+  editContainers: '批量编辑货架',
 };

@@ -40,8 +40,8 @@
 </template>
 
 <script>
-import role from '@/mixins/role';
-import ToggleLanguage from 'comps/ToggleLanguage';
+import role from '@/mixins/role.js';
+import ToggleLanguage from 'comps/ToggleLanguage/index.vue';
 
 export default {
   name: 'ScadaHeader',

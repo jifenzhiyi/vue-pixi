@@ -1,4 +1,4 @@
-import request from '@/utils/request';
+import request from '@/utils/request.js';
 
 export const login = (data) => {
   const result = request.send('/api/users/login', { method: 'POST', data });

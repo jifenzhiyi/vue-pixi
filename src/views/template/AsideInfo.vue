@@ -16,9 +16,9 @@
 </template>
 
 <script>
-import infoMessages from './InfoMessages';
-import infoRobotList from './InfoRobotList';
-import infoTerminalList from './InfoTerminalList';
+import infoMessages from './InfoMessages.vue';
+import infoRobotList from './InfoRobotList.vue';
+import infoTerminalList from './InfoTerminalList.vue';
 
 export default {
   name: 'AsideInfo',
@@ -47,14 +47,6 @@ export default {
 
 <style lang="less" scoped>
 .aside-info {
-  left: 0;
-  bottom: 0;
-  top: 100px;
-  width: 100%;
-  display: flex;
-  overflow: hidden;
-  border-radius: 4px;
-  flex-direction: column;
   .nav {
     display: flex;
     border-top: solid 1px #ddd;

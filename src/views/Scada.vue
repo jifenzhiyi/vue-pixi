@@ -10,9 +10,9 @@
 
 <script>
 import { mapState } from 'vuex';
-import scadaHeader from './template/Header';
-import scadaAside from './template/Aside';
-import scadaCanvas from './Canvas';
+import scadaHeader from './template/Header.vue';
+import scadaAside from './template/Aside.vue';
+import scadaCanvas from './Canvas.vue';
 
 export default {
   name: 'Scada',

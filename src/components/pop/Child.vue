@@ -6,7 +6,10 @@
         class="layer"
         v-for="item in list"
         :key="item.label">
-        <div class="label">{{$t(item.label)}}</div>
+        <div class="label">
+          {{$t(item.label)}}
+          <p v-if="!item.param">(功能待添加)</p>
+        </div>
         <div class="text">
           <a-switch
             v-if="item.type === 'switch'"

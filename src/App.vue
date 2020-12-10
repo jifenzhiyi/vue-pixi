@@ -8,8 +8,8 @@
 
 <script>
 import { mapState } from 'vuex';
-import role from '@/mixins/role';
-import { getLocaleMessage, defaultLanguage } from '@/locale';
+import role from '@/mixins/role.js';
+import { getLocaleMessage, defaultLanguage } from '@/locale/index.js';
 
 export default {
   name: 'App',

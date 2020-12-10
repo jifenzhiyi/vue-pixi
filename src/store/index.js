@@ -14,10 +14,16 @@ export default new Vuex.Store({
     warehouseIds: storage.get('scada_warehouseIds') || [], // 仓库列表
     menuList: storage.get('scada_menuList') || [],
     systemStatus: storage.get('scada_system_status') || 0, // 系统状态
+    // 系统模式modeStatus 默认view 编辑edit 标记地面mark 批量编辑batch
+    modeStatus: storage.get('scada_mode_status') || 'view',
     popShowConfigure: false,
     application: null, // 全局保存工程
   },
   mutations: {
+    // 设置系统模式
+    SET_MODE(state, status) {
+      state.modeStatus = status;
+    },
     // 设置工程
     SET_APPLICATION(state, app) {
       state.application = app;

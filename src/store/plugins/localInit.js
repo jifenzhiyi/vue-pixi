@@ -12,9 +12,10 @@ export default (store) => {
     mutation.type === 'SET_MENULIST' && storage.set('scada_menuList', state.menuList);
     mutation.type === 'SET_SYSTEM_STATUS' && storage.set('scada_system_status', state.systemStatus);
     if (mutation.type === 'SET_PARAMS') {
-      storage.set('scada_floor_direction', state.factory.params.floorDirection);
-      storage.set('scada_move_speed', state.factory.params.moveSpeed);
-      storage.set('showSpaceId', state.factory.params.showSpaceId);
+      Object.keys(state.factory.params).forEach((key) => {
+        storage.set(`scada_${key}`, state.factory.params[key]);
+      });
     }
+    mutation.type === 'SET_MODE' && storage.set('scada_mode_status', state.modeStatus);
   });
 };

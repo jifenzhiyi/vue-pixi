@@ -239,6 +239,7 @@ class Scene {
       const spaceSprite = PIXI.Sprite.from('textures/space1.jpg');
       spaceSprite.width = this.spaceWidth;
       spaceSprite.height = this.spaceLength;
+      spaceSprite.visible = params.showSpaces;
       spacesIdLayer.addChild(spaceSprite);
       space.spaceSprite = spaceSprite;
       space.spacesIdLayer = spacesIdLayer;
@@ -414,8 +415,7 @@ class Scene {
       if (!space) continue;
       const { z } = space;
       space.containerId = containerId; // 记录点位存在货架Id
-      const sprite = this.createContainer(container);
-      sprite && this.building.floors[z].containerSprites.addChild(sprite);
+      this.building.floors[z].containerSprites.addChild(this.createContainer(container));
     }
     this.info.containerCount = validLen;
   }
@@ -1076,6 +1076,17 @@ class Scene {
 
   updateContainersType(containerTypeMap) {
     this.containerTypeMap = containerTypeMap;
+  }
+
+  showSpaces(flag) {
+    const container = this.building.floors[0].spacesContainer;
+    container.children.forEach((item) => {
+      item.children[0].visible = flag;
+    });
+  }
+
+  showLinks(flag) {
+    this.building.floors[0].spacesPathSprite.visible = flag;
   }
 
   showSpaceId(flag) {

@@ -43,8 +43,8 @@
 </template>
 
 <script>
-import storage from '@/utils/storage';
-import { login } from './api';
+import storage from '@/utils/storage.js';
+import { login } from './api.js';
 
 export default {
   name: 'Login',
@@ -73,6 +73,9 @@ export default {
         this.$notice_success({
           minfo: '登录成功',
           func: () => {
+            // TODO 初始化一些配置
+            this.$store.commit('SET_PARAMS', { type: 'showSpaces', value: true });
+            this.$store.commit('SET_PARAMS', { type: 'showLinks', value: true });
             this.$router.push('/scada');
           },
         });

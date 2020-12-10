@@ -56,4 +56,9 @@ export default {
   Frequently: 'Frequently',
   Type: 'Type',
   Marker: 'Marker',
+  EditMode: 'Edit Mode',
+  ExitEditMode: 'Exit Edit Mode',
+  SpaceMode: 'Space Mode',
+  ExitSpaceMode: 'Exit Space Mode',
+  editContainers: 'Batch Edit Containers',
 };

@@ -43,6 +43,28 @@
           icon="camera"
           @click="screenshot"></a-button>
       </a-button-group>
+      <div class="btn-center">
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'view'"
+          @click="modeChange('edit')">{{$t('EditMode')}}</a-button>
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'view'"
+          @click="modeChange('mark')">{{$t('SpaceMode')}}</a-button>
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'view'"
+          @click="modeChange('batch')">{{$t('editContainers')}}</a-button>
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'edit' || modeStatus === 'batch'"
+          @click="modeChange('view')">{{$t('ExitEditMode')}}</a-button>
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'mark'"
+          @click="modeChange('view')">{{$t('ExitSpaceMode')}}</a-button>
+      </div>
       <a-button-group>
         <a-button
           icon="zoom-out"
@@ -64,8 +86,8 @@
 
 <script>
 import { mapState } from 'vuex';
-import Scene from '@/factory';
-import role from '@/mixins/role';
+import Scene from '@/factory/index.js';
+import role from '@/mixins/role.js';
 import { formatTime } from '@/utils/help.js';
 import Configure from 'comps/pop/Configure.vue';
 
@@ -74,6 +96,7 @@ export default {
   components: { Configure },
   computed: {
     ...mapState({
+      modeStatus: (state) => state.modeStatus,
       application: (state) => state.application,
       config: (state) => state.factory.config,
       params: (state) => state.factory.params,
@@ -142,6 +165,9 @@ export default {
     floorDirectionChange(value) {
       console.log('floorDirectionChange value', value);
       this.application && this.application.floorDirectionChange(value);
+    },
+    modeChange(status) {
+      this.$store.commit('SET_MODE', status);
     },
   },
 };
@@ -213,6 +239,14 @@ export default {
     display: flex;
     justify-content: space-between;
     bottom: 10px; left: 10px; right: 10px;
+    .btn-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      .btn {
+        margin: 0 5px;
+      }
+    }
   }
 }
 .btnCss {

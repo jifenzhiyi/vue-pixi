@@ -35,13 +35,13 @@ export default {
           key: 0,
           tab: 'Space',
           list: [
-            { label: 'SpacePlace', value: true, type: 'switch' },
-            { label: 'LinkPlace', value: true, type: 'switch' },
+            { label: 'SpacePlace', param: 'showSpaces', value: storage.get('scada_showSpaces'), type: 'switch' },
+            { label: 'LinkPlace', param: 'showLinks', value: storage.get('scada_showLinks'), type: 'switch' },
             { label: 'ContainerSlot', value: true, type: 'switch' },
             { label: 'InvalidSpace', value: true, type: 'switch' },
             { label: 'waitingSpace', value: true, type: 'switch' },
             { label: 'SafeSpace', value: true, type: 'switch' },
-            { label: 'spaceId', param: 'showSpaceId', value: storage.get('showSpaceId') || false, type: 'switch', desc: 'TipOfStuck' },
+            { label: 'spaceId', param: 'showSpaceId', value: storage.get('scada_showSpaceId') || false, type: 'switch', desc: 'TipOfStuck' },
           ],
         },
         {
