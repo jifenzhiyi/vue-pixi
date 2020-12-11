@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import storage from '@/utils/storage';
 import store from '@/store/index.js';
 import colorConfig from '@/utils/colorConfig.js';
 import { thottle } from '@/utils/help.js';
@@ -60,9 +61,9 @@ class Scene {
       robotMapOfError: {}, // 机器错误信息
     }; // 场景内容信息
     this.textures = null;
+    this.createScene(el); // 场景创建
     loadTextures().then((res) => {
       this.textures = res;
-      this.createScene(el); // 场景创建
       this.events.onInitWS && this.events.onInitWS();
       this.events.onMarkerList && this.events.onMarkerList();
       this.events.onDimensionList && this.events.onDimensionList();
@@ -88,6 +89,7 @@ class Scene {
   }
 
   createScene(el) {
+    console.time('createScene');
     const devicePixelRatio = window.devicePixelRatio || 1;
     this.app = new PIXI.Application({
       view: el,
@@ -181,13 +183,14 @@ class Scene {
       // 浏览器 tab 页切换到后台时将机器的移动速度置为 0，即无动画
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
-          store.commit('SET_PARAMS', { key: 'moveSpeed', value: 0 });
+          store.commit('SET_MOVE_SPEED', 0);
         } else {
-          store.commit('SET_PARAMS', { key: 'moveSpeed', value: 1.5 });
+          store.commit('SET_MOVE_SPEED', storage.get('scada_moveSpeed') || 1.5);
         }
       });
       this.domEvent();
     });
+    console.timeEnd('createScene');
   }
 
   destroy() {
@@ -439,10 +442,11 @@ class Scene {
     );
     // 3, containerId
     const idSprite = new PIXI.Text(containerId, this.colorConfig.containerIdStyle);
-    idSprite.anchor.set(0.5, -0.8);
-    idSprite.scale.set(0.3);
-    idSprite.visible = false;
+    idSprite.anchor.set(0.5, 0.3);
+    idSprite.scale.set(0.2);
+    idSprite.visible = params.showContainerId;
     containerContainer.addChild(idSprite);
+    container.containerContainer = containerContainer;
     this.info.containerMap[containerId] = container;
     // if (!['N', undefined, 'T-virtual'].includes(terminalId)) {
     //   console.log('error includes 1')
@@ -688,6 +692,7 @@ class Scene {
       // 错误信息显示
       if (endId !== undefined && endId !== spaceId) {
         const { min, sec } = getMinAndSec(nowStamp, lastUpdateTimeStamp);
+        console.log('RobotTimeout', params.RobotTimeout);
         if (sec > params.RobotTimeout) {
           robotContainer.overtime = min;
           robot.status > 10
@@ -1134,6 +1139,39 @@ class Scene {
       const { robotContainer } = this.info.robotMap[key];
       robotContainer.getChildAt(1).visible = flag;
     });
+  }
+
+  showContainers(flag) {
+    this.building.floors[0].containerSprites.visible = flag;
+  }
+
+  showContainerId(flag) {
+    Object.keys(this.info.containerMap).forEach((key) => {
+      const { containerContainer } = this.info.containerMap[key];
+      containerContainer.getChildAt(3).visible = flag;
+    });
+  }
+
+  showContainersType(value) {
+    const setContainersColorBy = {
+      type() {
+        Object.keys(this.info.containerMap).forEach((key) => {
+          const { type, containerContainer } = this.info.containerMap[key];
+          containerContainer.getChildAt(0).tint = calcShapeColorByType(type);
+        });
+      },
+      frequence() {
+        Object.keys(this.info.containerMap).forEach((key) => {
+          const { frequence, containerContainer } = this.info.containerMap[key];
+          containerContainer.getChildAt(0).tint = calcShapeColorByFrquence(frequence);
+        });
+      },
+    };
+    setContainersColorBy[value].call(this);
+  }
+
+  showTerminals(flag) {
+    this.building.floors[0].terminalSprites.visible = flag;
   }
 }
 

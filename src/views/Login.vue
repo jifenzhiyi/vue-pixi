@@ -74,13 +74,15 @@ export default {
           minfo: '登录成功',
           func: () => {
             // TODO 初始化一些配置
-            this.$store.commit('SET_PARAMS', { type: 'showSpaces', value: true });
-            this.$store.commit('SET_PARAMS', { type: 'showLinks', value: true });
-            this.$store.commit('SET_PARAMS', { type: 'showContainerBerth', value: true });
-            this.$store.commit('SET_PARAMS', { type: 'showInvalidSpace', value: true });
-            this.$store.commit('SET_PARAMS', { type: 'showWaitingSpace', value: true });
-            this.$store.commit('SET_PARAMS', { type: 'showRobots', value: true });
-            this.$store.commit('SET_PARAMS', { type: 'showOfflineRobots', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showSpaces', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showLinks', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showContainerBerth', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showInvalidSpace', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showWaitingSpace', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showRobots', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showOfflineRobots', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showContainers', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showTerminals', value: true });
             this.$router.push('/scada');
           },
         });

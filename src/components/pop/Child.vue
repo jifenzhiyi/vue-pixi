@@ -18,13 +18,17 @@
             @change="switchChange" />
           <a-input
             v-if="item.type === 'input'"
-            v-model="item.value"
+            :value="item.value"
             :suffix="item.unit"
-            onkeyup="value=value.replace(/[^\d]/g,'')" />
+            @focus="focus(item.param)"
+            onkeyup="value=value.replace(/[^\d]/g,'')"
+            @change="inputChange" />
           <a-input
             v-if="item.type === 'input_num'"
-            :default-value="item.value"
-            onkeyup="value=value.replace(/[^.\d]/g,'')">
+            :value="item.value"
+            @focus="focus(item.param)"
+            onkeyup="value=value.replace(/[^.\d]/g,'')"
+            @change="inputChange2">
             <a-icon
               slot="addonBefore"
               type="plus"
@@ -34,7 +38,9 @@
               type="minus" 
               @click="minus"/>
           </a-input>
-          <a-radio-group :default-value="item.value">
+          <a-radio-group
+            :default-value="item.value"
+            @change="radioChange">
             <a-radio
               v-for="o in item.options"
               :key="o.value"
@@ -67,11 +73,29 @@ export default {
     };
   },
   methods: {
+    radioChange(e) {
+      const value = e.target.value;
+      this.$store.commit('SET_PARAMS', { key: 'showContainersType', value });
+      this.application && this.application.showContainersType(value);
+    },
+    inputChange(e) {
+      const value = Number(e.target.value.replace(/[^\d]/g, ''));
+      value && this.$store.commit('SET_PARAMS', { key: this.param, value });
+    },
+    inputChange2(e) {
+      const value = Number(e.target.value.replace(/[^.\d]/g, ''));
+      value && this.$store.commit('SET_PARAMS', { key: this.param, value });
+    },
     plus() {
-      console.log('plus');
+      const item = this.list.find((one) => one.param === 'moveSpeed');
+      item.value = (item.value * 1000 + item.num * 1000) / 1000;
+      this.$store.commit('SET_PARAMS', { key: 'moveSpeed', value: item.value });
     },
     minus() {
-      console.log('minus');
+      const item = this.list.find((one) => one.param === 'moveSpeed');
+      item.value = (item.value * 1000 - item.num * 1000) / 1000;
+      item.value = item.value > 0 ? item.value : 0;
+      this.$store.commit('SET_PARAMS', { key: 'moveSpeed', value: item.value });
     },
     focus(param) {
       this.param = param;

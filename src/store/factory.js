@@ -29,23 +29,26 @@ export default {
       containerMap: {},
     },
     params: {
-      floorDirection: storage.get('scada_floorDirection') || 'Horizontal', // Horizontal Vertical
-      showSpaces: storage.get('scada_showSpaces') || false, // 展示space
-      showLinks: storage.get('scada_showLinks') || false, // 展示通道
-      showSpaceId: storage.get('scada_showSpaceId') || false, // 展示spaceId
-      showContainersType: storage.get('scada_showContainersType') || 'frequence', // 货架显示方式 frequence热度 type类型
-      showContainerBerth: storage.get('scada_showContainerBerth') || false, // 货架泊位
-      showInvalidSpace: storage.get('scada_showInvalidSpace') || false, // 无效位
-      showWaitingSpace: storage.get('scada_showWaitingSpace') || false, // 等待位
-      // showSafeSpace: storage.get('scada_showSafeSpace') || false, // 安全位
-      showRobots: storage.get('scada_showRobots') || false, // 是否展示机器人
-      showOfflineRobots: storage.get('scada_showOfflineRobots') || false, // 展示离线机器人
-      // showRobotsPath: storage.get('scada_showRobotsPath') || false, // 机器人路径
-      showRobotsId: storage.get('scada_showRobotsId') || false, // 展示机器人Id
-      ErrRobotTimeout: storage.get('scada_ErrRobotTimeout') || 10,
-      RobotTimeout: storage.get('scada_RobotTimeout') || 60, // 默认60
-      moveSpeed: storage.get('scada_moveSpeed') || 1.5,
-      fullScreen: storage.get('scada_fullScreen') || false,
+      floorDirection: storage.get('scada_params_floorDirection') || 'Horizontal', // Horizontal Vertical
+      showSpaces: storage.get('scada_params_showSpaces') || false, // 展示space
+      showLinks: storage.get('scada_params_showLinks') || false, // 展示通道
+      showSpaceId: storage.get('scada_params_showSpaceId') || false, // 展示spaceId
+      showContainersType: storage.get('scada_params_showContainersType') || 'frequence', // 货架显示方式 frequence热度 type类型
+      showContainerBerth: storage.get('scada_params_showContainerBerth') || false, // 货架泊位
+      showInvalidSpace: storage.get('scada_params_showInvalidSpace') || false, // 无效位
+      showWaitingSpace: storage.get('scada_params_showWaitingSpace') || false, // 等待位
+      // showSafeSpace: storage.get('scada_params_showSafeSpace') || false, // 安全位
+      showRobots: storage.get('scada_params_showRobots') || false, // 是否展示机器人
+      showOfflineRobots: storage.get('scada_params_showOfflineRobots') || false, // 展示离线机器人
+      // showRobotsPath: storage.get('scada_params_showRobotsPath') || false, // 机器人路径
+      showRobotsId: storage.get('scada_params_showRobotsId') || false, // 展示机器人Id
+      RobotTimeout: storage.get('scada_params_RobotTimeout') || 60, // 默认60
+      ErrRobotTimeout: storage.get('scada_params_ErrRobotTimeout') || 10,
+      moveSpeed: storage.get('scada_params_moveSpeed') || 1.5,
+      showContainers: storage.get('scada_params_showContainers') || false, // 展示货架
+      showContainerId: storage.get('scada_params_showContainerId') || false, // 展示货架编号
+      showTerminals: storage.get('scada_params_showTerminals') || false, // 展示工作站
+      fullScreen: storage.get('scada_params_fullScreen') || false,
       allowSound: false,
     },
     config: {
@@ -60,11 +63,15 @@ export default {
     },
   },
   mutations: {
+    SET_MOVE_SPEED(state, speed) {
+      state.moveSpeed = speed;
+    },
     SET_FACTORY_CONFIG(state, obj) {
       state.factoryConfig = obj;
     },
     SET_PARAMS(state, { key, value }) {
       state.params[key] = value;
+      storage.set(`scada_params_${key}`, state.params[key]);
     },
     SET_CONFIG_ALL(state, config) {
       state.config = config;
