@@ -65,4 +65,13 @@ export default {
   SpaceMode: '标记地面模式',
   ExitSpaceMode: '退出标记地面模式',
   editContainers: '批量编辑货架',
+  RobotInfo: '机器人信息',
+  TerminalInfo: '工作站信息',
+  ID: '编号',
+  PleaseEnterID: '请输入{param}编号',
+  ContainerPlace: '货架',
+  Update: '更新货架位置',
+  MoveContainer: '移动货架',
+  RemoveContainer: '移除货架',
+  updateContainerOrit: '更新货架方向',
 };

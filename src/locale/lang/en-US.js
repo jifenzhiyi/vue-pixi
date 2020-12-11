@@ -61,4 +61,13 @@ export default {
   SpaceMode: 'Space Mode',
   ExitSpaceMode: 'Exit Space Mode',
   editContainers: 'Batch Edit Containers',
+  RobotInfo: 'AGV',
+  TerminalInfo: 'Workstation',
+  ID: 'ID',
+  PleaseEnterID: 'Please enter {param} ID',
+  ContainerPlace: 'Container',
+  Update: 'Update Position',
+  MoveContainer: 'Move Rack',
+  RemoveContainer: 'Remove Rack',
+  updateContainerOrit: 'Update direction',
 };
