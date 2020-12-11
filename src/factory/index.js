@@ -33,6 +33,9 @@ class Scene {
       this.building.floors[floorIndex] = { visible: true };
     });
     this.colorConfig = colorConfig;
+    this.spacesOfContainerSlot = []; // 货架泊位
+    this.spacesOfInvalid = []; // 无效位置
+    this.spacesOfWaiting = []; // 等待位
     this.info = {
       floorsCount: floors.length,
       spaceCount: 0, // 点位数量
@@ -185,8 +188,6 @@ class Scene {
       });
       this.domEvent();
     });
-    // for (let floorIndex in building.floors) {
-    // this.building.floors[i] = {};
   }
 
   destroy() {
@@ -214,7 +215,6 @@ class Scene {
     // sprites.fromBorder = createGraphics(this.spaceWidth, this.spaceLength, this.colorConfig.fromBorderColor, 'fromBorder')
     // sprites.toBorder = createGraphics(this.spaceWidth, this.spaceLength, this.colorConfig.toBorderColor, 'toBorder')
     this.building.buildingContainer.addChild(sprites.hoverBorder); // , sprites.fromBorder, sprites.toBorder
-    // this.params.testStatus()
     return Promise.resolve(this.info);
   }
 
@@ -266,7 +266,16 @@ class Scene {
         spacesContainer2.addChild(spacesIdLayer2);
       }
       this.info.spaceMap[spaceId] = space;
-      if (type === 7) {
+      if (type === 1) {
+        // 货架泊位
+        this.spacesOfContainerSlot.push(space);
+      } else if (type === 3 || type === 5) {
+        // 等待位 & 插入位
+        this.spacesOfWaiting.push(space);
+      } else if (type === 6) {
+        // 墙壁, 无效位置
+        this.spacesOfInvalid.push(space);
+      } else if (type === 7) {
         // 统计充电桩数量
         this.info.spaceCountOfCharger += 1;
       }
@@ -276,27 +285,15 @@ class Scene {
         spaceSprite.interactive = true;
         spaceSprite.on('mouseover', this.spaceMouseOver.bind(spaceSprite, space, this));
         spaceSprite.on('mouseout', this.spaceMouseOut.bind(spaceSprite, this));
-        // spaceSprite.on('click', this.spaceUp.bind(spaceSprite, space, this))
-        // spaceSprite.on('rightclick', this.spaceRightUp.bind(spaceSprite, space, this))
       }
       // if (deviceIsPC) {
-      //   spaceSprite.on('mouseover', this.spaceMouseOver.bind(spaceSprite, space, this))
-      //   spaceSprite.on('mouseout', this.spaceMouseOut.bind(spaceSprite, space, this))
       //   spaceSprite.on('click', this.spaceUp.bind(spaceSprite, space, this))
       //   spaceSprite.on('rightclick', this.spaceRightUp.bind(spaceSprite, space, this))
       // } else {
       //   spaceSprite.on('touchstart', this.spaceNoPCtoClick.bind(spaceSprite, space, this))
       // }
-      // if (type === 1) { // 货架泊位
-      //   this.spacesOfContainerSlot.push(space)
-      // } else if (type === 6) { // 墙壁
-      //   this.spacesOfInvalid.push(space)
-      // } else if (type === 3 || type === 5) { // 等待位 & 插入位
-      //   this.spacesOfWaiting.push(space)
-      // }
-      // const spacesIdLayer2 = new PIXI.Container();
+      //
     }
-    // linkId
     for (let i = 0; i < spaces.length; i++) {
       if (spaces[i].status === -9) i++; // 状态-9跳过
       const { x, y, z, linkId } = spaces[i];
@@ -334,8 +331,6 @@ class Scene {
       terminalSprite.anchor.set(0.5);
       terminalContainer.position.set(x, y);
       terminalContainer.addChild(terminalSprite);
-      // 1, terminal 高亮边框
-      // terminalContainer.addChild(createGraphics(this.spaceWidth, this.spaceLength, 0x0000ff));
       this.building.floors[z].terminalSprites.addChild(terminalContainer);
       // 工作站列表， 给右侧栏使用
       this.info.terminalMap[terminalId] = { terminalId, spaceId, posX, posY, posZ, status, terminalContainer };
@@ -377,7 +372,7 @@ class Scene {
       const idSprite = new PIXI.Text(robotId, this.colorConfig.robotIdStyle);
       idSprite.anchor.set(0.5, 1.2);
       idSprite.scale.set(0.5);
-      idSprite.visible = false;
+      idSprite.visible = params.showRobotsId;
       robotContainer.addChild(idSprite);
       // 3, errorTextBox
       const errorTextBox = PIXI.Sprite.from('textures/errorTextBox.png');
@@ -410,12 +405,12 @@ class Scene {
       const container = containers[i];
       const { spaceId, status, containerId } = container;
       if (status === -9 || !spaceId) continue;
-      validLen++;
       const space = this.info.spaceMap[spaceId];
       if (!space) continue;
       const { z } = space;
       space.containerId = containerId; // 记录点位存在货架Id
       this.building.floors[z].containerSprites.addChild(this.createContainer(container));
+      validLen++;
     }
     this.info.containerCount = validLen;
   }
@@ -431,7 +426,6 @@ class Scene {
     params.showContainersType === 'frequence' && (containerSprite.tint = calcShapeColorByFrquence(frequence));
     containerContainer.position.set(x, y);
     const { width, length } = this.containerTypeMap[type];
-    // return null;
     containerSprite.width = width;
     containerSprite.height = length;
     containerSprite.anchor.set(0.5);
@@ -577,7 +571,7 @@ class Scene {
         terminalId: terminalId || '-',
       };
       store.commit('SET_CONFIG_ALL', config);
-      // e && $root.showLinkedLater()
+      // e && $root.showLinkedLater(); // 特殊操作
       const { x: left, y: top } = spaceSprite.getGlobalPosition();
       const { width, height } = spaceSprite.getBounds();
       $root.spaceInfoBox.style.left = `${left + width * 0.6}px`;
@@ -1093,6 +1087,52 @@ class Scene {
     const container = this.building.floors[0].spacesContainer2;
     container.children.forEach((item) => {
       item.children[1].visible = flag;
+    });
+  }
+
+  showContainerBerth(flag) {
+    const typeColor = flag ? this.colorConfig.spaceColorMap[1] : this.colorConfig.spaceColorMap[0];
+    const len = this.spacesOfContainerSlot.length;
+    for (let i = 0; i < len; i++) {
+      const { status, spaceSprite } = this.spacesOfContainerSlot[i];
+      if (status !== 1) {
+        spaceSprite.tint = typeColor;
+      }
+    }
+  }
+
+  showInvalidSpace(flag) {
+    const len = this.spacesOfInvalid.length;
+    for (let i = 0; i < len; i++) {
+      this.spacesOfInvalid[i].spaceSprite.visible = flag;
+    }
+  }
+
+  showWaitingSpace(flag) {
+    const len = this.spacesOfWaiting.length;
+    for (let i = 0; i < len; i++) {
+      const { type, status, spaceSprite } = this.spacesOfWaiting[i];
+      if (status !== 1) {
+        spaceSprite.tint = flag ? this.colorConfig.spaceColorMap[type] : this.colorConfig.spaceColorMap[0];
+      }
+    }
+  }
+
+  showRobots(flag) {
+    this.building.floors[0].robotSprites.visible = flag;
+  }
+
+  showOfflineRobots(flag) {
+    Object.keys(this.info.robotMap).forEach((key) => {
+      const { status, robotContainer } = this.info.robotMap[key];
+      status === -1 && (robotContainer.visible = flag);
+    });
+  }
+
+  showRobotsId(flag) {
+    Object.keys(this.info.robotMap).forEach((key) => {
+      const { robotContainer } = this.info.robotMap[key];
+      robotContainer.getChildAt(1).visible = flag;
     });
   }
 }

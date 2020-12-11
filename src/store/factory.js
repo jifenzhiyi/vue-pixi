@@ -30,11 +30,18 @@ export default {
     },
     params: {
       floorDirection: storage.get('scada_floorDirection') || 'Horizontal', // Horizontal Vertical
-      showOfflineRobots: storage.get('scada_showOfflineRobots') || false, // 展示离线机器人
       showSpaces: storage.get('scada_showSpaces') || false, // 展示space
       showLinks: storage.get('scada_showLinks') || false, // 展示通道
       showSpaceId: storage.get('scada_showSpaceId') || false, // 展示spaceId
       showContainersType: storage.get('scada_showContainersType') || 'frequence', // 货架显示方式 frequence热度 type类型
+      showContainerBerth: storage.get('scada_showContainerBerth') || false, // 货架泊位
+      showInvalidSpace: storage.get('scada_showInvalidSpace') || false, // 无效位
+      showWaitingSpace: storage.get('scada_showWaitingSpace') || false, // 等待位
+      // showSafeSpace: storage.get('scada_showSafeSpace') || false, // 安全位
+      showRobots: storage.get('scada_showRobots') || false, // 是否展示机器人
+      showOfflineRobots: storage.get('scada_showOfflineRobots') || false, // 展示离线机器人
+      // showRobotsPath: storage.get('scada_showRobotsPath') || false, // 机器人路径
+      showRobotsId: storage.get('scada_showRobotsId') || false, // 展示机器人Id
       ErrRobotTimeout: storage.get('scada_ErrRobotTimeout') || 10,
       RobotTimeout: storage.get('scada_RobotTimeout') || 60, // 默认60
       moveSpeed: storage.get('scada_moveSpeed') || 1.5,

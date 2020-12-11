@@ -76,6 +76,11 @@ export default {
             // TODO 初始化一些配置
             this.$store.commit('SET_PARAMS', { type: 'showSpaces', value: true });
             this.$store.commit('SET_PARAMS', { type: 'showLinks', value: true });
+            this.$store.commit('SET_PARAMS', { type: 'showContainerBerth', value: true });
+            this.$store.commit('SET_PARAMS', { type: 'showInvalidSpace', value: true });
+            this.$store.commit('SET_PARAMS', { type: 'showWaitingSpace', value: true });
+            this.$store.commit('SET_PARAMS', { type: 'showRobots', value: true });
+            this.$store.commit('SET_PARAMS', { type: 'showOfflineRobots', value: true });
             this.$router.push('/scada');
           },
         });

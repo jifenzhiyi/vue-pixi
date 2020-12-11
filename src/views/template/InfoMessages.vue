@@ -74,6 +74,7 @@ export default {
       }
     }
     .sub2 {
+      padding-top: 10px;
       .child {
         float: left;
         margin-top: 5px;
