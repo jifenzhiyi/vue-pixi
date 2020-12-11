@@ -83,6 +83,7 @@ export default {
             this.$store.commit('SET_PARAMS', { key: 'showOfflineRobots', value: true });
             this.$store.commit('SET_PARAMS', { key: 'showContainers', value: true });
             this.$store.commit('SET_PARAMS', { key: 'showTerminals', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showRobotsPath', value: true });
             this.$router.push('/scada');
           },
         });

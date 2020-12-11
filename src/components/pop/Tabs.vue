@@ -50,7 +50,7 @@ export default {
           list: [
             { label: 'Robot', param: 'showRobots', value: storage.get('scada_params_showRobots'), type: 'switch' },
             { label: 'OfflineRobot', param: 'showOfflineRobots', value: storage.get('scada_params_showOfflineRobots') || false, type: 'switch' },
-            { label: 'robotPath', value: true, type: 'switch' },
+            { label: 'robotPath', param: 'showRobotsPath', value: storage.get('scada_params_showRobotsPath'), type: 'switch' },
             { label: 'robotId', param: 'showRobotsId', value: storage.get('scada_params_showRobotsId') || false, type: 'switch' },
             { label: 'robotMoveSpeed', param: 'moveSpeed', value: storage.get('scada_params_moveSpeed') || 1.5, type: 'input_num', num: 0.1 },
             { label: 'RobotTimeout', param: 'RobotTimeout', value: storage.get('scada_params_RobotTimeout') || 60, type: 'input', unit: '秒' },

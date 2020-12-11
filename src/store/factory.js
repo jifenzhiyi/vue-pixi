@@ -40,7 +40,7 @@ export default {
       // showSafeSpace: storage.get('scada_params_showSafeSpace') || false, // 安全位
       showRobots: storage.get('scada_params_showRobots') || false, // 是否展示机器人
       showOfflineRobots: storage.get('scada_params_showOfflineRobots') || false, // 展示离线机器人
-      // showRobotsPath: storage.get('scada_params_showRobotsPath') || false, // 机器人路径
+      showRobotsPath: storage.get('scada_params_showRobotsPath') || false, // 机器人路径
       showRobotsId: storage.get('scada_params_showRobotsId') || false, // 展示机器人Id
       RobotTimeout: storage.get('scada_params_RobotTimeout') || 60, // 默认60
       ErrRobotTimeout: storage.get('scada_params_ErrRobotTimeout') || 10,

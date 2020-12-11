@@ -8,6 +8,7 @@ import sound from './sound';
 import { createGraphics, loadTextures, getMinAndSec, calcShapeColorByFrquence, calcShapeColorByType } from './func.js';
 
 let nowStamp;
+const TweenMax = window.gsap; // 在index.html中引入了gsap.min.js
 const deviceIsPC = isPC();
 const { params } = store.state.factory;
 const floorPadding = 10;
@@ -37,6 +38,8 @@ class Scene {
     this.spacesOfContainerSlot = []; // 货架泊位
     this.spacesOfInvalid = []; // 无效位置
     this.spacesOfWaiting = []; // 等待位
+    this.waitingMoveList = []; // 等待移动的列表
+    this.spacesContainerNew = []; // 点位容器（存储移动的路径）
     this.info = {
       floorsCount: floors.length,
       spaceCount: 0, // 点位数量
@@ -61,7 +64,8 @@ class Scene {
       robotMapOfError: {}, // 机器错误信息
     }; // 场景内容信息
     this.textures = null;
-    this.createScene(el); // 场景创建
+    !this.app && this.createScene(el); // 场景创建
+    console.log('createScene app', this.app);
     loadTextures().then((res) => {
       this.textures = res;
       this.events.onInitWS && this.events.onInitWS();
@@ -232,6 +236,7 @@ class Scene {
       space.z = posZ || 0;
       const spacesIdLayer = new PIXI.Container();
       const spacesIdLayer2 = new PIXI.Container();
+      spacesIdLayer2.name = spaceId;
       spacesIdLayer.width = spacesIdLayer2.width = this.spaceWidth;
       spacesIdLayer.height = spacesIdLayer2.height = this.spaceLength;
       spacesIdLayer.pivot.set(this.spaceWidth / 2, this.spaceLength / 2);
@@ -257,6 +262,7 @@ class Scene {
       idSprite.anchor.set(-0.6, -1.2);
       idSprite.visible = params.showSpaceId;
       spacesIdLayer2.addChild(idSprite);
+      this.spacesContainerNew.push(spacesIdLayer2);
       const floor = this.building.floors[space.z];
       const { spacesContainer, spacesContainer2, spacesContainerOfMarked } = floor;
       if (status === 1) {
@@ -349,7 +355,9 @@ class Scene {
         continue;
       }
       const robot = robots[i];
-      const { robotId, spaceId, orientation, status } = robot;
+      const { robotId, spaceId, endId: endIdNew, orientation, status } = robot;
+      const endIdList = endIdNew ? endIdNew.split(',') : [];
+      const endId = endIdList[0]; // endId 第一个坐标点
       const space = this.info.spaceMap[spaceId];
       if (!space) continue;
       const { posX, posY, posZ, x, y, z } = space;
@@ -361,6 +369,15 @@ class Scene {
       const robotContainer = new PIXI.Container();
       const robotSprites = this.building.floors[z].robotSprites;
       robotSprites.addChild(robotContainer);
+      // 0, 路径
+      const endSpace = this.info.spaceMap[endId];
+      const { x: endX, y: endY } = endSpace;
+      const robotPath = new PIXI.Graphics();
+      robotPath.visible = params.showRobotsPath;
+      robotPath.lineStyle(1.5, 0x0000ff, 1);
+      robotPath.moveTo(0, 0);
+      robotPath.lineTo(endX - x, endY - y);
+      robotContainer.addChild(robotPath);
       // 1, 本体
       const isRobot = robotId.startsWith('R');
       const robotSprite = new PIXI.Sprite(isRobot ? this.textures.robot : this.textures.lift);
@@ -392,8 +409,9 @@ class Scene {
       errorText.position.x = 6;
       errorText.visible = false;
       robotContainer.addChild(errorText);
-      robot.robotContainer = robotContainer;
+      // other
       robotSprite.calculateBounds();
+      robot.robotContainer = robotContainer;
       // 机器列表，给右侧栏用
       this.info.robotMap[robotId] = robot;
       // 设置机器颜色、错误代码
@@ -457,7 +475,7 @@ class Scene {
 
   setRobotState(robot, oldStatus) {
     const { robotId, robotContainer, status } = robot; // spaceId,
-    const [robotSprite, , errorTextBox, errorText] = robotContainer.children;
+    const [, robotSprite, , errorTextBox, errorText] = robotContainer.children;
     status === -1 ? (robotContainer.visible = params.showOfflineRobots) : (robotContainer.visible = true);
     if (oldStatus == null) {
       // 地图初始化
@@ -503,11 +521,11 @@ class Scene {
         this.info.robotCount[`robotCountOf${status}`]++;
         this.info.robotCount.robotCountOf99--;
         // TODO 关闭闪烁
-        // const robotSpriteTween = TweenMax.getTweensOf(robotSprite.scale)[0]
-        // if (robotSpriteTween) {
-        //   robotSpriteTween.kill();
-        //   robotSprite.scale.set(robotSprite.oldScale);
-        // }
+        const robotSpriteTween = TweenMax.getTweensOf(robotSprite.scale)[0];
+        if (robotSpriteTween) {
+          robotSpriteTween.kill();
+          robotSprite.scale.set(robotSprite.oldScale);
+        }
       }
     }
   }
@@ -515,7 +533,7 @@ class Scene {
   // 添加 warn 计时（时间到达后 显示错误代码，机器变红，闪烁，统计）
   robotStatusControl(robot, oldStatus) {
     const { robotId, robotContainer, status } = robot;
-    const [robotSprite, , errorTextBox, errorText] = robotContainer.children;
+    const [, robotSprite, , errorTextBox, errorText] = robotContainer.children;
     robotContainer.errTimer = setTimeout(() => {
       params.allowSound && sound.play();
       // 错误代码和超时分钟数
@@ -531,20 +549,20 @@ class Scene {
       // 机器变红
       robotSprite.tint = 0xff0000;
       // 机器闪烁
-      // const oldScale = robotSprite.oldScale;
-      // TweenMax.fromTo(
-      //   robotSprite.scale,
-      //   0.35,
-      //   {
-      //     x: oldScale,
-      //     y: oldScale,
-      //   },
-      //   {
-      //     x: oldScale * 3,
-      //     y: oldScale * 3,
-      //     repeat: -1,
-      //   },
-      // );
+      const oldScale = robotSprite.oldScale;
+      TweenMax.fromTo(
+        robotSprite.scale,
+        0.35,
+        {
+          x: oldScale,
+          y: oldScale,
+        },
+        {
+          x: oldScale * 3,
+          y: oldScale * 3,
+          repeat: -1,
+        },
+      );
       // 机器数量统计：有问题
       oldStatus && this.info.robotCount[`robotCountOf${oldStatus}`]--;
       console.log('有问题 robotId', robotId, 'status', status, 'oldStatus', oldStatus);
@@ -598,7 +616,7 @@ class Scene {
     terminals && this.updateTerminals(terminals);
     robots && this.updateRobots(robots);
     containers && this.updateContainers(containers);
-    // this.doMove()
+    this.doMove();
     return Promise.resolve(this.info);
   }
 
@@ -658,24 +676,20 @@ class Scene {
         endId: endIdNew,
         lastUpdateTimeStamp,
         status,
-        // containerId,
-        // terminalId,
-        // frequence,
+        frequence,
+        terminalId,
+        containerId,
       } = robot;
       const endIdList = endIdNew ? endIdNew.split(',') : [];
       const endId = endIdList[0]; // endId 第一个坐标点
       const space = this.info.spaceMap[spaceId]; // 当前的位置
       if (!space) continue; // robot对应的space不存在 直接跳过
-      const { posX, posY, posZ } = space; // x, y, z
+      const { posX, posY, posZ, x, y, z } = space;
       const oldRobot = this.info.robotMap[robotId]; // 原机器人信息
       oldRobot.lastUpdateTimeStamp = lastUpdateTimeStamp;
-      oldRobot.posX = posX;
-      oldRobot.posY = posY;
-      oldRobot.posZ = posZ;
       if (!oldRobot) continue; // 若oldRobot不存在，则是新增的robot，走robot初始化逻辑
-      const { robotContainer, status: oldStatus, orientation: oldOrientation } = oldRobot;
-      // spaceId: oldSpaceId,
-      const [, , errorTextBox, errorText] = robotContainer.children;
+      const { robotContainer, status: oldStatus, orientation: oldOrientation, spaceId: oldSpaceId } = oldRobot;
+      const [, , , errorTextBox, errorText] = robotContainer.children;
       // 定时循环关闭
       if (robotContainer.loop) {
         clearInterval(robotContainer.loop);
@@ -692,7 +706,6 @@ class Scene {
       // 错误信息显示
       if (endId !== undefined && endId !== spaceId) {
         const { min, sec } = getMinAndSec(nowStamp, lastUpdateTimeStamp);
-        console.log('RobotTimeout', params.RobotTimeout);
         if (sec > params.RobotTimeout) {
           robotContainer.overtime = min;
           robot.status > 10
@@ -727,95 +740,141 @@ class Scene {
           }, (params.RobotTimeout - sec) * 1000);
         }
       }
-      // const oldSpace = this.info.spaceMap[oldSpaceId];
-      // const { x: oldX, y: oldY, z: oldZ } = oldSpace;
-      // 机器列表，给右侧栏用
-      oldRobot.status = status;
-      oldRobot.voltage = voltage;
-      oldRobot.orientation = orientation;
       // 若机器人 status 变化需要重新设置颜色, orientation 变化需要改变方向
       if (status !== oldStatus || orientation !== oldOrientation) {
         // 设置机器颜色、错误代码
         robot.robotContainer = robotContainer;
         this.setRobotState(robot, oldStatus);
       }
-      // todo：以下两行代码移到下方的 if 代码块内
-      // const endSpace = this.info.spaceMap[endId]
-      // const { x: endX, y: endY } = endSpace // 需要移动的第一个点位
-      // this.robotlineTo(space, endSpace, robotContainer);
-      // // TODO 节流控制运动轨迹的生成
-      // throttle(function () {
-      //   if (oldRobot.startId) {
-      //     window.Scene.robotlineClear(oldRobot.startId, oldRobot.setTime)
-      //     oldRobot.startId = null
-      //   }
-      //   if (!oldRobot.startId && spaceId !== endId) {
-      //     // if (robotId === 'R6') {
-      //     //   console.log('endIdNew', endIdNew, 'endId', endId, 'startId', oldRobot.startId)
-      //     //   console.log('list', endIdList)
-      //     // }
-      //     oldRobot.startId = spaceId
-      //     window.Scene.robotlineTo2(space, endIdList)
-      //   }
-      // }, 1000)()
-      // if (oldRobot.startId && spaceId === endId) {
-      //   this.robotlineClear(oldRobot.startId, oldRobot.setTime)
-      //   oldRobot.startId = null
-      // }
-      // oldRobot.endId = endIdNew
-      // if (spaceId !== oldSpaceId) {
-      //   oldRobot.spaceId = spaceId
-      //   this.robotMapBySpaceId[oldSpaceId] = ''
-      //   this.robotMapBySpaceId[spaceId] = oldRobot
-      //   // todo: 如果机器人的移动伴随楼层转换，则执行不同的逻辑。包括不需要显示机器的路径（endId 与 spaceId 不同），
-      //   if (z !== oldZ) { // 楼层转换
-      //     robotContainer.setParent(building.floors[z].robotSprites)
-      //     // 添加转换闪烁动画， 如不需要，注释掉即可
-      //     let i = 0
-      //     const yoyo = setInterval(() => {
-      //       i > 5 ? clearInterval(yoyo) : i += 1
-      //       robotContainer.setParent(building.floors[i % 2 === 1 ? oldZ : z].robotSprites)
-      //     }, 100)
-      //   } else { // 同层移动
-      //     let offsetX, offsetY
-      //     if (spaceId !== oldSpaceId) {
-      //       offsetX = x - oldX
-      //       offsetY = y - oldY
-      //     }
-      //     const key = `${oldSpaceId}->${spaceId}`
-      //     this.waitingMoveListByRobotId[robotId] = this.waitingMoveList[key] = {
-      //       robotContainer, x, y, endX, endY, offsetX, offsetY,
-      //     }
-      //   }
-      //   // 机器列表，给右侧栏用
-      //   this.info.robotMap[robotId].spaceId = spaceId
-      //   this.info.robotMap[robotId].posX = posX
-      //   this.info.robotMap[robotId].posY = posY
-      //   this.info.robotMap[robotId].posZ = posZ
-      // }
-      // oldRobot.containerId = containerId
-      // oldRobot.terminalId = terminalId
-      // oldRobot.frequence = frequence
+      const endSpace = this.info.spaceMap[endId];
+      const { x: endX, y: endY } = endSpace; // 需要移动的第一个点位
+      // TODO 节流控制运动轨迹的生成
+      this.robotlineTo(space, endSpace, robotContainer);
+      if (oldRobot.startId) {
+        this.robotlineClear(oldRobot.startId, oldRobot.setTime);
+        oldRobot.startId = null;
+      }
+      if (!oldRobot.startId && spaceId !== endId) {
+        oldRobot.startId = spaceId;
+        this.robotlineTo2(space, endIdList);
+      }
+      if (oldRobot.startId && spaceId === endId) {
+        this.robotlineClear(oldRobot.startId, oldRobot.setTime);
+        oldRobot.startId = null;
+      }
+      if (spaceId !== oldSpaceId) {
+        oldRobot.spaceId = spaceId;
+        const oldSpace = this.info.spaceMap[oldSpaceId];
+        const { x: oldX, y: oldY, z: oldZ } = oldSpace;
+        // todo: 如果机器人的移动伴随楼层转换，则执行不同的逻辑。包括不需要显示机器的路径（endId 与 spaceId 不同），
+        if (z !== oldZ) {
+          // 楼层转换
+          robotContainer.setParent(this.building.floors[z].robotSprites);
+          // 添加转换闪烁动画， 如不需要，注释掉即可
+          let j = 0;
+          const yoyo = setInterval(() => {
+            j > 5 ? clearInterval(yoyo) : (j += 1);
+            robotContainer.setParent(this.building.floors[j % 2 === 1 ? oldZ : z].robotSprites);
+          }, 100);
+        } else {
+          // 同层移动
+          let offsetX, offsetY;
+          if (spaceId !== oldSpaceId) {
+            offsetX = x - oldX;
+            offsetY = y - oldY;
+          }
+          const key = `${oldSpaceId}->${spaceId}`;
+          this.waitingMoveList[key] = {
+            robotContainer,
+            x,
+            y,
+            endX,
+            endY,
+            offsetX,
+            offsetY,
+          };
+        }
+      }
+      // 机器列表，给右侧栏用
+      oldRobot.endId = endIdNew;
+      oldRobot.posX = posX;
+      oldRobot.posY = posY;
+      oldRobot.posZ = posZ;
+      oldRobot.status = status;
+      oldRobot.voltage = voltage;
+      oldRobot.frequence = frequence;
+      oldRobot.terminalId = terminalId;
+      oldRobot.containerId = containerId;
+      oldRobot.orientation = orientation;
     }
     setTimeout(() => {
       this.events.onUpdateInfo(this.info);
     }, params.ErrRobotTimeout * 1000);
   }
 
+  robotlineTo(space, endSpace, robotContainer) {
+    const { x, y } = space; // 当前位置坐标
+    const { x: endX, y: endY } = endSpace; // 需要移动到的点位
+    const { x: currX, y: currY } = robotContainer;
+    const offsetX = x - currX;
+    const offsetY = y - currY;
+    const robotPath = robotContainer.getChildAt(0);
+    robotPath.clear();
+    robotPath.lineStyle(1.5, 0x0000ff, 1);
+    robotPath.moveTo(0, 0);
+    if (offsetX === 0 && offsetY === 0) {
+      robotPath.lineTo(endX - currX, endY - currY);
+    } else {
+      robotPath.lineTo(offsetX === 0 ? 0 : endX - currX, offsetY === 0 ? 0 : endY - currY);
+    }
+  }
+
+  robotlineTo2(space, endIdList) {
+    const containerList = this.spacesContainerNew;
+    const container = containerList.find((o) => o.name === space.spaceId);
+    const CPoint = [this.spaceWidth / 2, this.spaceLength / 2];
+    if (endIdList.length > 0) {
+      const robotPath2 = new PIXI.Graphics();
+      robotPath2.lineStyle(1.5, this.colorConfig.robotlineColor, 1);
+      robotPath2.moveTo(CPoint[0], CPoint[1]);
+      for (let i = 0; i < endIdList.length; i += 1) {
+        robotPath2.visible = params.showRobotsPath;
+        let space1;
+        i === 0 ? (space1 = space) : (space1 = this.info.spaceMap[endIdList[i - 1]]);
+        const { x: endX1, y: endY1 } = space1;
+        const space2 = this.info.spaceMap[endIdList[i]];
+        const { x: endX2, y: endY2 } = space2;
+        const lineTo1 = endX2 - endX1;
+        const lineTo2 = endY2 - endY1;
+        CPoint[0] += lineTo1;
+        CPoint[1] += lineTo2;
+        robotPath2.lineTo(CPoint[0], CPoint[1]);
+        robotPath2.moveTo(CPoint[0], CPoint[1]);
+        container.addChild(robotPath2);
+      }
+    }
+  }
+
+  robotlineClear(startId) {
+    const containerList = this.spacesContainerNew;
+    const container = containerList.find((o) => o.name === startId);
+    container.children.length = 1;
+  }
+
   // 删除货架视图
   removeContainer(containerId) {
-    // const container = this.info.containerMap[containerId];
-    // const { spaceId, containerContainer } = container;
-    // const { z } = this.info.spaceMap[spaceId]
-    // TweenMax.to(containerContainer, 0.1, {
-    //   alpha: 0,
-    //   repeat: 8,
-    //   yoyo: true,
-    //   onComplete () {
-    //     // 删除货架模型
-    //     building.floors[z].containerSprites.removeChild(containerContainer)
-    //   },
-    // })
+    const container = this.info.containerMap[containerId];
+    const { spaceId, containerContainer } = container;
+    const { z } = this.info.spaceMap[spaceId];
+    TweenMax.to(containerContainer, 0.1, {
+      alpha: 0,
+      repeat: 8,
+      yoyo: true,
+      onComplete() {
+        // 删除货架模型
+        this.building.floors[z].containerSprites.removeChild(containerContainer);
+      },
+    });
     delete this.info.containerMap[containerId];
     this.info.containerCount--; // 货架数量减少
   }
@@ -1031,8 +1090,41 @@ class Scene {
     }
   }
 
+  doMove() {
+    Object.keys(this.waitingMoveList).forEach((key) => {
+      const { robotContainer, containerContainerPosition, x, y, endX, endY, offsetX, offsetY } = this.waitingMoveList[
+        key
+      ];
+      const robotPath = robotContainer.getChildAt(0);
+      const { x: currX, y: currY } = robotContainer;
+      const offset = Math.sqrt(Math.pow(x - currX, 2) + Math.pow(y - currY, 2)) / 10;
+      const duration = params.moveSpeed ? offset / params.moveSpeed : 0;
+      const robotContainerTween = TweenMax.getTweensOf(robotContainer.position)[0];
+      const containerSpriteTween = TweenMax.getTweensOf(containerContainerPosition)[0];
+      robotContainerTween && robotContainerTween.kill();
+      containerSpriteTween && containerSpriteTween.kill();
+      TweenMax.to(robotContainer.position, duration, {
+        x,
+        y,
+        onUpdate() {
+          // TODO update的同时每次需要获取最新的x, y
+          const { x: currX1, y: currY2 } = robotContainer;
+          robotPath.clear();
+          robotPath.lineStyle(1.5, 0x0000ff, 1);
+          robotPath.moveTo(0, 0);
+          robotPath.lineTo(offsetX === 0 ? 0 : endX - currX1, offsetY === 0 ? 0 : endY - currY2);
+        },
+        onComplete() {
+          robotPath.moveTo(0, 0);
+          robotPath.lineTo(offsetY === 0 ? 0 : endX - currX, offsetX === 0 ? 0 : endY - currY);
+        },
+      }).data = { offsetX, offsetY };
+      containerContainerPosition && TweenMax.to(containerContainerPosition, duration, { x, y });
+    });
+    this.waitingMoveList = {};
+  }
+
   takeScreenshot() {
-    console.log('takeScreenshot');
     this.app.renderer.extract.canvas(this.app.stage).toBlob((b) => {
       const a = document.createElement('a');
       document.body.append(a);
@@ -1045,7 +1137,6 @@ class Scene {
 
   // TODO markers创建
   initMarkers(markers) {
-    // const len = markers.length;
     markers.forEach((item) => {
       const { marker, posX, posY, posZ } = item;
       const markerBox = PIXI.Sprite.from('textures/space-marker1.png');
@@ -1069,7 +1160,6 @@ class Scene {
       idSprite.anchor.set(0.5);
       markerBox.addChild(idSprite);
       this.building.floors[posZ].markerSprites.addChild(markerBox);
-      // building.floors[posZ].markerSprites.addChild(idSprite)
     });
   }
 
@@ -1131,6 +1221,13 @@ class Scene {
     Object.keys(this.info.robotMap).forEach((key) => {
       const { status, robotContainer } = this.info.robotMap[key];
       status === -1 && (robotContainer.visible = flag);
+    });
+  }
+
+  showRobotsPath(flag) {
+    Object.keys(this.info.robotMap).forEach((key) => {
+      const { robotContainer } = this.info.robotMap[key];
+      robotContainer.getChildAt(4).visible = flag;
     });
   }
 
