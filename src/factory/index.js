@@ -65,7 +65,6 @@ class Scene {
     }; // 场景内容信息
     this.textures = null;
     !this.app && this.createScene(el); // 场景创建
-    console.log('createScene app', this.app);
     loadTextures().then((res) => {
       this.textures = res;
       this.events.onInitWS && this.events.onInitWS();
@@ -75,6 +74,7 @@ class Scene {
   }
 
   resize() {
+    console.log('app resize');
     this.el.style.display = 'none';
     this.app && this.app.renderer.resize(this.el.parentElement.clientWidth, this.el.parentElement.clientHeight);
     this.el.style.display = 'block';
@@ -202,7 +202,7 @@ class Scene {
     this.app = null;
     this.building = {
       floors: {}, // 楼层
-      buildingContainer: new PIXI.Container(), // 主容器
+      buildingContainer: null, // 主容器
     };
   }
 
@@ -1000,35 +1000,31 @@ class Scene {
     let preY;
     let mousedown = false;
     if (deviceIsPC) {
-      this.el.addEventListener('mousedown', (e) => {
+      this.el.onmousedown = (e) => {
         mousedown = true;
         preX = e.x;
         preY = e.y;
-      });
-      this.el.addEventListener('mouseup', () => {
-        mousedown = false;
-      });
-      this.el.addEventListener('mouseout', () => {
-        mousedown = false;
-      });
-      this.el.addEventListener(
-        'mousemove',
-        (e) => {
+        this.el.onmousemove = (ev) => {
+          if (!mousedown) return;
+          if (store.state.modeStatus === 'batch') return;
           if (mousedown) {
-            const currX = e.x;
-            const currY = e.y;
-            const offsetX = currX - preX;
-            const offsetY = currY - preY;
+            const offsetX = ev.x - preX;
+            const offsetY = ev.y - preY;
             const buildingSprite = this.building.buildingContainer;
-            const oldX = buildingSprite.position.x;
-            const oldY = buildingSprite.position.y;
-            buildingSprite.position.set(Math.round(oldX + offsetX), Math.round(oldY + offsetY));
-            preX = currX;
-            preY = currY;
+            const oldX = Math.round(buildingSprite.position.x + offsetX);
+            const oldY = Math.round(buildingSprite.position.y + offsetY);
+            buildingSprite.position.set(oldX, oldY);
+            preX = ev.x;
+            preY = ev.y;
           }
-        },
-        true,
-      );
+        };
+        this.el.onmouseup = () => {
+          mousedown = false;
+        };
+        this.el.onmouseout = () => {
+          mousedown = false;
+        };
+      };
     } else {
       this.el.addEventListener('touchstart', (e) => {
         mousedown = true;

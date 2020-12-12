@@ -12,7 +12,7 @@
             :placeholder="$t('PleaseEnterID', { param: $t(param[idx]) })" />
         </div>
         <div class="one">
-          <div class="label">坐标：</div>
+          <div class="label">{{$t('Position')}}：</div>
           <div class="text">X -，Y -</div>
         </div>
         <div
@@ -26,8 +26,8 @@
         <div
           v-show="idx === 1"
           class="btn">
-          <a-button>移动机器人</a-button>
-          <a-button>重启机器人</a-button>
+          <a-button>{{$t('MoveRobot')}}</a-button>
+          <a-button>{{$t('ResetRobot')}}</a-button>
         </div>
         <!-- <div
           v-show="idx === 2"
@@ -35,7 +35,7 @@
         <div
           v-show="idx === 3"
           class="btn">
-          <a-button>新增货架</a-button>
+          <a-button>{{$t('AddContainer')}}</a-button>
         </div>
       </div>
     </div>
@@ -47,8 +47,8 @@ export default {
   name: 'AsideEdit',
   data() {
     return {
-      list: ['Container', 'RobotInfo', 'TerminalInfo', 'Space'],
-      param: ['ContainerPlace', 'Robot', 'Terminal', 'SpacePlace'],
+      list: ['ContainerPlace', 'RobotInfo', 'TerminalInfo', 'SpacePlace'],
+      param: ['Container', 'Robot', 'Terminal', 'Space'],
     };
   },
 };
@@ -77,7 +77,7 @@ export default {
       font-size: 13px;
       padding-top: 10px;
       align-items: center;
-      .label { width: 40px; }
+      .label { width: 50px; }
       .ant-input { flex: 1; }
     }
     .btn {

@@ -62,7 +62,7 @@ export default {
           key: 2,
           tab: 'Container', 
           list: [
-            { label: 'Container', param: 'showContainers', value: storage.get('scada_params_showContainers'), type: 'switch' },
+            { label: 'ContainerPlace', param: 'showContainers', value: storage.get('scada_params_showContainers'), type: 'switch' },
             { label: 'ContainerId', param: 'showContainerId', value: storage.get('scada_params_showContainerId') || false, type: 'switch' },
             {
               label: 'ShowTypeOfContainer',
