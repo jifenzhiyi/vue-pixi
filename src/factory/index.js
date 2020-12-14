@@ -14,6 +14,7 @@ const { params } = store.state.factory;
 const floorPadding = 10;
 const floorMargin = 20;
 const sprites = { rect: null };
+const spaceSelectArr = [];
 
 class Scene {
   constructor(el, warehouseInfo, events, spaceInfoBox) {
@@ -40,6 +41,7 @@ class Scene {
     this.spacesOfWaiting = []; // 等待位
     this.waitingMoveList = []; // 等待移动的列表
     this.spacesContainerNew = []; // 点位容器（存储移动的路径）
+    this.selectedContainers = {}; // 选中的货架
     this.info = {
       floorsCount: floors.length,
       spaceCount: 0, // 点位数量
@@ -64,6 +66,7 @@ class Scene {
       robotMapOfError: {}, // 机器错误信息
     }; // 场景内容信息
     this.textures = null;
+    this.floorSelect = false; // 批量编辑模式下的选中状态
     !this.app && this.createScene(el); // 场景创建
     loadTextures().then((res) => {
       this.textures = res;
@@ -175,6 +178,16 @@ class Scene {
       floor.other.name = 'other';
       floor.other.position.set(floorPadding, floorPadding);
       floorContainer.addChild(floor.other);
+      // 点位选中
+      const containerSelector = new PIXI.Graphics();
+      containerSelector.name = 'containerSelector';
+      containerSelector.beginFill(0xff0000, 0.1);
+      containerSelector.drawRect(0, 0, 1, 1); // 初始图案必须占用有效像素，否则不会被添加到场景当中
+      containerSelector.endFill();
+      containerSelector.visible = false;
+      floor.containerSelector = containerSelector;
+      floorContainer.addChild(containerSelector);
+      this.floorSpriteEvent(floorContainer, containerSelector);
       // 主容器
       const buildingContainer = this.building.buildingContainer;
       buildingContainer.x = Math.floor(this.app.screen.width / (devicePixelRatio * 2));
@@ -195,6 +208,52 @@ class Scene {
       this.domEvent();
     });
     console.timeEnd('createScene');
+  }
+
+  floorSpriteEvent(floorSprite, containerSelector) {
+    let p1 = null;
+    let p2 = null;
+    if (deviceIsPC) {
+      floorSprite.cursor = 'crosshair';
+      // floorSprite.interactive = true; // 事件开关
+      floorSprite.on('mousedown', (e) => {
+        this.floorSelect = true;
+        p1 = e.data.getLocalPosition(floorSprite);
+        console.log('p1', p1);
+        containerSelector.position.set(p1.x, p1.y);
+        containerSelector.width = 0;
+        containerSelector.height = 0;
+        containerSelector.visible = true;
+      });
+      floorSprite.on('mousemove', (e) => {
+        if (this.floorSelect) {
+          p2 = e.data.getLocalPosition(floorSprite);
+          containerSelector.width = p2.x - p1.x;
+          containerSelector.height = p2.y - p1.y;
+        }
+      });
+      floorSprite.on('mouseup', () => {
+        this.floorSelect = false;
+        Object.keys(this.info.containerMap).forEach((containerId) => {
+          const container = this.containerMap[containerId];
+          const containerContainer = container.containerContainer;
+          const containerPosition = containerContainer.getGlobalPosition();
+          if (containerSelector.containsPoint(containerPosition)) {
+            if (this.selectedContainers[containerId]) {
+              // 存在则移除，取消高亮
+              containerContainer.getChildAt(2).visible = false;
+              delete this.selectedContainers[containerId];
+            } else {
+              // 不存在则添加，高亮
+              this.selectedContainers[containerId] = container;
+              containerContainer.getChildAt(2).visible = true;
+            }
+          }
+        });
+        containerSelector.visible = false;
+        // this.events.onBatchConfirm && this.events.onBatchConfirm(this.selectedContainers);
+      });
+    }
   }
 
   destroy() {
@@ -219,9 +278,14 @@ class Scene {
       this.colorConfig.hoverBorderColor,
       'hoverBorder',
     );
-    // sprites.fromBorder = createGraphics(this.spaceWidth, this.spaceLength, this.colorConfig.fromBorderColor, 'fromBorder')
-    // sprites.toBorder = createGraphics(this.spaceWidth, this.spaceLength, this.colorConfig.toBorderColor, 'toBorder')
-    this.building.buildingContainer.addChild(sprites.hoverBorder); // , sprites.fromBorder, sprites.toBorder
+    sprites.fromBorder = createGraphics(
+      this.spaceWidth,
+      this.spaceLength,
+      this.colorConfig.fromBorderColor,
+      'fromBorder',
+    );
+    sprites.toBorder = createGraphics(this.spaceWidth, this.spaceLength, this.colorConfig.toBorderColor, 'toBorder');
+    this.building.buildingContainer.addChild(sprites.hoverBorder, sprites.fromBorder, sprites.toBorder);
     return Promise.resolve(this.info);
   }
 
@@ -294,9 +358,10 @@ class Scene {
         spaceSprite.interactive = true;
         spaceSprite.on('mouseover', this.spaceMouseOver.bind(spaceSprite, space, this));
         spaceSprite.on('mouseout', this.spaceMouseOut.bind(spaceSprite, this));
+        spaceSprite.on('click', this.spaceUp.bind(spaceSprite, space, this));
+        spaceSprite.on('rightclick', this.spaceRightUp.bind(spaceSprite, space, this));
       }
       // if (deviceIsPC) {
-      //   spaceSprite.on('click', this.spaceUp.bind(spaceSprite, space, this))
       //   spaceSprite.on('rightclick', this.spaceRightUp.bind(spaceSprite, space, this))
       // } else {
       //   spaceSprite.on('touchstart', this.spaceNoPCtoClick.bind(spaceSprite, space, this))
@@ -316,6 +381,95 @@ class Scene {
         });
       }
     }
+  }
+
+  spaceRightUp(space, $root) {
+    const modeStatus = store.state.modeStatus;
+    if (modeStatus === 'edit') {
+      // 请先设置起始点, 起始点和终点不能一致
+      if (!spaceSelectArr[0] || spaceSelectArr[0] === space.spaceId || spaceSelectArr[1] === space.spaceId) {
+        sprites.toBorder.visible = false;
+        spaceSelectArr[1] = null;
+        $root.events.onSelectTo && $root.events.onSelectTo({});
+        return;
+      }
+      const { spaceId, x, y, z } = space;
+      sprites.toBorder.setParent($root.building.floors[z].other);
+      sprites.toBorder.position.set(x - floorPadding / 2, y - floorMargin / 4);
+      sprites.toBorder.visible = true;
+      spaceSelectArr[1] = spaceId;
+      $root.events.onSelectTo && $root.events.onSelectTo(space);
+    }
+  }
+
+  spaceUp(space, $root) {
+    const modeStatus = store.state.modeStatus;
+    const { spaceId, x, y, z } = space;
+    if (modeStatus === 'edit') {
+      if (spaceSelectArr[0] === spaceId) {
+        sprites.fromBorder.visible = false;
+        spaceSelectArr[0] = null;
+        $root.events.onSelectFrom && $root.events.onSelectFrom({});
+        $root.spaceRightUp(null, $root);
+        return;
+      }
+      spaceSelectArr[1] === spaceId && $root.spaceRightUp(space, $root);
+      sprites.fromBorder.setParent($root.building.floors[z].other);
+      sprites.fromBorder.position.set(x - floorPadding / 2, y - floorMargin / 4);
+      sprites.fromBorder.visible = true;
+      spaceSelectArr[0] = spaceId;
+      $root.events.onSelectFrom && $root.events.onSelectFrom(space);
+    }
+    // if (params.model === 'setOrigin' && !movedOnMouseDown) {
+    //   // const fixWidth = 10 + 2
+    //   // const fixHeight = 10 + 2
+    //   // const fixWidthScale = fixWidth / 10
+    //   // const fixHeightScale = fixHeight / 10
+    //   // 选第一个点和第二个点
+    //   if (
+    //     ($root.homeAreaStartId == null && $root.homeAreaEndId == null) ||
+    //     ($root.homeAreaStartId != null && $root.homeAreaEndId != null) ||
+    //     (sprites.setArea.startZ != null && sprites.setArea.startZ !== z)
+    //   ) { // 都为空 或 都非空 时设置第一个点；都非空时清除第二个点
+    //     $root.homeAreaStartId = spaceId
+    //     $root.homeAreaEndId = null
+    //     if (!sprites.setArea) { // 若 setArea 不存在则创建它
+    //       sprites.setArea = createRect(10, 10, 0x9600ff, 'homeArea', false, true, 0.3)
+    //       building.floors[z].other.addChild(sprites.setArea)
+    //     } else { // 存在则将尺寸置为 10 (单个 space 的大小)
+    //       sprites.setArea.setParent(building.floors[z].other)
+    //       sprites.setArea.width = 10
+    //       sprites.setArea.height = 10
+    //     }
+    //     // sprites.setArea.width = 10
+    //     // sprites.setArea.height = 10
+    //     sprites.setArea.position.set(x, y)
+    //     sprites.setArea.visible = true
+    //     // 记录第一个点位信息，供设置第二个点时使用
+    //     sprites.setArea.startX = x
+    //     sprites.setArea.startY = y
+    //     sprites.setArea.startZ = z
+    //   } else if ($root.homeAreaStartId != null && $root.homeAreaEndId == null) { // 第一个点不为空，第二个点位为空时设置第二个点
+    //     $root.homeAreaEndId = spaceId
+    //     sprites.setArea.width = Math.abs(x - sprites.setArea.startX) + 10
+    //     sprites.setArea.height = Math.abs(y - sprites.setArea.startY) + 10
+    //     sprites.setArea.position.set((x + sprites.setArea.startX) / 2, (y + sprites.setArea.startY) / 2)
+    //   } else {
+    //     console.error('设置归巢区域时发生了异常')
+    //   }
+    // }
+    // if (params.model === 'batch') {
+    //   const container = $root.hoverSpaceInfo.container
+    //   const { containerId, containerContainer } = container
+    //   if (!containerId || !containerContainer) return
+    //   if ($root.selectedContainers[containerId]) { // 存在则移除，取消高亮
+    //     containerContainer.getChildAt(2).visible = false
+    //     delete $root.selectedContainers[containerId]
+    //   } else { // 不存在则添加，高亮
+    //     $root.selectedContainers[containerId] = container
+    //     containerContainer.getChildAt(2).visible = true
+    //   }
+    // }
   }
 
   initTerminals(terminals) {
@@ -456,7 +610,7 @@ class Scene {
     containerContainer.addChild(createGraphics(this.spaceWidth, this.spaceLength, 0x0000ff));
     // 2, 高亮框选选中
     containerContainer.addChild(
-      createGraphics(this.spaceWidth, this.spaceLength, 0x00ffff, undefined, false, false, 0.3),
+      createGraphics(this.spaceWidth, this.spaceLength, 0x00ffff, 'selectContainer', false, false, 0.3),
     );
     // 3, containerId
     const idSprite = new PIXI.Text(containerId, this.colorConfig.containerIdStyle);
@@ -887,109 +1041,87 @@ class Scene {
         this.removeContainer(container.containerId);
         continue;
       }
-      // const { containerId, spaceId, type, status, orientation, terminalId, frequence, zoneId } = container;
-      // const space = this.info.spaceMap[spaceId];
-      // if (!space) continue;
-      // const { x, y, z } = space;
-      // const oldContainer = this.containerMap[containerId];
-      // // 若 oldContainer 不存在，则是新增的 container，走 container 初始化逻辑
-      // if (!oldContainer) {
-      //   const containerContainer = this.createContainer(container);
-      //   this.info.containers.containerCount++; // 货架数量增加
-      //   building.floors[z].containerSprites.addChild(containerContainer);
-      //   TweenMax.to(containerContainer.getChildAt(0), 0.1, {
-      //     alpha: 0,
-      //     repeat: 7,
-      //     yoyo: true,
-      //   });
-      //   continue;
-      // }
-      // const {
-      //   spaceId: oldSpaceId,
-      //   containerContainer,
-      //   orientation: oldOrientation,
-      //   type: oldType,
-      //   frequence: oldFrequence,
-      //   zoneId: oldZoneId,
-      // } = oldContainer;
-      // // const { containerId: oldContainerId } = oldContainer
-      // const oldSpace = this.spaceMap[oldSpaceId];
-      // const { x: oldX, y: oldY, z: oldZ } = oldSpace;
-
-      // // 货架移动了，包括更新货架位置
-      // if (spaceId !== oldSpaceId) {
-      //   oldContainer.spaceId = spaceId;
-      //   this.containerMapBySpaceId[oldSpaceId] = '';
-      //   this.containerMapBySpaceId[spaceId] = oldContainer;
-
-      //   // const offsetX = x - oldX
-      //   // const offsetY = y - oldY
-      //   // const spaceNum = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) / 10
-
-      //   const key = `${oldSpaceId}->${spaceId}`;
-      //   const waitingMoveItem = this.waitingMoveList[key];
-
-      //   if (z !== oldZ) {
-      //     // 楼层变了
-      //     // console.log('楼层转换', z, oldZ)
-
-      //     containerContainer.setParent(building.floors[z].containerSprites);
-      //     containerContainer.position.set(x, y);
-
-      //     // 添加转换闪烁动画， 如不需要，注释掉即可
-      //     let i = 0;
-      //     const yoyo = setInterval(() => {
-      //       if (i > 5) {
-      //         clearInterval(yoyo);
-      //       } else {
-      //         i++;
-      //       }
-
-      //       if (i % 2 === 1) {
-      //         containerContainer.setParent(building.floors[oldZ].containerSprites);
-      //         containerContainer.position.set(oldX, oldY);
-      //       } else {
-      //         containerContainer.setParent(building.floors[z].containerSprites);
-      //         containerContainer.position.set(x, y);
-      //       }
-      //     }, 100);
-      //   } else {
-      //     // 楼层不变
-      //     if (waitingMoveItem) {
-      //       // 同层驼动
-      //       waitingMoveItem.containerContainerPosition = containerContainer.position;
-      //     } else {
-      //       // 同层更新货架位置。该货架的移动不伴随机器移动，则认为该货架做了位置更新（更新货架位置的动画时间不同于移动货架的时间）（新增货架的逻辑在前面处理）
-      //       TweenMax.to(containerContainer.position, 1, { x, y });
-      //     }
-      //   }
-      // }
-      // const containerSprite = containerContainer.getChildAt(0);
-
-      // if (orientation !== undefined && orientation !== oldOrientation) {
-      //   // console.log('orientation 变化', orientation, 'oldContainerId', oldContainerId)
-      //   oldContainer.orientation = orientation;
-      //   TweenMax.to(containerSprite, 0.2, { rotation: (orientation * Math.PI) / 2 });
-      // }
-
-      // if (frequence !== oldFrequence || type !== oldType) {
-      //   oldContainer.frequence = frequence;
-      //   oldContainer.type = type;
-      //   const tint =
-      //     params.showContainersType === 'type' ? calcShapeColorByType(type) : calcShapeColorByFrquence(frequence);
-      //   console.log('tint 3', tint);
-      //   tint && (containerSprite.tint = tint);
-      // }
-
-      // zoneId !== oldZoneId && (oldContainer.zoneId = zoneId);
-
+      const { containerId, spaceId, type, orientation, frequence, zoneId } = container;
+      const space = this.info.spaceMap[spaceId];
+      if (!space) continue;
+      const { x, y, z } = space;
+      const oldContainer = this.info.containerMap[containerId];
+      // 若 oldContainer 不存在，则是新增的 container，走 container 初始化逻辑
+      if (!oldContainer) {
+        const containerContainer = this.createContainer(container);
+        this.info.containerCount++; // 货架数量增加
+        this.building.floors[z].containerSprites.addChild(containerContainer);
+        TweenMax.to(containerContainer.getChildAt(0), 0.1, {
+          alpha: 0,
+          repeat: 7,
+          yoyo: true,
+        });
+        continue;
+      }
+      const {
+        spaceId: oldSpaceId,
+        containerContainer,
+        orientation: oldOrientation,
+        type: oldType,
+        frequence: oldFrequence,
+        zoneId: oldZoneId,
+      } = oldContainer;
+      const oldSpace = this.info.spaceMap[oldSpaceId];
+      const { x: oldX, y: oldY, z: oldZ } = oldSpace;
+      // 货架移动了，包括更新货架位置
+      if (spaceId !== oldSpaceId) {
+        oldSpace.containerId = null;
+        oldContainer.spaceId = spaceId;
+        space.containerId = containerId;
+        const key = `${oldSpaceId}->${spaceId}`;
+        const waitingMoveItem = this.waitingMoveList[key];
+        if (z !== oldZ) {
+          // 楼层变了
+          // console.log('楼层转换', z, oldZ)
+          containerContainer.setParent(this.building.floors[z].containerSprites);
+          containerContainer.position.set(x, y);
+          // 添加转换闪烁动画， 如不需要，注释掉即可
+          let j = 0;
+          const yoyo = setInterval(() => {
+            if (j > 5) {
+              clearInterval(yoyo);
+            } else {
+              j++;
+            }
+            if (j % 2 === 1) {
+              containerContainer.setParent(this.building.floors[oldZ].containerSprites);
+              containerContainer.position.set(oldX, oldY);
+            } else {
+              containerContainer.setParent(this.building.floors[z].containerSprites);
+              containerContainer.position.set(x, y);
+            }
+          }, 100);
+        } else {
+          // 楼层不变
+          waitingMoveItem
+            ? (waitingMoveItem.containerContainerPosition = containerContainer.position)
+            : TweenMax.to(containerContainer.position, 1, { x, y });
+        }
+      }
+      const containerSprite = containerContainer.getChildAt(0);
+      if (orientation !== undefined && orientation !== oldOrientation) {
+        oldContainer.orientation = orientation;
+        TweenMax.to(containerSprite, 0.2, { rotation: (orientation * Math.PI) / 2 });
+      }
+      if (frequence !== oldFrequence || type !== oldType) {
+        oldContainer.frequence = frequence;
+        oldContainer.type = type;
+        params.showContainersType === 'type'
+          ? (containerSprite.tint = calcShapeColorByType(type))
+          : (containerSprite.tint = calcShapeColorByFrquence(frequence));
+      }
+      zoneId !== oldZoneId && (oldContainer.zoneId = zoneId);
       // if (!['N', undefined, 'T-virtual'].includes(terminalId)) {
       //   this.pendingContainerMap[containerId] = oldContainer;
       // } else {
       //   // 以下代码可能导致性能问题
       //   delete this.pendingContainerMap[containerId];
       // }
-
       // oldContainer.terminalId = terminalId;
     }
   }
@@ -1265,6 +1397,41 @@ class Scene {
 
   showTerminals(flag) {
     this.building.floors[0].terminalSprites.visible = flag;
+  }
+
+  updateModel() {
+    const modeStatus = store.state.modeStatus;
+    console.log('updateModel modeStatus =', modeStatus);
+
+    if (modeStatus !== 'edit') {
+      sprites.hoverBorder.visible = false;
+      sprites.toBorder.visible = false;
+      sprites.fromBorder.visible = false;
+    }
+
+    // // 进入批量模式，楼层接收事件
+    // if (model === 'batch') {
+    //   this.selectedContainers = {}
+    //   for (let key in building.floors) {
+    //     building.floors[key].floorSprite.interactive = true
+    //   }
+    // }
+
+    // // 退出批量模式，楼层取消接收事件
+    // if (oldModel === 'batch' && model !== 'batch') {
+    //   params.onSelectContainers = false
+
+    //   for (let key in building.floors) {
+    //     building.floors[key].floorSprite.interactive = false
+    //   }
+
+    //   // 取消之前选中的全部货架的高亮
+    //   for (let containerId in this.selectedContainers) {
+    //     this.selectedContainers[containerId].containerContainer.getChildAt(2).visible = false
+    //   }
+
+    //   this.selectedContainers = {}
+    // }
   }
 }
 

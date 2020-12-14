@@ -55,39 +55,36 @@ class Request {
     newConfig = Object.assign(newConfig, options);
     newConfig.url = url;
     newConfig.method === 'GET'
-      ? newConfig.params.accessToken = storage.get('scada_user_token')
-      : newConfig.data.accessToken = storage.get('scada_user_token');
+      ? (newConfig.params.accessToken = storage.get('scada_user_token'))
+      : (newConfig.data.accessToken = storage.get('scada_user_token'));
     newConfig.method === 'GET'
-      ? newConfig.params.warehouseId = storage.get('scada_warehouseId')
-      : newConfig.data.warehouseId = storage.get('scada_warehouseId');
-    newConfig.method === 'GET'
-      ? newConfig.data = null
-      : newConfig.params = null;
+      ? (newConfig.params.warehouseId = storage.get('scada_warehouseId'))
+      : (newConfig.data.warehouseId = storage.get('scada_warehouseId'));
+    newConfig.method === 'GET' ? (newConfig.data = null) : (newConfig.params = null);
     params && params.isBlob && (newConfig.responseType = 'blob');
     params && params.isLoading && this.startLoading();
-    return this.client.request(newConfig)
-      .then((res) => {
-        params && params.isLoading && this.stopLoading();
-        if (res.data && res.status !== 200) {
-          Modal.error({ title: res.status, content: res.data.message });
-          return null;
-        }
-        if (params && params.isBlob) {
-          return res.data;
-        }
-        if (res.data && res.data.code !== '0000') {
-          Modal.error({
-            title: '错误信息',
-            content: res.data.msg,
-            onOk() {
-              ['0002', '0006', '0007', '0017'].includes(res.data.code) && (window.location.href = '/login');
-              // ['9999', '0012'].includes(res.data.code) && (window.location.href = `/error?code=${res.data.code}&url=${url}`);
-            },
-          });
-          return null;
-        }
+    return this.client.request(newConfig).then((res) => {
+      params && params.isLoading && this.stopLoading();
+      if (res.data && res.status !== 200) {
+        Modal.error({ title: res.status, content: res.data.message });
+        return null;
+      }
+      if (params && params.isBlob) {
         return res.data;
-      });
+      }
+      if (res.data && res.data.code !== '0000') {
+        Modal.error({
+          title: '错误信息',
+          content: res.data.msg,
+          onOk() {
+            ['0002', '0006', '0007', '0008'].includes(res.data.code) && (window.location.href = '/login');
+            // ['9999', '0012'].includes(res.data.code) && (window.location.href = `/error?code=${res.data.code}&url=${url}`);
+          },
+        });
+        return null;
+      }
+      return res.data;
+    });
   }
 }
 
@@ -100,12 +97,23 @@ const responseInterceptors = (response) => {
   if (status !== 200) {
     let message = '';
     switch (status) {
-      case 0: message = '没有网络'; break;
-      case 400: message = '用户名或密码错误'; break;
-      case 401: message = '没有访问该页面的权限'; break;
-      case 404: message = '接口请求不存在'; break;
-      case 502: message = '系统正在更新，请稍后访问'; break;
-      default: message = `未知错误 ${status}--请联系上级管理员`;
+      case 0:
+        message = '没有网络';
+        break;
+      case 400:
+        message = '用户名或密码错误';
+        break;
+      case 401:
+        message = '没有访问该页面的权限';
+        break;
+      case 404:
+        message = '接口请求不存在';
+        break;
+      case 502:
+        message = '系统正在更新，请稍后访问';
+        break;
+      default:
+        message = `未知错误 ${status}--请联系上级管理员`;
     }
     return { data: { code: status, message }, status };
   }
@@ -127,7 +135,7 @@ export default request;
 // 0005 原密码输入错误，请重新输出
 // 0006 您的账号在异地登录，请重新登录
 // 0007 您的账号异常，请重新登录
-// 0008 该角色已分配给其他用户，请先解除关联关系
+// 0008 登录过期，请重新登录！
 // 0009 账号已存在
 // 0010 仓库编号已存在
 // 0011 角色名称已存在

@@ -29,3 +29,13 @@ export const updateSystemStatus = (data) => {
   const result = request.send('/api/superuserOperations/add/updateSystemStatus', { method: 'POST', data });
   return result;
 };
+
+export const taskAdd = (url, data) => {
+  const result = request.send(`/api/tasks/add${url}`, { method: 'POST', data });
+  return result;
+};
+
+export const maxContainerId = () => {
+  const result = request.send('/api/containers/queryMaxContainerId', { method: 'POST' });
+  return result;
+};

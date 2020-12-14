@@ -78,4 +78,6 @@ export default {
   ResetRobot: 'Reset AGV',
   Position: 'Pos',
   AddContainer: 'Add Rack',
+  TaskReceivedMsg: 'Task received, please wait.',
+  RemoveContainerTipInfo: 'Confirm remove rack of {containerId}',
 };

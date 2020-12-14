@@ -51,6 +51,7 @@ export default {
       fullScreen: storage.get('scada_params_fullScreen') || false,
       allowSound: false,
     },
+    // 鼠标移动中显示的space信息
     config: {
       posX: '-',
       posY: '-',
@@ -61,8 +62,18 @@ export default {
       containerId: '-',
       terminalId: '-',
     },
+    // 鼠标左键选中的space信息
+    hoverSpaceInfo: {},
+    // 鼠标右键选中的space信息
+    toSpaceInfo: {},
   },
   mutations: {
+    SET_TO_SPACE_INFO(state, space) {
+      state.toSpaceInfo = space;
+    },
+    SET_HOVER_SPACE_INFO(state, space) {
+      state.hoverSpaceInfo = space;
+    },
     SET_MOVE_SPEED(state, speed) {
       state.moveSpeed = speed;
     },

@@ -130,6 +130,8 @@ export default {
             onMarkerList: this.queryMarkerList,
             onDimensionList: this.queryDimensionList,
             onUpdateInfo: this.updateInfo,
+            onSelectFrom: this.onSelectFrom,
+            onSelectTo: this.onSelectTo,
           }, this.$refs.spaceInfo));
         }
       });
@@ -141,6 +143,12 @@ export default {
     this.timeInterval && clearInterval(this.timeInterval);
   },
   methods: {
+    onSelectTo(spaceInfo) {
+      this.$store.commit('SET_TO_SPACE_INFO', spaceInfo);
+    },
+    onSelectFrom(spaceInfo) {
+      this.$store.commit('SET_HOVER_SPACE_INFO', spaceInfo);
+    },
     popHide() {
       this.$store.commit('SET_CONFIGURE_SHOW');
     },
