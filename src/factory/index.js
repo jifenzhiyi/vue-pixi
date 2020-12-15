@@ -15,6 +15,8 @@ const floorPadding = 10;
 const floorMargin = 20;
 const sprites = { rect: null };
 const spaceSelectArr = [];
+let ismousedown = false;
+let floorSelect = false; // 批量编辑模式下的选中状态
 
 class Scene {
   constructor(el, warehouseInfo, events, spaceInfoBox) {
@@ -66,7 +68,6 @@ class Scene {
       robotMapOfError: {}, // 机器错误信息
     }; // 场景内容信息
     this.textures = null;
-    this.floorSelect = false; // 批量编辑模式下的选中状态
     !this.app && this.createScene(el); // 场景创建
     loadTextures().then((res) => {
       this.textures = res;
@@ -77,7 +78,6 @@ class Scene {
   }
 
   resize() {
-    console.log('app resize');
     this.el.style.display = 'none';
     this.app && this.app.renderer.resize(this.el.parentElement.clientWidth, this.el.parentElement.clientHeight);
     this.el.style.display = 'block';
@@ -96,7 +96,6 @@ class Scene {
   }
 
   createScene(el) {
-    console.time('createScene');
     const devicePixelRatio = window.devicePixelRatio || 1;
     this.app = new PIXI.Application({
       view: el,
@@ -187,6 +186,8 @@ class Scene {
       containerSelector.visible = false;
       floor.containerSelector = containerSelector;
       floorContainer.addChild(containerSelector);
+      floor.floorContainer = floorContainer;
+      // 设置批量编辑模式下的特殊事件
       this.floorSpriteEvent(floorContainer, containerSelector);
       // 主容器
       const buildingContainer = this.building.buildingContainer;
@@ -207,7 +208,6 @@ class Scene {
       });
       this.domEvent();
     });
-    console.timeEnd('createScene');
   }
 
   floorSpriteEvent(floorSprite, containerSelector) {
@@ -215,41 +215,39 @@ class Scene {
     let p2 = null;
     if (deviceIsPC) {
       floorSprite.cursor = 'crosshair';
-      // floorSprite.interactive = true; // 事件开关
       floorSprite.on('mousedown', (e) => {
-        this.floorSelect = true;
+        floorSelect = true;
         p1 = e.data.getLocalPosition(floorSprite);
-        console.log('p1', p1);
         containerSelector.position.set(p1.x, p1.y);
         containerSelector.width = 0;
         containerSelector.height = 0;
         containerSelector.visible = true;
       });
       floorSprite.on('mousemove', (e) => {
-        if (this.floorSelect) {
+        if (floorSelect) {
           p2 = e.data.getLocalPosition(floorSprite);
           containerSelector.width = p2.x - p1.x;
           containerSelector.height = p2.y - p1.y;
         }
       });
       floorSprite.on('mouseup', () => {
-        this.floorSelect = false;
-        Object.keys(this.info.containerMap).forEach((containerId) => {
-          const container = this.containerMap[containerId];
-          const containerContainer = container.containerContainer;
-          const containerPosition = containerContainer.getGlobalPosition();
-          if (containerSelector.containsPoint(containerPosition)) {
-            if (this.selectedContainers[containerId]) {
-              // 存在则移除，取消高亮
-              containerContainer.getChildAt(2).visible = false;
-              delete this.selectedContainers[containerId];
-            } else {
-              // 不存在则添加，高亮
-              this.selectedContainers[containerId] = container;
-              containerContainer.getChildAt(2).visible = true;
-            }
-          }
-        });
+        floorSelect = false;
+        // Object.keys(this.info.containerMap).forEach((containerId) => {
+        //   const container = this.containerMap[containerId];
+        //   const containerContainer = container.containerContainer;
+        //   const containerPosition = containerContainer.getGlobalPosition();
+        //   if (containerSelector.containsPoint(containerPosition)) {
+        //     if (this.selectedContainers[containerId]) {
+        //       // 存在则移除，取消高亮
+        //       containerContainer.getChildAt(2).visible = false;
+        //       delete this.selectedContainers[containerId];
+        //     } else {
+        //       // 不存在则添加，高亮
+        //       this.selectedContainers[containerId] = container;
+        //       containerContainer.getChildAt(2).visible = true;
+        //     }
+        //   }
+        // });
         containerSelector.visible = false;
         // this.events.onBatchConfirm && this.events.onBatchConfirm(this.selectedContainers);
       });
@@ -361,12 +359,9 @@ class Scene {
         spaceSprite.on('click', this.spaceUp.bind(spaceSprite, space, this));
         spaceSprite.on('rightclick', this.spaceRightUp.bind(spaceSprite, space, this));
       }
-      // if (deviceIsPC) {
-      //   spaceSprite.on('rightclick', this.spaceRightUp.bind(spaceSprite, space, this))
-      // } else {
+      // else {
       //   spaceSprite.on('touchstart', this.spaceNoPCtoClick.bind(spaceSprite, space, this))
       // }
-      //
     }
     for (let i = 0; i < spaces.length; i++) {
       if (spaces[i].status === -9) i++; // 状态-9跳过
@@ -420,10 +415,21 @@ class Scene {
       spaceSelectArr[0] = spaceId;
       $root.events.onSelectFrom && $root.events.onSelectFrom(space);
     }
-
     if (modeStatus === 'mark') {
       $root.events.onMarkSpace && $root.events.onMarkSpace(space);
     }
+    // if (params.model === 'batch') {
+    //   const container = $root.hoverSpaceInfo.container
+    //   const { containerId, containerContainer } = container
+    //   if (!containerId || !containerContainer) return
+    //   if ($root.selectedContainers[containerId]) { // 存在则移除，取消高亮
+    //     containerContainer.getChildAt(2).visible = false
+    //     delete $root.selectedContainers[containerId]
+    //   } else { // 不存在则添加，高亮
+    //     $root.selectedContainers[containerId] = container
+    //     containerContainer.getChildAt(2).visible = true
+    //   }
+    // }
     // if (params.model === 'setOrigin' && !movedOnMouseDown) {
     //   // const fixWidth = 10 + 2
     //   // const fixHeight = 10 + 2
@@ -460,18 +466,6 @@ class Scene {
     //     sprites.setArea.position.set((x + sprites.setArea.startX) / 2, (y + sprites.setArea.startY) / 2)
     //   } else {
     //     console.error('设置归巢区域时发生了异常')
-    //   }
-    // }
-    // if (params.model === 'batch') {
-    //   const container = $root.hoverSpaceInfo.container
-    //   const { containerId, containerContainer } = container
-    //   if (!containerId || !containerContainer) return
-    //   if ($root.selectedContainers[containerId]) { // 存在则移除，取消高亮
-    //     containerContainer.getChildAt(2).visible = false
-    //     delete $root.selectedContainers[containerId]
-    //   } else { // 不存在则添加，高亮
-    //     $root.selectedContainers[containerId] = container
-    //     containerContainer.getChildAt(2).visible = true
     //   }
     // }
   }
@@ -1041,7 +1035,6 @@ class Scene {
     const len = containers.length;
     for (let i = 0; i < len; i++) {
       const container = containers[i];
-      console.log('container status', container.status);
       if (container.status === -9) {
         this.removeContainer(container.containerId, this);
         continue;
@@ -1136,47 +1129,45 @@ class Scene {
   domEvent() {
     let preX;
     let preY;
-    let mousedown = false;
     if (deviceIsPC) {
       this.el.onmousedown = (e) => {
-        mousedown = true;
+        ismousedown = true;
         preX = e.x;
         preY = e.y;
-        this.el.onmousemove = (ev) => {
-          if (!mousedown) return;
-          if (store.state.modeStatus === 'batch') return;
-          if (mousedown) {
-            const offsetX = ev.x - preX;
-            const offsetY = ev.y - preY;
-            const buildingSprite = this.building.buildingContainer;
-            const oldX = Math.round(buildingSprite.position.x + offsetX);
-            const oldY = Math.round(buildingSprite.position.y + offsetY);
-            buildingSprite.position.set(oldX, oldY);
-            preX = ev.x;
-            preY = ev.y;
-          }
-        };
         this.el.onmouseup = () => {
-          mousedown = false;
+          ismousedown = false;
         };
         this.el.onmouseout = () => {
-          mousedown = false;
+          ismousedown = false;
         };
+      };
+      this.el.onmousemove = (ev) => {
+        if (store.state.modeStatus === 'batch' && floorSelect) return;
+        if (ismousedown) {
+          const offsetX = ev.x - preX;
+          const offsetY = ev.y - preY;
+          const buildingSprite = this.building.buildingContainer;
+          const oldX = Math.round(buildingSprite.position.x + offsetX);
+          const oldY = Math.round(buildingSprite.position.y + offsetY);
+          buildingSprite.position.set(oldX, oldY);
+          preX = ev.x;
+          preY = ev.y;
+        }
       };
     } else {
       this.el.addEventListener('touchstart', (e) => {
-        mousedown = true;
+        ismousedown = true;
         preX = e.touches[0].clientX;
         preY = e.touches[0].clientY;
       });
       this.el.addEventListener('touchend', () => {
-        mousedown = false;
+        ismousedown = false;
       });
       this.el.addEventListener('mouseout', () => {
-        mousedown = false;
+        ismousedown = false;
       });
       this.el.addEventListener('touchmove', (e) => {
-        if (mousedown) {
+        if (ismousedown) {
           const currX = e.touches[0].clientX;
           const currY = e.touches[0].clientY;
           const offsetX = currX - preX;
@@ -1407,7 +1398,7 @@ class Scene {
 
   updateModel() {
     const modeStatus = store.state.modeStatus;
-    console.log('updateModel modeStatus =', modeStatus);
+    this.building.floors[0].floorContainer.interactive = false;
 
     if (modeStatus !== 'edit') {
       sprites.hoverBorder.visible = false;
@@ -1415,13 +1406,10 @@ class Scene {
       sprites.fromBorder.visible = false;
     }
 
-    // // 进入批量模式，楼层接收事件
-    // if (model === 'batch') {
-    //   this.selectedContainers = {}
-    //   for (let key in building.floors) {
-    //     building.floors[key].floorSprite.interactive = true
-    //   }
-    // }
+    // 进入批量模式，楼层接收事件
+    if (modeStatus === 'batch') {
+      this.building.floors[0].floorContainer.interactive = true;
+    }
 
     // // 退出批量模式，楼层取消接收事件
     // if (oldModel === 'batch' && model !== 'batch') {

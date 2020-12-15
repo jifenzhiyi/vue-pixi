@@ -64,6 +64,7 @@ export default {
   ExitEditMode: 'Exit Edit Mode',
   SpaceMode: 'Space Mode',
   ExitSpaceMode: 'Exit Space Mode',
+  editContainer: 'Edit Container',
   editContainers: 'Batch Edit Containers',
   RobotInfo: 'AGV',
   TerminalInfo: 'Workstation',

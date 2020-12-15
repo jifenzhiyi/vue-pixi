@@ -64,6 +64,7 @@ export default {
   ExitEditMode: '退出编辑模式',
   SpaceMode: '标记地面模式',
   ExitSpaceMode: '退出标记地面模式',
+  editContainer: '编辑货架',
   editContainers: '批量编辑货架',
   RobotInfo: '机器人信息',
   TerminalInfo: '工作站信息',

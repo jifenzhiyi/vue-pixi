@@ -1,5 +1,5 @@
 <template>
-  <div class="abs aside-info">
+  <div class="aside-info">
     <div class="info-edit">
       <div
         class="edit-one"
@@ -175,10 +175,6 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.aside-info {
-  overflow: auto;
-  border: solid 1px #ddd;
-}
 .info-edit {
   display: flex;
   padding: 0 15px;

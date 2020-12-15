@@ -13,9 +13,11 @@
           :value="item.value">{{ $t(item.title) }}</a-radio>
       </a-radio-group>
     </div>
-    <aside-info v-show="modeStatus === 'view' || modeStatus === 'mark'" />
-    <aside-edit v-show="modeStatus === 'edit'" />
-    <aside-batch v-show="modeStatus === 'batch'" />
+    <div class="aside-main">
+      <aside-info v-show="modeStatus === 'view' || modeStatus === 'mark'" />
+      <aside-edit v-show="modeStatus === 'edit'" />
+      <aside-batch v-show="modeStatus === 'batch'" />
+    </div>
   </aside>
 </template>
 
@@ -44,9 +46,10 @@ export default {
 <style lang="less" scoped>
 aside {
   width: 320px;
+  height: 100%;
   display: flex;
+  overflow: hidden;
   margin-left: 10px;
-  position: relative;
   flex-direction: column;
   .status {
     height: 90px;
@@ -65,6 +68,15 @@ aside {
       display: flex;
       justify-content: space-between;
     }
+  }
+  .aside-main {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    overflow: auto;
+    margin-top: 10px;
+    border-radius: 4px;
+    flex-direction: column;
   }
 }
 .radio_css { color: #ccc; }

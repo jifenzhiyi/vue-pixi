@@ -36,12 +36,12 @@ export default {
   flex-direction: column;
   .content {
     flex: 1;
+    display: flex;
     padding: 10px;
     padding-top: 0;
-    display: flex;
+    overflow: hidden;
     &.fullScreen {
       padding: 0;
-      overflow: hidden;
     }
   }
 }

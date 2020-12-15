@@ -25,7 +25,7 @@ export default new Vuex.Store({
     // 设置系统模式
     SET_MODE(state, status) {
       state.modeStatus = status;
-      state.application.updateModel();
+      state.application && state.application.updateModel();
     },
     // 设置工程
     SET_APPLICATION(state, app) {

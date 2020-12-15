@@ -1,5 +1,5 @@
 <template>
-  <div class="abs aside-info">
+  <div class="aside-info">
     <div class="nav">
       <div
         v-for="item in tabList"
@@ -47,34 +47,35 @@ export default {
 
 <style lang="less" scoped>
 .aside-info {
-  .nav {
-    display: flex;
-    border-top: solid 1px #ddd;
-    justify-content: space-between;
-    .one {
-      width: 33%;
-      height: 40px;
-      padding: 0 10px;
-      cursor: pointer;
-      color: #909399;
-      line-height: 40px;
-      text-align: center;
-      background: #F5F7FA;
-      border-left: solid 1px #ddd;
-      border-bottom: solid 1px #ddd;
-      &:last-child { border-right: solid 1px #ddd; }
-      &.now {
-        color: #E20028;
-        border-bottom: 0;
-        background: #fff;
-      }
+  border: 0;
+}
+.nav {
+  display: flex;
+  border-top: solid 1px #ddd;
+  justify-content: space-between;
+  .one {
+    width: 33%;
+    height: 40px;
+    padding: 0 10px;
+    cursor: pointer;
+    color: #909399;
+    line-height: 40px;
+    text-align: center;
+    background: #F5F7FA;
+    border-left: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
+    &:last-child { border-right: solid 1px #ddd; }
+    &.now {
+      color: #E20028;
+      border-bottom: 0;
+      background: #fff;
     }
   }
-  .content {
-    overflow: auto;
-    padding: 0 15px;
-    border: solid 1px #ddd;
-    border-top: 0;
-  }
+}
+.content {
+  overflow: auto;
+  padding: 0 15px;
+  border: solid 1px #ddd;
+  border-top: 0;
 }
 </style>

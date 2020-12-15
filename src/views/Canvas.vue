@@ -144,6 +144,7 @@ export default {
     }
   },
   beforeDestroy() {
+    this.modeChange('view');
     this.$store.commit('DESTROY_APPLICATION');
     this.ws && this.ws.close();
     this.timeInterval && clearInterval(this.timeInterval);
