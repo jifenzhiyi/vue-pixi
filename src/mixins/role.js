@@ -1,13 +1,7 @@
 import { mapState } from 'vuex';
 import { END_POINT } from '@/config';
 import storage from '@/utils/storage';
-import {
-  queryWarehouse,
-  queryDimensionList,
-  queryMarkerList,
-  queryVariablesList,
-  updateSystemStatus,
-} from '@/views/api.js';
+import { queryWarehouse, queryDimensionList, queryMarkerList, queryVariablesList, operation } from '@/views/api.js';
 
 export default {
   computed: {
@@ -104,7 +98,7 @@ export default {
     async radioChange(e) {
       this.$store.commit('SET_SYSTEM_STATUS', e.target.value);
       const data = { code: 7, parameter: e.target.value, objectId: 'System' };
-      await updateSystemStatus(data);
+      await operation(data, '/updateSystemStatus');
     },
     // 更新仓库id
     warehouseChange(val) {

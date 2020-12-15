@@ -420,6 +420,10 @@ class Scene {
       spaceSelectArr[0] = spaceId;
       $root.events.onSelectFrom && $root.events.onSelectFrom(space);
     }
+
+    if (modeStatus === 'mark') {
+      $root.events.onMarkSpace && $root.events.onMarkSpace(space);
+    }
     // if (params.model === 'setOrigin' && !movedOnMouseDown) {
     //   // const fixWidth = 10 + 2
     //   // const fixHeight = 10 + 2

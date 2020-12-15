@@ -15,7 +15,7 @@ export default new Vuex.Store({
     menuList: storage.get('scada_menuList') || [],
     systemStatus: storage.get('scada_system_status') || 0, // 系统状态
     // 系统模式modeStatus 默认view 编辑edit 标记地面mark 批量编辑batch
-    modeStatus: storage.get('scada_mode_status') || 'view',
+    modeStatus: 'view',
     popShowConfigure: false, // 设置弹窗
     popShowAddContainer: false, // 新增货架弹窗
     popShowUpdateContainerOrit: false, // 更新货架方向弹窗

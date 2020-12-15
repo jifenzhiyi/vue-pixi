@@ -25,11 +25,6 @@ export const queryMarkerList = () => {
   return result;
 };
 
-export const updateSystemStatus = (data) => {
-  const result = request.send('/api/superuserOperations/add/updateSystemStatus', { method: 'POST', data });
-  return result;
-};
-
 export const taskAdd = (url, data) => {
   const result = request.send(`/api/tasks/add${url}`, { method: 'POST', data });
   return result;
@@ -40,12 +35,11 @@ export const maxContainerId = () => {
   return result;
 };
 
-export const changeDirection = (data) => {
-  const result = request.send('/api/superuserOperations/add/updateContainerDirection', { method: 'POST', data });
-  return result;
-};
-
-export const restRobot = (data) => {
-  const result = request.send('/api/superuserOperations/add/restartRobot', { method: 'POST', data });
+// 更新系统状态 updateSystemStatus
+// 更新货架方向 updateContainerDirection
+// 重启机器人 restartRobot
+// 标记地面 markGround
+export const operation = (data, url) => {
+  const result = request.send(`/api/superuserOperations/add${url}`, { method: 'POST', data });
   return result;
 };

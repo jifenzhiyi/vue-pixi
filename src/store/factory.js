@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import storage from '@/utils/storage.js';
-import { taskAdd, changeDirection } from '@/views/api.js';
+import { taskAdd, operation } from '@/views/api.js';
 
 export default {
   state: {
@@ -126,7 +126,7 @@ export default {
       const obj = state.hoverSpaceInfo.config;
       obj.parameter = parameter;
       obj.objectId = obj.object;
-      const res = await changeDirection(obj);
+      const res = await operation(obj, '/updateContainerDirection');
       return res;
     },
   },

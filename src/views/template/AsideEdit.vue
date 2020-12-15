@@ -68,7 +68,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { taskAdd, maxContainerId, restRobot } from '@/views/api.js';
+import { taskAdd, maxContainerId, operation } from '@/views/api.js';
 
 export default {
   name: 'AsideEdit',
@@ -144,7 +144,7 @@ export default {
     },
     async restartRobot(obj) {
       obj.objectId = obj.object;
-      const res = await restRobot(obj);
+      const res = await operation(obj, '/restartRobot');
       res && this.$message.success(this.$t('TaskReceivedMsg'));
     },
     updateContainerOrit(obj) {
