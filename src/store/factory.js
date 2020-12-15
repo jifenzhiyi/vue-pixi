@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import storage from '@/utils/storage.js';
-import { taskAdd } from '@/views/api.js';
+import { taskAdd, changeDirection } from '@/views/api.js';
 
 export default {
   state: {
@@ -120,6 +120,13 @@ export default {
       obj.objectId = obj.object;
       const res = await taskAdd(obj.url, obj);
       res && commit('SET_HOVER_SPACE_INFO_ONE', { key: 'containerId', value: obj.object });
+      return res;
+    },
+    async updateContainerOrit({ state }, parameter) {
+      const obj = state.hoverSpaceInfo.config;
+      obj.parameter = parameter;
+      obj.objectId = obj.object;
+      const res = await changeDirection(obj);
       return res;
     },
   },

@@ -38,6 +38,7 @@ module.exports = {
     'no-bitwise': 0,
     'no-continue': 0,
     'no-multi-assign': 0,
+    'no-mixed-operators': 0,
     'no-trailing-spaces': 0,
     'object-curly-newline': 0,
     'class-methods-use-this': 0,

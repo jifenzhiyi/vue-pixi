@@ -39,3 +39,8 @@ export const maxContainerId = () => {
   const result = request.send('/api/containers/queryMaxContainerId', { method: 'POST' });
   return result;
 };
+
+export const changeDirection = (data) => {
+  const result = request.send('/api/superuserOperations/add/updateContainerDirection', { method: 'POST', data });
+  return result;
+};

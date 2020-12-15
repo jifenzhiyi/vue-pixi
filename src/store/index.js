@@ -18,6 +18,7 @@ export default new Vuex.Store({
     modeStatus: storage.get('scada_mode_status') || 'view',
     popShowConfigure: false, // 设置弹窗
     popShowAddContainer: false, // 新增货架弹窗
+    popShowUpdateContainerOrit: false, // 更新货架方向弹窗
     application: null, // 全局保存工程
   },
   mutations: {
@@ -34,6 +35,9 @@ export default new Vuex.Store({
     DESTROY_APPLICATION(state) {
       state.application && state.application.destroy();
       state.application = null;
+    },
+    SET_CONTAINER_ORIT(state) {
+      state.popShowUpdateContainerOrit = !state.popShowUpdateContainerOrit;
     },
     // 货架弹窗是否显示
     SET_ADD_CONTAINER(state) {

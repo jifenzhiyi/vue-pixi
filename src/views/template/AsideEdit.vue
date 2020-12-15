@@ -35,7 +35,8 @@
             @click="removeContainer(buttonTypeList.deleteContainer, { code: 16, object: hoverSpaceInfo[item.param] })">{{$t('RemoveContainer')}}</a-button>
           <a-button
             v-if="buttonTypeList.updateContainerDirection"
-            :disabled="!hoverSpaceInfo[item.param]">{{$t('updateContainerOrit')}}</a-button>
+            :disabled="!hoverSpaceInfo[item.param]"
+            @click="updateContainerOrit({ code: 22, object: hoverSpaceInfo[item.param] })">{{$t('updateContainerOrit')}}</a-button>
         </div>
         <div
           v-show="idx === 1"
@@ -138,6 +139,10 @@ export default {
           this.application.removeContainer(obj.object, this.application); // TODO 手动删除货架
         }
       }
+    },
+    updateContainerOrit(obj) {
+      this.$store.commit('ADD_CONTAINER_CONFIG', obj);
+      this.$store.commit('SET_CONTAINER_ORIT');
     },
     removeContainer(url, obj) {
       this.$notice_confirm({

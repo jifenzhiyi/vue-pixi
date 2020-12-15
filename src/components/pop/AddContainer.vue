@@ -8,19 +8,19 @@
       @click="popHide">x</a>
     <div class="title">{{$t('AddContainer')}}</div>
     <div class="layer">
-      <div class="label">位置编号：</div>
+      <div class="label">{{$t('spaceId')}}：</div>
       <a-input
         :disabled="true"
         :value="hoverSpaceInfo.spaceId" />
     </div>
     <div class="layer">
-      <div class="label">货架编号：</div>
+      <div class="label">{{$t('ContainerId')}}：</div>
       <a-input
         :value="hoverSpaceInfo.config.object"
         @keyup="inputChange" />
     </div>
     <div class="layer">
-      <div class="label">类型：</div>
+      <div class="label">{{$t('Type')}}：</div>
       <a-select
         :default-value="hoverSpaceInfo.config.priority"
         @change="selectChange">
@@ -79,7 +79,7 @@ export default {
   }
 }
 .label {
-  width: 80px !important;
+  width: 100px !important;
   justify-content: flex-end;
 }
 </style>
