@@ -43,10 +43,12 @@
           class="btn">
           <a-button
             v-if="buttonTypeList.moveRobot"
-            :disabled="!(hoverSpaceInfo[item.param] && toSpaceInfo.spaceId)">{{$t('MoveRobot')}}</a-button>
+            :disabled="!(hoverSpaceInfo[item.param] && toSpaceInfo.spaceId)"
+            @click="actionTask(buttonTypeList.moveRobot, { code: 3, object: hoverSpaceInfo[item.param] })">{{$t('MoveRobot')}}</a-button>
           <a-button
             v-if="buttonTypeList.restartRobot"
-            :disabled="!hoverSpaceInfo[item.param]">{{$t('ResetRobot')}}</a-button>
+            :disabled="!hoverSpaceInfo[item.param]"
+            @click="restartRobot({code: 10, parameter: 0, object: hoverSpaceInfo[item.param] })">{{$t('ResetRobot')}}</a-button>
         </div>
         <!-- <div
           v-show="idx === 2"
@@ -66,7 +68,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { taskAdd, maxContainerId } from '@/views/api.js';
+import { taskAdd, maxContainerId, restRobot } from '@/views/api.js';
 
 export default {
   name: 'AsideEdit',
@@ -139,6 +141,11 @@ export default {
           this.application.removeContainer(obj.object, this.application); // TODO 手动删除货架
         }
       }
+    },
+    async restartRobot(obj) {
+      obj.objectId = obj.object;
+      const res = await restRobot(obj);
+      res && this.$message.success(this.$t('TaskReceivedMsg'));
     },
     updateContainerOrit(obj) {
       this.$store.commit('ADD_CONTAINER_CONFIG', obj);

@@ -44,3 +44,8 @@ export const changeDirection = (data) => {
   const result = request.send('/api/superuserOperations/add/updateContainerDirection', { method: 'POST', data });
   return result;
 };
+
+export const restRobot = (data) => {
+  const result = request.send('/api/superuserOperations/add/restartRobot', { method: 'POST', data });
+  return result;
+};
