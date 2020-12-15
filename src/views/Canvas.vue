@@ -81,6 +81,7 @@
       </a-button-group>
     </div>
     <configure @on-change="floorDirectionChange" />
+    <add-container />
   </div>
 </template>
 
@@ -90,10 +91,11 @@ import Scene from '@/factory/index.js';
 import role from '@/mixins/role.js';
 import { formatTime } from '@/utils/help.js';
 import Configure from 'comps/pop/Configure.vue';
+import AddContainer from 'comps/pop/AddContainer.vue';
 
 export default {
   name: 'ScadaCanvas',
-  components: { Configure },
+  components: { Configure, AddContainer },
   computed: {
     ...mapState({
       modeStatus: (state) => state.modeStatus,
@@ -171,7 +173,6 @@ export default {
       }
     },
     floorDirectionChange(value) {
-      console.log('floorDirectionChange value', value);
       this.application && this.application.floorDirectionChange(value);
     },
     modeChange(status) {

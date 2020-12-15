@@ -1,4 +1,6 @@
-import storage from '@/utils/storage';
+import Vue from 'vue';
+import storage from '@/utils/storage.js';
+import { taskAdd } from '@/views/api.js';
 
 export default {
   state: {
@@ -63,7 +65,14 @@ export default {
       terminalId: '-',
     },
     // 鼠标左键选中的space信息
-    hoverSpaceInfo: {},
+    hoverSpaceInfo: {
+      config: {
+        url: null,
+        object: null,
+        spaceId: null,
+        priority: null,
+      },
+    },
     // 鼠标右键选中的space信息
     toSpaceInfo: {},
   },
@@ -73,6 +82,15 @@ export default {
     },
     SET_HOVER_SPACE_INFO(state, space) {
       state.hoverSpaceInfo = space;
+    },
+    SET_HOVER_SPACE_INFO_ONE(state, obj) {
+      Vue.set(state.hoverSpaceInfo, obj.key, obj.value);
+    },
+    ADD_CONTAINER_CONFIG(state, config) {
+      state.hoverSpaceInfo.config = config;
+    },
+    UPDATE_ADD_CONTAINER_CONFIG(state, obj) {
+      state.hoverSpaceInfo.config[obj.key] = obj.value;
     },
     SET_MOVE_SPEED(state, speed) {
       state.moveSpeed = speed;
@@ -94,6 +112,15 @@ export default {
       Object.keys(state.config).forEach((key) => {
         key === 'robotErr' ? (state.config[key] = '') : (state.config[key] = '-');
       });
+    },
+  },
+  actions: {
+    async AddContainer({ state, commit }) {
+      const obj = state.hoverSpaceInfo.config;
+      obj.objectId = obj.object;
+      const res = await taskAdd(obj.url, obj);
+      res && commit('SET_HOVER_SPACE_INFO_ONE', { key: 'containerId', value: obj.object });
+      return res;
     },
   },
 };

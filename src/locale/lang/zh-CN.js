@@ -80,4 +80,7 @@ export default {
   AddContainer: '新增货架',
   TaskReceivedMsg: '任务已接收, 等待系统处理',
   RemoveContainerTipInfo: '确定要删除编号为{containerId}的货架吗？货架一旦删除，将无法恢复！',
+  save: '保存',
+  confirm: '确认',
+  cancel: '取消',
 };

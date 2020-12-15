@@ -1016,29 +1016,30 @@ class Scene {
   }
 
   // 删除货架视图
-  removeContainer(containerId) {
-    const container = this.info.containerMap[containerId];
+  removeContainer(containerId, $root) {
+    const container = $root.info.containerMap[containerId];
     const { spaceId, containerContainer } = container;
-    const { z } = this.info.spaceMap[spaceId];
+    const { z } = $root.info.spaceMap[spaceId];
     TweenMax.to(containerContainer, 0.1, {
       alpha: 0,
       repeat: 8,
       yoyo: true,
       onComplete() {
         // 删除货架模型
-        this.building.floors[z].containerSprites.removeChild(containerContainer);
+        $root.building.floors[z].containerSprites.removeChild(containerContainer);
       },
     });
-    delete this.info.containerMap[containerId];
-    this.info.containerCount--; // 货架数量减少
+    delete $root.info.containerMap[containerId];
+    $root.info.containerCount--; // 货架数量减少
   }
 
   updateContainers(containers) {
     const len = containers.length;
     for (let i = 0; i < len; i++) {
       const container = containers[i];
+      console.log('container status', container.status);
       if (container.status === -9) {
-        this.removeContainer(container.containerId);
+        this.removeContainer(container.containerId, this);
         continue;
       }
       const { containerId, spaceId, type, orientation, frequence, zoneId } = container;
@@ -1051,6 +1052,7 @@ class Scene {
         const containerContainer = this.createContainer(container);
         this.info.containerCount++; // 货架数量增加
         this.building.floors[z].containerSprites.addChild(containerContainer);
+        this.info.spaceMap[spaceId].containerId = containerId; // 记录点位存在货架Id
         TweenMax.to(containerContainer.getChildAt(0), 0.1, {
           alpha: 0,
           repeat: 7,

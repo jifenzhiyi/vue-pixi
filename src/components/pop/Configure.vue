@@ -65,31 +65,3 @@ export default {
   },
 };
 </script>
-
-<style lang="less" scoped>
-.pop-box {
-  width: 500px;
-  display: flex;
-  padding: 20px;
-  max-height: 80%;
-  overflow: hidden;
-  border-radius: 5px;
-  background: #fff;
-  flex-direction: column;
-  .close {
-    right: 0;
-    top: 15px;
-    font-size: 24px;
-    padding: 10px 20px;
-  }
-  .title {
-    font-size: 26px;
-    line-height: 50px;
-    text-align: center;
-  }
-  .btn {
-    padding-top: 20px;
-    text-align: center;
-  }
-}
-</style>

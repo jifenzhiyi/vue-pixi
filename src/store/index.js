@@ -16,7 +16,8 @@ export default new Vuex.Store({
     systemStatus: storage.get('scada_system_status') || 0, // 系统状态
     // 系统模式modeStatus 默认view 编辑edit 标记地面mark 批量编辑batch
     modeStatus: storage.get('scada_mode_status') || 'view',
-    popShowConfigure: false,
+    popShowConfigure: false, // 设置弹窗
+    popShowAddContainer: false, // 新增货架弹窗
     application: null, // 全局保存工程
   },
   mutations: {
@@ -33,6 +34,10 @@ export default new Vuex.Store({
     DESTROY_APPLICATION(state) {
       state.application && state.application.destroy();
       state.application = null;
+    },
+    // 货架弹窗是否显示
+    SET_ADD_CONTAINER(state) {
+      state.popShowAddContainer = !state.popShowAddContainer;
     },
     // 设置弹出层是否显示
     SET_CONFIGURE_SHOW(state) {

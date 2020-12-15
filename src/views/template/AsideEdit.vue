@@ -56,7 +56,7 @@
           <a-button
             v-if="buttonTypeList.addContainer"
             :disabled="!hoverSpaceInfo.spaceId"
-            @click="addContainer(buttonTypeList.addContainer, { code: 15, object: hoverSpaceInfo.spaceId })">{{$t('AddContainer')}}</a-button>
+            @click="addContainer(buttonTypeList.addContainer, { code: 15, spaceId: hoverSpaceInfo.spaceId })">{{$t('AddContainer')}}</a-button>
         </div>
       </div>
     </div>
@@ -129,25 +129,33 @@ export default {
     },
     async actionTask(url, obj) {
       obj.objectId = obj.object;
-      obj.spaceId = this.toSpaceInfo.spaceId;
+      !obj.spaceId && (obj.spaceId = this.toSpaceInfo.spaceId);
       const res = await taskAdd(url, obj);
       if (res) {
         this.$message.success(this.$t('TaskReceivedMsg'));
+        if (url === '/deleteContainer') {
+          this.$store.commit('SET_HOVER_SPACE_INFO_ONE', { key: 'containerId', value: null });
+          this.application.removeContainer(obj.object, this.application); // TODO 手动删除货架
+        }
       }
     },
     removeContainer(url, obj) {
       this.$notice_confirm({
         minfo: this.$t('RemoveContainerTipInfo', { containerId: obj.object }),
         func: () => {
-          console.log('removeContainer url', url, 'obj', obj);
-          // this.actionTask(url, obj);
+          obj.spaceId = this.hoverSpaceInfo.spaceId;
+          this.actionTask(url, obj);
         },
       });
     },
     async addContainer(url, obj) {
       const res = await maxContainerId();
       if (res) {
-        console.log('addContainer url', url, 'obj', obj);
+        obj.url = url;
+        obj.priority = 0;
+        obj.object = `C${res.data.rows[0]}`;
+        this.$store.commit('ADD_CONTAINER_CONFIG', obj);
+        this.$store.commit('SET_ADD_CONTAINER');
       }
     },
   },

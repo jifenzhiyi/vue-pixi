@@ -80,4 +80,7 @@ export default {
   AddContainer: 'Add Rack',
   TaskReceivedMsg: 'Task received, please wait.',
   RemoveContainerTipInfo: 'Confirm remove rack of {containerId}',
+  save: 'Save',
+  confirm: 'Confirm',
+  cancel: 'Cancel',
 };

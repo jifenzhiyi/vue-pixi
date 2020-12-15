@@ -28,7 +28,9 @@
   .label {
     width: 120px;
     color: #999;
+    display: flex;
     margin-right: 10px;
+    align-items: center;
     p {
       color: #ccc;
     }
@@ -41,5 +43,41 @@
     flex: 1;
     color: #f90;
     text-align: center;
+  }
+  .ant-select,
+  .ant-input {
+    flex: 1;
+  }
+}
+/* 弹出层公共样式 */
+.pop-box {
+  width: 500px;
+  display: flex;
+  padding: 20px;
+  max-height: 80%;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #fff;
+  flex-direction: column;
+  .close {
+    right: 0;
+    top: 15px;
+    font-size: 24px;
+    padding: 10px 20px;
+  }
+  .title {
+    font-size: 26px;
+    line-height: 50px;
+    text-align: center;
+  }
+  .btn {
+    padding-top: 20px;
+    text-align: center;
+    .ant-btn {
+      margin-right: 10px;
+      &:last-child {
+        margin: 0;
+      }
+    }
   }
 }
