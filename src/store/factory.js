@@ -39,7 +39,7 @@ export default {
       showContainerBerth: storage.get('scada_params_showContainerBerth') || false, // 货架泊位
       showInvalidSpace: storage.get('scada_params_showInvalidSpace') || false, // 无效位
       showWaitingSpace: storage.get('scada_params_showWaitingSpace') || false, // 等待位
-      // showSafeSpace: storage.get('scada_params_showSafeSpace') || false, // 安全位
+      showSafeSpace: storage.get('scada_params_showSafeSpace') || false, // 安全位
       showRobots: storage.get('scada_params_showRobots') || false, // 是否展示机器人
       showOfflineRobots: storage.get('scada_params_showOfflineRobots') || false, // 展示离线机器人
       showRobotsPath: storage.get('scada_params_showRobotsPath') || false, // 机器人路径
@@ -50,6 +50,7 @@ export default {
       showContainers: storage.get('scada_params_showContainers') || false, // 展示货架
       showContainerId: storage.get('scada_params_showContainerId') || false, // 展示货架编号
       showTerminals: storage.get('scada_params_showTerminals') || false, // 展示工作站
+      showMarker: storage.get('scada_params_showMarker') || false, // 展示标记
       fullScreen: storage.get('scada_params_fullScreen') || false,
       allowSound: false,
     },

@@ -40,7 +40,7 @@ export default {
             { label: 'ContainerSlot', param: 'showContainerBerth', value: storage.get('scada_params_showContainerBerth'), type: 'switch' },
             { label: 'InvalidSpace', param: 'showInvalidSpace', value: storage.get('scada_params_showInvalidSpace'), type: 'switch' },
             { label: 'waitingSpace', param: 'showWaitingSpace', value: storage.get('scada_params_showWaitingSpace'), type: 'switch' },
-            { label: 'SafeSpace', value: true, type: 'switch' },
+            { label: 'SafeSpace', param: 'showSafeSpace', value: storage.get('scada_params_showSafeSpace'), type: 'switch' },
             { label: 'spaceId', param: 'showSpaceId', value: storage.get('scada_params_showSpaceId') || false, type: 'switch', desc: 'TipOfStuck' },
           ],
         },
@@ -81,7 +81,7 @@ export default {
           key: 4,
           tab: 'Others',
           list: [
-            { label: 'Marker', value: true, type: 'switch' },
+            { label: 'Marker', param: 'showMarker', value: storage.get('scada_params_showMarker'), type: 'switch' },
             { label: 'stats', value: false, type: 'switch' },
           ],
         },

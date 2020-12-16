@@ -17,6 +17,7 @@ const sprites = { rect: null };
 const spaceSelectArr = [];
 let ismousedown = false;
 let floorSelect = false; // 批量编辑模式下的选中状态
+let noPCflag = true;
 
 class Scene {
   constructor(el, warehouseInfo, events, spaceInfoBox) {
@@ -139,11 +140,6 @@ class Scene {
       floor.spacesContainer2.name = 'spacesContainer2';
       floor.spacesContainer2.position.set(floorPadding, floorPadding);
       floorContainer.addChild(floor.spacesContainer2);
-      // 点位标记容器
-      floor.spacesContainerOfMarked = new PIXI.Container();
-      floor.spacesContainerOfMarked.name = 'spacesContainerOfMarked';
-      floor.spacesContainerOfMarked.position.set(floorPadding, floorPadding);
-      floorContainer.addChild(floor.spacesContainerOfMarked);
       // 点位路径容器
       floor.spacesPathSprite = new PIXI.Graphics();
       floor.spacesPathSprite.lineStyle(1, this.colorConfig.spacesPathColor, 1, 0.5, true);
@@ -157,6 +153,11 @@ class Scene {
       floor.terminalSprites.name = 'terminalSprites';
       floor.terminalSprites.position.set(floorPadding, floorPadding);
       floorContainer.addChild(floor.terminalSprites);
+      // 点位标记容器
+      floor.spacesContainerOfMarked = new PIXI.Container();
+      floor.spacesContainerOfMarked.name = 'spacesContainerOfMarked';
+      floor.spacesContainerOfMarked.position.set(floorPadding, floorPadding);
+      floorContainer.addChild(floor.spacesContainerOfMarked);
       // 货架容器
       floor.containerSprites = new PIXI.Container();
       floor.containerSprites.name = 'containerSprites';
@@ -231,6 +232,43 @@ class Scene {
         }
       });
       floorSprite.on('mouseup', () => {
+        floorSelect = false;
+        Object.keys(this.info.containerMap).forEach((containerId) => {
+          const container = this.info.containerMap[containerId];
+          const containerContainer = container.containerContainer;
+          const containerPosition = containerContainer.getGlobalPosition();
+          if (containerSelector.containsPoint(containerPosition)) {
+            if (this.selectedContainers[containerId]) {
+              // 存在则移除，取消高亮
+              containerContainer.getChildAt(2).visible = false;
+              delete this.selectedContainers[containerId];
+            } else {
+              // 不存在则添加，高亮
+              this.selectedContainers[containerId] = container;
+              containerContainer.getChildAt(2).visible = true;
+            }
+          }
+        });
+        containerSelector.visible = false;
+        this.events.onBatchConfirm && this.events.onBatchConfirm(this.selectedContainers);
+      });
+    } else {
+      floorSprite.on('touchstart', (e) => {
+        floorSelect = true;
+        p1 = e.data.getLocalPosition(floorSprite);
+        containerSelector.position.set(p1.x, p1.y);
+        containerSelector.width = 0;
+        containerSelector.height = 0;
+        containerSelector.visible = true;
+      });
+      floorSprite.on('touchmove', (e) => {
+        if (floorSelect) {
+          p2 = e.data.getLocalPosition(floorSprite);
+          containerSelector.width = p2.x - p1.x;
+          containerSelector.height = p2.y - p1.y;
+        }
+      });
+      floorSprite.on('touchend', () => {
         floorSelect = false;
         Object.keys(this.info.containerMap).forEach((containerId) => {
           const container = this.info.containerMap[containerId];
@@ -327,7 +365,7 @@ class Scene {
       this.spacesContainerNew.push(spacesIdLayer2);
       const floor = this.building.floors[space.z];
       const { spacesContainer, spacesContainer2, spacesContainerOfMarked } = floor;
-      if (status === 1) {
+      if (status === 1 && params.showSafeSpace) {
         this.info.spaceMapOfMark[spaceId] = space;
         spaceSprite.tint = this.colorConfig.spaceColorMap['-1'];
         spacesContainerOfMarked.addChild(spacesIdLayer);
@@ -351,17 +389,16 @@ class Scene {
         this.info.spaceCountOfCharger += 1;
       }
       // TODO添加事件
+      spaceSprite.interactive = true;
       if (deviceIsPC) {
         // 添加事件
-        spaceSprite.interactive = true;
         spaceSprite.on('mouseover', this.spaceMouseOver.bind(spaceSprite, space, this));
         spaceSprite.on('mouseout', this.spaceMouseOut.bind(spaceSprite, this));
         spaceSprite.on('click', this.spaceUp.bind(spaceSprite, space, this));
         spaceSprite.on('rightclick', this.spaceRightUp.bind(spaceSprite, space, this));
+      } else {
+        spaceSprite.on('touchend', this.spaceNoPCtoClick.bind(spaceSprite, space, this));
       }
-      // else {
-      //   spaceSprite.on('touchstart', this.spaceNoPCtoClick.bind(spaceSprite, space, this))
-      // }
     }
     for (let i = 0; i < spaces.length; i++) {
       if (spaces[i].status === -9) i++; // 状态-9跳过
@@ -388,6 +425,7 @@ class Scene {
         $root.events.onSelectTo && $root.events.onSelectTo({});
         return;
       }
+      noPCflag = true;
       const { spaceId, x, y, z } = space;
       sprites.toBorder.setParent($root.building.floors[z].other);
       sprites.toBorder.position.set(x - floorPadding / 2, y - floorMargin / 4);
@@ -408,6 +446,7 @@ class Scene {
         $root.spaceRightUp(null, $root);
         return;
       }
+      noPCflag = false;
       spaceSelectArr[1] === spaceId && $root.spaceRightUp(space, $root);
       sprites.fromBorder.setParent($root.building.floors[z].other);
       sprites.fromBorder.position.set(x - floorPadding / 2, y - floorMargin / 4);
@@ -727,6 +766,14 @@ class Scene {
     }, params.ErrRobotTimeout * 1000);
   }
 
+  spaceNoPCtoClick(space, $root) {
+    if (noPCflag) {
+      $root.spaceUp(space, $root);
+    } else {
+      $root.spaceRightUp(space, $root);
+    }
+  }
+
   spaceMouseOver(space, $root) {
     $root.showInfoTimer && clearTimeout($root.showInfoTimer);
     const { spaceId, terminalId, robotId, containerId, robotStatus, posX, posY, posZ, x, y, z, spaceSprite } = space;
@@ -784,18 +831,19 @@ class Scene {
       const floor = this.building.floors[z];
       const { spacesContainer, spacesContainerOfMarked } = floor;
       if (status !== oldStatus) {
-        if (status === 1) {
+        oldSpace.status = status;
+        if (status === 1 && params.showSafeSpace) {
           // 状态变为1 地面标红
           spaceSprite.tint = this.colorConfig.spaceColorMap['-1'];
           spacesContainer.removeChild(spacesIdLayer);
           spacesContainerOfMarked.addChild(spacesIdLayer);
+          this.info.spaceMapOfMark[spaceId] = oldSpace;
         } else {
           spaceSprite.tint = this.colorConfig.spaceColorMap[type];
-          delete this.info.spaceMapOfMark[spaceId];
           spacesContainer.addChild(spacesIdLayer);
           spacesContainerOfMarked.removeChild(spacesIdLayer);
+          delete this.info.spaceMapOfMark[spaceId];
         }
-        oldSpace.status = status;
       }
     }
   }
@@ -1165,10 +1213,8 @@ class Scene {
       this.el.addEventListener('touchend', () => {
         ismousedown = false;
       });
-      this.el.addEventListener('mouseout', () => {
-        ismousedown = false;
-      });
       this.el.addEventListener('touchmove', (e) => {
+        if (store.state.modeStatus === 'batch' && floorSelect) return;
         if (ismousedown) {
           const currX = e.touches[0].clientX;
           const currY = e.touches[0].clientY;
@@ -1398,10 +1444,23 @@ class Scene {
     this.building.floors[0].terminalSprites.visible = flag;
   }
 
+  showSafeSpace(flag) {
+    Object.keys(this.info.spaceMapOfMark).forEach((key) => {
+      const { spaceSprite, type } = this.info.spaceMapOfMark[key];
+      const markedColor = flag ? this.colorConfig.spaceColorMap[-1] : this.colorConfig.spaceColorMap[type];
+      spaceSprite.tint = markedColor;
+    });
+  }
+
+  showMarker(flag) {
+    this.building.floors[0].markerSprites.visible = flag;
+  }
+
   updateModel() {
     const modeStatus = store.state.modeStatus;
     // 退出编辑模式
     if (modeStatus !== 'edit') {
+      noPCflag = true;
       sprites.hoverBorder.visible = false;
       sprites.toBorder.visible = false;
       sprites.fromBorder.visible = false;

@@ -84,6 +84,8 @@ export default {
             this.$store.commit('SET_PARAMS', { key: 'showContainers', value: true });
             this.$store.commit('SET_PARAMS', { key: 'showTerminals', value: true });
             this.$store.commit('SET_PARAMS', { key: 'showRobotsPath', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showSafeSpace', value: true });
+            this.$store.commit('SET_PARAMS', { key: 'showMarker', value: true });
             this.$router.push('/scada');
           },
         });
