@@ -157,7 +157,6 @@ export default {
         this.queryVariablesList(),
         this.configSystemTheme(),
       ]).then((res) => {
-        console.log('warehouseInfo', this.warehouseInfo);
         this.loading = false;
         const result = res.every((o) => o === 'success');
         if (result) {

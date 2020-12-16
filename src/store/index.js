@@ -34,7 +34,6 @@ export default new Vuex.Store({
     },
     SET_THEMES(state, themes) {
       state.themes = themes;
-      console.log('SET_THEMES themes', themes);
       if (!state.themeId) {
         state.themeId = themes[0].value;
         storage.set('scada_themeId', state.themeId);
