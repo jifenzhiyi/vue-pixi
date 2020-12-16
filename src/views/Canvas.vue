@@ -36,9 +36,10 @@
         v-show="errorDisplay"
         class="error-body">
         <p v-if="errorRobotList.length === 0">当前无异常机器</p>
-        <p
+        <div
+          class="red"
           v-for="item in errorRobotList"
-          :key="item">{{ item }}</p>
+          :key="item">{{ item }}</div>
       </div>
     </div>
     <div class="abs bottom">
@@ -314,10 +315,17 @@ export default {
     .error-body {
       display: flex;
       min-height: 30px;
+      background: #fff;
       align-items: center;
       flex-direction: column;
       justify-content: center;
       p { margin: 0; }
+      .red {
+        color: #e1021d;
+        padding: 5px 0;
+        border-bottom: solid 1px #ccc;
+        &:last-child { border: 0; }
+      }
     }
     &.now {
       border: 0;

@@ -884,6 +884,7 @@ class Scene {
       robot.status > 10
         ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
         : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+      this.info.robotMapOfError[robotId] = errorText.text;
       errorTextBox.width = errorText.width + 2;
       errorTextBox.visible = true;
       errorText.visible = true;
@@ -892,6 +893,7 @@ class Scene {
         robot.status > 10
           ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
           : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+        this.info.robotMapOfError[robotId] = errorText.text;
         errorTextBox.width = errorText.width + 2;
       }, 60 * 1000);
     } else {
@@ -900,6 +902,7 @@ class Scene {
         robot.status > 10
           ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
           : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+        this.info.robotMapOfError[robotId] = errorText.text;
         errorTextBox.width = errorText.width + 2;
         errorTextBox.visible = true;
         errorText.visible = true;
@@ -908,6 +911,7 @@ class Scene {
           robot.status > 10
             ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
             : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+          this.info.robotMapOfError[robotId] = errorText.text;
           errorTextBox.width = errorText.width + 2;
         }, 60 * 1000);
       }, (params.RobotTimeout - sec) * 1000);
