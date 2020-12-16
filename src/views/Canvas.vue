@@ -138,6 +138,7 @@ export default {
             onSelectFrom: this.onSelectFrom,
             onSelectTo: this.onSelectTo,
             onMarkSpace: this.onMark,
+            onBatchConfirm: this.onBatchConfirm,
           }, this.$refs.spaceInfo));
         }
       });
@@ -150,6 +151,13 @@ export default {
     this.timeInterval && clearInterval(this.timeInterval);
   },
   methods: {
+    onBatchConfirm(map) {
+      const arr = [];
+      Object.keys(map).forEach((key) => {
+        arr.push(map[key]);
+      });
+      this.$store.commit('SET_SELECT_CONTAINERS', arr);
+    },
     async onMark(spaceInfo) {
       const obj = {};
       obj.code = 4;

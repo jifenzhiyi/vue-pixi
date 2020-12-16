@@ -82,6 +82,13 @@ export default {
   TaskReceivedMsg: '任务已接收, 等待系统处理',
   RemoveContainerTipInfo: '确定要删除编号为{containerId}的货架吗？货架一旦删除，将无法恢复！',
   save: '保存',
+  clear: '清空',
   confirm: '确认',
   cancel: '取消',
+  containerType: '货架规格',
+  originDirection: '原点方向',
+  updateSpec: '修改规格',
+  updateArea: '修改片区',
+  containerArea: '所属片区',
+  RemoveAllContainer: '确定要删除所有选中的货架吗？货架一旦删除，将无法恢复！',
 };

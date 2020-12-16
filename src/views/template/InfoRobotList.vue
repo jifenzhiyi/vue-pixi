@@ -54,35 +54,6 @@ export default {
 <style lang="less" scoped>
 .info-main {
   padding: 10px 0;
-  .info-list {
-    display: flex;
-    flex-direction: column;
-    border: solid 1px #ddd;
-    .info-one {
-      height: 30px;
-      display: flex;
-      align-items: center;
-      border-bottom: solid 1px #ddd;
-      .ellipsis {
-        width: 20%;
-        font-size: 12px;
-        font-weight: bold;
-        text-align: center;
-      }
-      &:last-child { border: 0; }
-      span {
-        width: 20%;
-        height: 30px;
-        display: flex;
-        font-size: 12px;
-        align-items: center;
-        justify-content: center;
-        &.s0 { color: rgb(0, 0, 0); }
-        &.s1 { color: rgb(0, 148, 75); }
-        &.s3 { color: rgb(0, 95, 255); }
-        &.s99 { color: rgb(255, 2, 0); }
-      }
-    }
-  }
+  .info-list .info-one .ellipsis { width: 20%; }
 }
 </style>

@@ -232,24 +232,24 @@ class Scene {
       });
       floorSprite.on('mouseup', () => {
         floorSelect = false;
-        // Object.keys(this.info.containerMap).forEach((containerId) => {
-        //   const container = this.containerMap[containerId];
-        //   const containerContainer = container.containerContainer;
-        //   const containerPosition = containerContainer.getGlobalPosition();
-        //   if (containerSelector.containsPoint(containerPosition)) {
-        //     if (this.selectedContainers[containerId]) {
-        //       // 存在则移除，取消高亮
-        //       containerContainer.getChildAt(2).visible = false;
-        //       delete this.selectedContainers[containerId];
-        //     } else {
-        //       // 不存在则添加，高亮
-        //       this.selectedContainers[containerId] = container;
-        //       containerContainer.getChildAt(2).visible = true;
-        //     }
-        //   }
-        // });
+        Object.keys(this.info.containerMap).forEach((containerId) => {
+          const container = this.info.containerMap[containerId];
+          const containerContainer = container.containerContainer;
+          const containerPosition = containerContainer.getGlobalPosition();
+          if (containerSelector.containsPoint(containerPosition)) {
+            if (this.selectedContainers[containerId]) {
+              // 存在则移除，取消高亮
+              containerContainer.getChildAt(2).visible = false;
+              delete this.selectedContainers[containerId];
+            } else {
+              // 不存在则添加，高亮
+              this.selectedContainers[containerId] = container;
+              containerContainer.getChildAt(2).visible = true;
+            }
+          }
+        });
         containerSelector.visible = false;
-        // this.events.onBatchConfirm && this.events.onBatchConfirm(this.selectedContainers);
+        this.events.onBatchConfirm && this.events.onBatchConfirm(this.selectedContainers);
       });
     }
   }
@@ -399,7 +399,7 @@ class Scene {
 
   spaceUp(space, $root) {
     const modeStatus = store.state.modeStatus;
-    const { spaceId, x, y, z } = space;
+    const { spaceId, containerId, x, y, z } = space;
     if (modeStatus === 'edit') {
       if (spaceSelectArr[0] === spaceId) {
         sprites.fromBorder.visible = false;
@@ -418,18 +418,20 @@ class Scene {
     if (modeStatus === 'mark') {
       $root.events.onMarkSpace && $root.events.onMarkSpace(space);
     }
-    // if (params.model === 'batch') {
-    //   const container = $root.hoverSpaceInfo.container
-    //   const { containerId, containerContainer } = container
-    //   if (!containerId || !containerContainer) return
-    //   if ($root.selectedContainers[containerId]) { // 存在则移除，取消高亮
-    //     containerContainer.getChildAt(2).visible = false
-    //     delete $root.selectedContainers[containerId]
-    //   } else { // 不存在则添加，高亮
-    //     $root.selectedContainers[containerId] = container
-    //     containerContainer.getChildAt(2).visible = true
-    //   }
-    // }
+    if (modeStatus === 'batch') {
+      if (!containerId) return;
+      const container = $root.info.containerMap[containerId];
+      const { containerContainer } = container;
+      if ($root.selectedContainers[containerId]) {
+        // 存在则移除，取消高亮
+        containerContainer.getChildAt(2).visible = false;
+        delete $root.selectedContainers[containerId];
+      } else {
+        // 不存在则添加，高亮
+        $root.selectedContainers[containerId] = container;
+        containerContainer.getChildAt(2).visible = true;
+      }
+    }
     // if (params.model === 'setOrigin' && !movedOnMouseDown) {
     //   // const fixWidth = 10 + 2
     //   // const fixHeight = 10 + 2
@@ -607,9 +609,9 @@ class Scene {
     // 1, 高亮边框
     containerContainer.addChild(createGraphics(this.spaceWidth, this.spaceLength, 0x0000ff));
     // 2, 高亮框选选中
-    containerContainer.addChild(
-      createGraphics(this.spaceWidth, this.spaceLength, 0x00ffff, 'selectContainer', false, false, 0.3),
-    );
+    const Grap = createGraphics(this.spaceWidth, this.spaceLength, 0x00ffff, 'selectContainer', false, false, 0.3);
+    Grap.pivot.set(this.spaceWidth / 2, this.spaceLength / 2);
+    containerContainer.addChild(Grap);
     // 3, containerId
     const idSprite = new PIXI.Text(containerId, this.colorConfig.containerIdStyle);
     idSprite.anchor.set(0.5, 0.3);
@@ -1398,34 +1400,29 @@ class Scene {
 
   updateModel() {
     const modeStatus = store.state.modeStatus;
-    this.building.floors[0].floorContainer.interactive = false;
-
+    // 退出编辑模式
     if (modeStatus !== 'edit') {
       sprites.hoverBorder.visible = false;
       sprites.toBorder.visible = false;
       sprites.fromBorder.visible = false;
     }
-
     // 进入批量模式，楼层接收事件
     if (modeStatus === 'batch') {
       this.building.floors[0].floorContainer.interactive = true;
     }
+    // 退出批量模式
+    if (modeStatus !== 'batch') {
+      this.building.floors[0].floorContainer.interactive = false;
+      this.resetSelectedContainers();
+    }
+  }
 
-    // // 退出批量模式，楼层取消接收事件
-    // if (oldModel === 'batch' && model !== 'batch') {
-    //   params.onSelectContainers = false
-
-    //   for (let key in building.floors) {
-    //     building.floors[key].floorSprite.interactive = false
-    //   }
-
-    //   // 取消之前选中的全部货架的高亮
-    //   for (let containerId in this.selectedContainers) {
-    //     this.selectedContainers[containerId].containerContainer.getChildAt(2).visible = false
-    //   }
-
-    //   this.selectedContainers = {}
-    // }
+  resetSelectedContainers() {
+    Object.keys(this.selectedContainers).forEach((key) => {
+      this.selectedContainers[key].containerContainer.getChildAt(2).visible = false;
+    });
+    this.selectedContainers = {};
+    this.events.onBatchConfirm && this.events.onBatchConfirm(this.selectedContainers);
   }
 }
 

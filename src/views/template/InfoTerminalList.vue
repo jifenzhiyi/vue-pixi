@@ -50,33 +50,6 @@ export default {
 <style lang="less" scoped>
 .info-main {
   padding: 10px 0;
-  .info-list {
-    display: flex;
-    flex-direction: column;
-    border: solid 1px #ddd;
-    .info-one {
-      height: 30px;
-      display: flex;
-      align-items: center;
-      border-bottom: solid 1px #ddd;
-      .ellipsis {
-        width: 20%;
-        font-size: 12px;
-        font-weight: bold;
-        text-align: center;
-      }
-      &:last-child { border: 0; }
-      span {
-        width: 20%;
-        height: 30px;
-        display: flex;
-        font-size: 12px;
-        align-items: center;
-        justify-content: center;
-        &.s1 { color: rgb(54, 171, 74); }
-        &.s2 { color: rgb(255, 89, 109); }
-      }
-    }
-  }
+  .info-list .info-one .ellipsis { width: 20%; }
 }
 </style>

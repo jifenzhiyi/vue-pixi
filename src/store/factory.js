@@ -75,8 +75,12 @@ export default {
     },
     // 鼠标右键选中的space信息
     toSpaceInfo: {},
+    selectedContainers: [], // 批量编辑模式中选中的所有货架
   },
   mutations: {
+    SET_SELECT_CONTAINERS(state, arr) {
+      state.selectedContainers = arr;
+    },
     SET_TO_SPACE_INFO(state, space) {
       state.toSpaceInfo = space;
     },
