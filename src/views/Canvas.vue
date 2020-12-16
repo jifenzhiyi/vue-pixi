@@ -125,7 +125,6 @@ export default {
     };
   },
   created() {
-    console.log('isMobile', this.isMobile);
     this.timeInterval = setInterval(() => {
       this.formatTime = formatTime(new Date());
     }, 1000);

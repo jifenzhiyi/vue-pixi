@@ -26,9 +26,6 @@ export default {
       noMobile: !osType(),
     }
   },
-  created () {
-    console.log('isMobile', this.isMobile);
-  },
   computed: {
     ...mapState({
       fullScreen: (state) => state.factory.params.fullScreen,
