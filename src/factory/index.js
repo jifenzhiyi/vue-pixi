@@ -67,6 +67,7 @@ class Scene {
         terminalCountOf2: 0, // 暂停
       }, // 工作站数量
       robotMapOfError: {}, // 机器错误信息
+      chargerMap: {}, // 充电桩信息
     }; // 场景内容信息
     this.textures = null;
     !this.app && this.createScene(el); // 场景创建
@@ -387,6 +388,7 @@ class Scene {
       } else if (type === 7) {
         // 统计充电桩数量
         this.info.spaceCountOfCharger += 1;
+        this.info.chargerMap[spaceId] = space;
       }
       // TODO添加事件
       spaceSprite.interactive = true;
@@ -602,6 +604,10 @@ class Scene {
       errorText.position.x = 6;
       errorText.visible = false;
       robotContainer.addChild(errorText);
+      // 错误信息显示
+      if (endId !== undefined && endId !== spaceId) {
+        this.errorMessageDisplay(robot, robotContainer);
+      }
       // other
       robotSprite.calculateBounds();
       robot.robotContainer = robotContainer;
@@ -726,6 +732,7 @@ class Scene {
   // 添加 warn 计时（时间到达后 显示错误代码，机器变红，闪烁，统计）
   robotStatusControl(robot, oldStatus) {
     const { robotId, robotContainer, status } = robot;
+    console.log('ErrRobotTimeout', params.ErrRobotTimeout, 'robotId', robotId, 'status', status);
     const [, robotSprite, , errorTextBox, errorText] = robotContainer.children;
     robotContainer.errTimer = setTimeout(() => {
       params.allowSound && sound.play();
@@ -866,6 +873,45 @@ class Scene {
     }
   }
 
+  errorMessageDisplay(robot, robotContainer) {
+    const { lastUpdateTimeStamp, robotId } = robot;
+    const [, , , errorTextBox, errorText] = robotContainer.children;
+    const { min, sec } = getMinAndSec(nowStamp, lastUpdateTimeStamp);
+    if (sec > params.RobotTimeout) {
+      robotContainer.overtime = min;
+      robot.status > 10
+        ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
+        : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+      errorTextBox.width = errorText.width + 2;
+      errorTextBox.visible = true;
+      errorText.visible = true;
+      robotContainer.loop = setInterval(() => {
+        ++robotContainer.overtime;
+        robot.status > 10
+          ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
+          : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+        errorTextBox.width = errorText.width + 2;
+      }, 60 * 1000);
+    } else {
+      robotContainer.loop = setTimeout(() => {
+        robotContainer.overtime = Math.floor(params.RobotTimeout / 60);
+        robot.status > 10
+          ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
+          : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+        errorTextBox.width = errorText.width + 2;
+        errorTextBox.visible = true;
+        errorText.visible = true;
+        robotContainer.loop = setInterval(() => {
+          ++robotContainer.overtime;
+          robot.status > 10
+            ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
+            : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
+          errorTextBox.width = errorText.width + 2;
+        }, 60 * 1000);
+      }, (params.RobotTimeout - sec) * 1000);
+    }
+  }
+
   updateRobots(robots) {
     const len = robots.length;
     for (let i = 0; i < len; i++) {
@@ -907,40 +953,7 @@ class Scene {
       }
       // 错误信息显示
       if (endId !== undefined && endId !== spaceId) {
-        const { min, sec } = getMinAndSec(nowStamp, lastUpdateTimeStamp);
-        if (sec > params.RobotTimeout) {
-          robotContainer.overtime = min;
-          robot.status > 10
-            ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
-            : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
-          errorTextBox.width = errorText.width + 2;
-          errorTextBox.visible = true;
-          errorText.visible = true;
-          robotContainer.loop = setInterval(() => {
-            ++robotContainer.overtime;
-            robot.status > 10
-              ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
-              : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
-            errorTextBox.width = errorText.width + 2;
-          }, 60 * 1000);
-        } else {
-          robotContainer.loop = setTimeout(() => {
-            robotContainer.overtime = Math.floor(params.RobotTimeout / 60);
-            robot.status > 10
-              ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
-              : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
-            errorTextBox.width = errorText.width + 2;
-            errorTextBox.visible = true;
-            errorText.visible = true;
-            robotContainer.loop = setInterval(() => {
-              ++robotContainer.overtime;
-              robot.status > 10
-                ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
-                : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
-              errorTextBox.width = errorText.width + 2;
-            }, 60 * 1000);
-          }, (params.RobotTimeout - sec) * 1000);
-        }
+        this.errorMessageDisplay(robot, robotContainer);
       }
       // 若机器人 status 变化需要重新设置颜色, orientation 变化需要改变方向
       if (status !== oldStatus || orientation !== oldOrientation) {

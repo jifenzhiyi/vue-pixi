@@ -29,6 +29,7 @@ export default {
       spaceMap: {},
       spaceMapOfMark: {},
       containerMap: {},
+      chargerMap: {}, // 充电桩map
     },
     params: {
       floorDirection: storage.get('scada_params_floorDirection') || 'Horizontal', // Horizontal Vertical

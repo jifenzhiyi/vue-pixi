@@ -10,6 +10,7 @@ export default {
   Locking: 'Lock',
   Pausing: 'Pause',
   Charging: 'Charge',
+  ToBeCharged: 'To Be Charged',
   Messages: 'Messages',
   RobotList: 'AGV List',
   TerminalList: 'Workstation List',

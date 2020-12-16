@@ -17,6 +17,7 @@
       <span>{{ item.posZ }}</span>
       <span :class="`s${item.status}`">{{ $t(item.statusName) }}</span>
     </div>
+    <div class="info-one"><p>暂无数据</p></div>
   </div>
 </div>
 </template>
@@ -31,12 +32,16 @@ export default {
       terminalMap: (state) => state.factory.factoryConfig.terminalMap,
     }),
     terminalMapList() {
-      return Object.keys(this.terminalMap).map((key) => {
-        this.terminalMap[key].status === 0 && (this.terminalMap[key].statusName = 'Offline');
-        this.terminalMap[key].status === 1 && (this.terminalMap[key].statusName = 'Run');
-        this.terminalMap[key].status === 2 && (this.terminalMap[key].statusName = 'Pausing');
-        return this.terminalMap[key];
-      });
+      let arr = [];
+      if (this.terminalMap) {
+        arr = Object.keys(this.terminalMap).map((key) => {
+          this.terminalMap[key].status === 0 && (this.terminalMap[key].statusName = 'Offline');
+          this.terminalMap[key].status === 1 && (this.terminalMap[key].statusName = 'Run');
+          this.terminalMap[key].status === 2 && (this.terminalMap[key].statusName = 'Pausing');
+          return this.terminalMap[key];
+        });
+      }
+      return arr;
     },
   },
   data() {
@@ -51,5 +56,13 @@ export default {
 .info-main {
   padding: 10px 0;
   .info-list .info-one .ellipsis { width: 20%; }
+  .info-one p {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 </style>

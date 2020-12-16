@@ -30,16 +30,22 @@ export default {
   computed: {
     ...mapState({
       robotMap: (state) => state.factory.factoryConfig.robotMap,
+      chargerMap: (state) => state.factory.factoryConfig.chargerMap,
     }),
     robotMapList() {
       return Object.keys(this.robotMap).map((key) => {
-        this.robotMap[key].status === -1 && (this.robotMap[key].statusName = 'Offline');
-        this.robotMap[key].status === 0 && (this.robotMap[key].statusName = 'Idle');
-        this.robotMap[key].status === 1 && (this.robotMap[key].statusName = 'Load');
-        this.robotMap[key].status === 3 && (this.robotMap[key].statusName = 'Charging');
-        this.robotMap[key].status === 99 && (this.robotMap[key].statusName = 'Problem');
-        this.robotMap[key].voltageNew = `${this.robotMap[key].voltage * 100}%`;
-        return this.robotMap[key];
+        const robot = this.robotMap[key];
+        const { status, voltage, spaceId } = robot;
+        status === -1 && (robot.statusName = 'Offline');
+        status === 0 && (robot.statusName = 'Idle');
+        status === 1 && (robot.statusName = 'Load');
+        status === 99 && (robot.statusName = 'Problem');
+        if (status === 3) {
+          const charger = this.chargerMap[spaceId];
+          robot.statusName = charger ? 'Charging' : 'ToBeCharged';
+        }
+        robot.voltageNew = `${voltage * 100}%`;
+        return robot;
       });
     },
   },

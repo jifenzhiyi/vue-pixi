@@ -10,6 +10,7 @@ export default {
   Locking: '锁定',
   Pausing: '暂停',
   Charging: '充电',
+  ToBeCharged: '待充电',
   Messages: '概览信息',
   RobotList: '机器人列表',
   TerminalList: '工作站列表',

@@ -14,7 +14,6 @@
 
 <script>
 import { mapState } from 'vuex';
-import { osType } from '@/utils/device.js';
 import scadaHeader from './template/Header.vue';
 import scadaAside from './template/Aside.vue';
 import scadaCanvas from './Canvas.vue';
