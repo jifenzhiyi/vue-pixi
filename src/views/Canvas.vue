@@ -27,11 +27,11 @@
       <a-button-group>
         <a-button
           icon="menu"
-          v-if="noMobile"
+          v-if="$noMobile"
           @click="popHide"></a-button>
         <a-button
           icon="audio"
-          v-if="noMobile"
+          v-if="$noMobile"
           class="btnCss"
           @click="allowSound">
           <span
@@ -46,7 +46,7 @@
           @click="screenshot"></a-button>
       </a-button-group>
       <div
-        v-if="noMobile"
+        v-if="$noMobile"
         class="btn-center">
         <a-button
           class="btn"
@@ -80,7 +80,7 @@
           icon="zoom-in"
           @click="zoomer(0.1)"></a-button>
         <a-button
-          v-if="noMobile"
+          v-if="$noMobile"
           :icon="params.fullScreen ? 'shrink' : 'arrows-alt'"
           @click="toggleScreen"></a-button>
       </a-button-group>
@@ -95,7 +95,6 @@
 import { mapState } from 'vuex';
 import role from '@/mixins/role.js';
 import Scene from '@/factory/index.js';
-import { osType } from '@/utils/device.js';
 import { formatTime } from '@/utils/help.js';
 import { operation } from '@/views/api.js';
 import Configure from 'comps/pop/Configure.vue';
@@ -116,7 +115,6 @@ export default {
   mixins: [role],
   data() {
     return {
-      noMobile: !osType(),
       ws: null,
       loading: true,
       timeInterval: null,

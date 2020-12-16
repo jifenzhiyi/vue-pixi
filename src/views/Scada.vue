@@ -1,12 +1,12 @@
 <template>
   <div class="scada">
     <scada-header
-      v-if="noMobile"
+      v-if="$noMobile"
       v-show="!fullScreen" />
-    <div :class="['content', (fullScreen || !noMobile) && 'fullScreen']">
+    <div :class="['content', (fullScreen || !$noMobile) && 'fullScreen']">
       <scada-canvas />
       <scada-aside
-        v-if="noMobile"
+        v-if="$noMobile"
         v-show="!fullScreen" />
     </div>
   </div>
@@ -21,11 +21,6 @@ import scadaCanvas from './Canvas.vue';
 
 export default {
   name: 'Scada',
-  data() {
-    return {
-      noMobile: !osType(),
-    }
-  },
   computed: {
     ...mapState({
       fullScreen: (state) => state.factory.params.fullScreen,
