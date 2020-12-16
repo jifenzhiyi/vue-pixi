@@ -1,21 +1,34 @@
 <template>
   <div class="scada">
-    <scada-header v-show="!fullScreen" />
-    <div :class="['content', fullScreen && 'fullScreen']">
+    <scada-header
+      v-if="noMobile"
+      v-show="!fullScreen" />
+    <div :class="['content', (fullScreen || !noMobile) && 'fullScreen']">
       <scada-canvas />
-      <scada-aside v-show="!fullScreen" />
+      <scada-aside
+        v-if="noMobile"
+        v-show="!fullScreen" />
     </div>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex';
+import { osType } from '@/utils/device.js';
 import scadaHeader from './template/Header.vue';
 import scadaAside from './template/Aside.vue';
 import scadaCanvas from './Canvas.vue';
 
 export default {
   name: 'Scada',
+  data() {
+    return {
+      noMobile: !osType(),
+    }
+  },
+  created () {
+    console.log('isMobile', this.isMobile);
+  },
   computed: {
     ...mapState({
       fullScreen: (state) => state.factory.params.fullScreen,
