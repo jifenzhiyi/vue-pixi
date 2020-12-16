@@ -54,7 +54,7 @@ export default {
             { label: 'robotId', param: 'showRobotsId', value: storage.get('scada_params_showRobotsId') || false, type: 'switch' },
             { label: 'robotMoveSpeed', param: 'moveSpeed', value: storage.get('scada_params_moveSpeed') || 1.5, type: 'input_num', num: 0.1 },
             { label: 'RobotTimeout', param: 'RobotTimeout', value: storage.get('scada_params_RobotTimeout') || 60, type: 'input', unit: '秒' },
-            { label: 'AbnormalAlarm', value: true, type: 'switch' },
+            { label: 'AbnormalAlarm', param: 'showRobotError', value: storage.get('scada_params_showRobotError'), type: 'switch' },
             { label: 'AbnormalTimeout', param: 'ErrRobotTimeout', value: storage.get('scada_params_ErrRobotTimeout') || 10, type: 'input', unit: '秒' },
           ],
         },

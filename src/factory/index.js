@@ -605,7 +605,7 @@ class Scene {
       errorText.visible = false;
       robotContainer.addChild(errorText);
       // 错误信息显示
-      if (endId !== undefined && endId !== spaceId) {
+      if (endId !== undefined && endId !== spaceId && params.showRobotError) {
         this.errorMessageDisplay(robot, robotContainer);
       }
       // other
@@ -952,7 +952,7 @@ class Scene {
         }
       }
       // 错误信息显示
-      if (endId !== undefined && endId !== spaceId) {
+      if (endId !== undefined && endId !== spaceId && params.showRobotError) {
         this.errorMessageDisplay(robot, robotContainer);
       }
       // 若机器人 status 变化需要重新设置颜色, orientation 变化需要改变方向
@@ -1467,6 +1467,26 @@ class Scene {
 
   showMarker(flag) {
     this.building.floors[0].markerSprites.visible = flag;
+  }
+
+  showRobotError(flag) {
+    Object.keys(this.info.robotMap).forEach((robotId) => {
+      const robot = this.info.robotMap[robotId];
+      const { status, robotContainer } = robot;
+      const [, , , errorTextBox, errorText] = robotContainer.children;
+      if (status > 10) {
+        errorText.text = `${robotId}, e${status - 10}, ${robotContainer.overtime}min`;
+      } else {
+        errorText.text = `${robotId}, ${robotContainer.overtime}min`;
+      }
+      if (flag) {
+        errorTextBox.visible = status > 10 || robotContainer.overtime > 0;
+        errorText.visible = status > 10 || robotContainer.overtime > 0;
+      } else {
+        errorTextBox.visible = false;
+        errorText.visible = false;
+      }
+    });
   }
 
   updateModel() {

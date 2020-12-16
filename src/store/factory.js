@@ -46,6 +46,7 @@ export default {
       showRobotsPath: storage.get('scada_params_showRobotsPath') || false, // 机器人路径
       showRobotsId: storage.get('scada_params_showRobotsId') || false, // 展示机器人Id
       RobotTimeout: storage.get('scada_params_RobotTimeout') || 60, // 默认60
+      showRobotError: storage.get('scada_params_showRobotError') || false, // 是否现实报警
       ErrRobotTimeout: storage.get('scada_params_ErrRobotTimeout') || 10,
       moveSpeed: storage.get('scada_params_moveSpeed') || 1.5,
       showContainers: storage.get('scada_params_showContainers') || false, // 展示货架
