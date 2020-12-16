@@ -23,7 +23,9 @@
       <div class="time">{{ formatTime }}</div>
       <div :class="['status', `s${systemStatus}`]">{{ $t(statusMap.title) }}</div>
     </div>
-    <div :class="['abs', 'error', !errorDisplay && 'now']">
+    <div
+      v-show="params.showRobotError"
+      :class="['abs', 'error', !errorDisplay && 'now']">
       <div
         class="error-title"
         @click="errorChange">
@@ -152,7 +154,10 @@ export default {
     if (this.$route.name !== 'login') {
       Promise.all([
         this.queryWarehouse(),
+        this.queryVariablesList(),
+        this.configSystemTheme(),
       ]).then((res) => {
+        console.log('warehouseInfo', this.warehouseInfo);
         this.loading = false;
         const result = res.every((o) => o === 'success');
         if (result) {

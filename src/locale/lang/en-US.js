@@ -92,4 +92,5 @@ export default {
   updateArea: 'Update Area',
   containerArea: 'Container Area',
   RemoveAllContainer: 'Are you sure you want to delete all selected shelves?',
+  tempColor: 'Template Color',
 };

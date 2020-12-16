@@ -43,3 +43,13 @@ export const operation = (data, url) => {
   const result = request.send(`/api/superuserOperations/add${url}`, { method: 'POST', data });
   return result;
 };
+
+export const queryUserSystemThemeInfo = () => {
+  const result = request.send('/api/configUserSystemTheme/queryUserSystemThemeInfo', { method: 'POST' });
+  return result;
+};
+
+export const queryTheme = (data) => {
+  const result = request.send('/api/configSystemTheme/querySystemThemeByThemeId', { method: 'POST', data });
+  return result;
+};

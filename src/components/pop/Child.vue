@@ -39,13 +39,14 @@
               @click="minus"/>
           </a-input>
           <a-radio-group
+            v-if="item.type === 'radio'"
             :default-value="item.value"
             @change="radioChange">
             <a-radio
               v-for="o in item.options"
               :key="o.value"
               :value="o.value"
-              :class="o.value === item.value && 'colorR'">{{$t(o.label)}}</a-radio>
+              @focus="focus(item.param)">{{$t(o.label)}}</a-radio>
           </a-radio-group>
         </div>
         <div
@@ -75,8 +76,13 @@ export default {
   methods: {
     radioChange(e) {
       const value = e.target.value;
-      this.$store.commit('SET_PARAMS', { key: 'showContainersType', value });
-      this.application && this.application.showContainersType(value);
+      if (this.param === 'showContainersType') {
+        this.$store.commit('SET_PARAMS', { key: 'showContainersType', value });
+        this.application && this.application.showContainersType(value);
+      } else {
+        this.$store.commit('SET_THEMES_ID', value);
+        window.location.reload();
+      }
     },
     inputChange(e) {
       const value = Number(e.target.value.replace(/[^\d]/g, ''));

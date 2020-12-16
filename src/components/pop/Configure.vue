@@ -19,12 +19,8 @@
         <a-radio-group
           :value="floorDirection"
           @change="radioChange">
-          <a-radio
-            value="Horizontal"
-            :class="floorDirection === 'Horizontal' && 'colorR'">{{$t('Horizontal')}}</a-radio>
-          <a-radio
-            value="Vertical"
-            :class="floorDirection === 'Vertical' && 'colorR'">{{$t('Vertical')}}</a-radio>
+          <a-radio value="Horizontal">{{$t('Horizontal')}}</a-radio>
+          <a-radio value="Vertical">{{$t('Vertical')}}</a-radio>
         </a-radio-group>
       </div>
     </div>

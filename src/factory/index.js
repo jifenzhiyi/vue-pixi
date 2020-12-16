@@ -1,7 +1,6 @@
 import * as PIXI from 'pixi.js';
 import storage from '@/utils/storage';
 import store from '@/store/index.js';
-import colorConfig from '@/utils/colorConfig.js';
 import { thottle } from '@/utils/help.js';
 import { isPC } from '@/utils/device.js';
 import sound from './sound';
@@ -38,7 +37,7 @@ class Scene {
     floors.forEach((floorIndex) => {
       this.building.floors[floorIndex] = { visible: true };
     });
-    this.colorConfig = colorConfig;
+    this.colorConfig = store.state.colorConfig;
     this.spacesOfContainerSlot = []; // 货架泊位
     this.spacesOfInvalid = []; // 无效位置
     this.spacesOfWaiting = []; // 等待位
@@ -69,6 +68,7 @@ class Scene {
       robotMapOfError: {}, // 机器错误信息
       chargerMap: {}, // 充电桩信息
     }; // 场景内容信息
+    // this.pendingContainerMap = {};
     this.textures = null;
     !this.app && this.createScene(el); // 场景创建
     loadTextures().then((res) => {
@@ -661,7 +661,7 @@ class Scene {
     containerContainer.addChild(Grap);
     // 3, containerId
     const idSprite = new PIXI.Text(containerId, this.colorConfig.containerIdStyle);
-    idSprite.anchor.set(0.5, 0.3);
+    idSprite.anchor.set(0.5);
     idSprite.scale.set(0.2);
     idSprite.visible = params.showContainerId;
     containerContainer.addChild(idSprite);
@@ -1424,7 +1424,7 @@ class Scene {
   showRobotsId(flag) {
     Object.values(this.info.robotMap).forEach((robot) => {
       const { robotContainer } = robot;
-      robotContainer.getChildAt(1).visible = flag;
+      robotContainer.getChildAt(2).visible = flag;
     });
   }
 

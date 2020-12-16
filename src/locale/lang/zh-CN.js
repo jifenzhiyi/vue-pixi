@@ -92,4 +92,5 @@ export default {
   updateArea: '修改片区',
   containerArea: '所属片区',
   RemoveAllContainer: '确定要删除所有选中的货架吗？货架一旦删除，将无法恢复！',
+  tempColor: '模版颜色',
 };

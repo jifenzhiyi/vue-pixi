@@ -19,11 +19,24 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import storage from '@/utils/storage';
 import PopChild from './Child.vue';
 
 export default {
   name: 'PopTabs',
+  computed: {
+    ...mapState(['themes']),
+  },
+  watch: {
+    themes: {
+      immediate: true,
+      handler() {
+        console.log('themes', this.themes);
+        this.tabList[4].list[2].options = this.themes;
+      },
+    },
+  },
   components: {
     PopChild,
   },
@@ -83,6 +96,12 @@ export default {
           list: [
             { label: 'Marker', param: 'showMarker', value: storage.get('scada_params_showMarker'), type: 'switch' },
             { label: 'stats', value: false, type: 'switch' },
+            {
+              label: 'tempColor',
+              value: storage.get('scada_themeId'),
+              type: 'radio',
+              options: [],
+            },
           ],
         },
       ],

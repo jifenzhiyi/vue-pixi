@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import storage from '@/utils/storage.js';
+import colorConfig from '@/utils/colorConfig.js';
 import { loadLanguageAsync } from '@/locale/index.js';
 import localInit from './plugins/localInit.js';
 import factory from './factory.js';
@@ -20,8 +21,25 @@ export default new Vuex.Store({
     popShowAddContainer: false, // 新增货架弹窗
     popShowUpdateContainerOrit: false, // 更新货架方向弹窗
     application: null, // 全局保存工程
+    themes: [], // 模版列表
+    themeId: storage.get('scada_themeId') || null, // 当前选中的模版Id
+    colorConfig,
   },
   mutations: {
+    SET_COLOR_CONFIG(state, config) {
+      state.colorConfig = config;
+    },
+    SET_THEMES_ID(state, themeId) {
+      state.themeId = themeId;
+    },
+    SET_THEMES(state, themes) {
+      state.themes = themes;
+      console.log('SET_THEMES themes', themes);
+      if (!state.themeId) {
+        state.themeId = themes[0].value;
+        storage.set('scada_themeId', state.themeId);
+      }
+    },
     // 设置系统模式
     SET_MODE(state, status) {
       state.modeStatus = status;

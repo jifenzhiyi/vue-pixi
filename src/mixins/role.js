@@ -1,16 +1,32 @@
 import { mapState } from 'vuex';
 import { END_POINT } from '@/config';
 import storage from '@/utils/storage';
-import { queryWarehouse, queryDimensionList, queryMarkerList, queryVariablesList, operation } from '@/views/api.js';
+import colorConfig from '@/utils/colorConfig.js';
+import {
+  queryWarehouse,
+  queryDimensionList,
+  queryMarkerList,
+  queryVariablesList,
+  operation,
+  queryUserSystemThemeInfo,
+  queryTheme,
+} from '@/views/api.js';
 
 export default {
   computed: {
-    ...mapState(['warehouseId', 'warehouseIds', 'systemStatus']),
+    ...mapState(['warehouseId', 'warehouseIds', 'systemStatus', 'menuList', 'themeId']),
     statusMap() {
       return this.systemStatusMap.find((o) => o.value === this.systemStatus);
     },
     factoryMap() {
       return this.factoryConfig;
+    },
+    buttonTypeList() {
+      const obj = {};
+      this.menuList.forEach((item) => {
+        obj[item.buttonType] = item.url;
+      });
+      return obj;
     },
   },
   watch: {
@@ -27,6 +43,7 @@ export default {
         { title: 'Pausing', value: 0 },
         { title: 'Charging', value: 2 },
       ],
+      colorConfig,
     };
   },
   methods: {
@@ -68,9 +85,7 @@ export default {
     },
     async queryWarehouse() {
       const res = await queryWarehouse();
-      if (res) {
-        res.data.rows.length > 0 && (this.warehouseInfo = res.data.rows[0]);
-      }
+      res && res.data.rows.length > 0 && (this.warehouseInfo = res.data.rows[0]);
       return res ? 'success' : 'error';
     },
     async queryDimensionList() {
@@ -91,8 +106,59 @@ export default {
       res && res.data && res.data.rows.length > 0 && this.application.initMarkers(res.data.rows);
     },
     async queryVariablesList() {
-      const res = await queryVariablesList();
-      console.log('queryVariablesList res', res);
+      let res = 'success';
+      if (this.buttonTypeList.variables) {
+        const result = await queryVariablesList();
+        res = result ? 'success' : 'error';
+      }
+      return res;
+    },
+    async configSystemTheme() {
+      let res = 'success';
+      if (this.buttonTypeList.theme) {
+        const result = await queryUserSystemThemeInfo();
+        if (result) {
+          this.$store.commit(
+            'SET_THEMES',
+            result.data.themes.map((item) => ({
+              value: item.themeId,
+              label: item.themeName,
+            })),
+          );
+          this.queryByThemeId();
+        }
+        res = result ? 'success' : 'error';
+      }
+      return res;
+    },
+    async queryByThemeId() {
+      const res = await queryTheme({ themeId: this.themeId });
+      if (res) {
+        res.data.themes.forEach((one) => {
+          if (one.themeType === 'markerBoxColor') {
+            const varKey = one.themeStatus.split('_');
+            this.colorConfig[one.themeType][varKey[0]][varKey[1]] = one.color;
+          } else if (
+            one.themeType === 'spaceColorMap' ||
+            one.themeType === 'terminalColorMap' ||
+            one.themeType === 'robotColorMap'
+          ) {
+            this.colorConfig[one.themeType][one.themeStatus] = one.color;
+          } else if (
+            one.themeType === 'errorTextStyle' ||
+            one.themeType === 'robotIdStyle' ||
+            one.themeType === 'containerIdStyle' ||
+            one.themeType === 'containerIdStyle2' ||
+            one.themeType === 'containerIdStyle3' ||
+            one.themeType === 'markerTextStyle'
+          ) {
+            this.colorConfig[one.themeType][one.themeStatus] = one.color;
+          } else {
+            this.colorConfig[one.themeType] = one.color;
+          }
+        });
+        this.$store.commit('SET_COLOR_CONFIG', this.colorConfig);
+      }
     },
     // 系统状态更新
     async radioChange(e) {
