@@ -23,6 +23,24 @@
       <div class="time">{{ formatTime }}</div>
       <div :class="['status', `s${systemStatus}`]">{{ $t(statusMap.title) }}</div>
     </div>
+    <div :class="['abs', 'error', !errorDisplay && 'now']">
+      <div
+        class="error-title"
+        @click="errorChange">
+        <a-icon
+          type="bell"
+          theme="filled" />
+        <span v-show="errorDisplay">【异常机器】</span>
+      </div>
+      <div
+        v-show="errorDisplay"
+        class="error-body">
+        <p v-if="errorRobotList.length === 0">当前无异常机器</p>
+        <p
+          v-for="item in errorRobotList"
+          :key="item">{{ item }}</p>
+      </div>
+    </div>
     <div class="abs bottom">
       <a-button-group>
         <a-button
@@ -110,6 +128,7 @@ export default {
       application: (state) => state.application,
       config: (state) => state.factory.config,
       params: (state) => state.factory.params,
+      errorRobotList: (state) => Object.values(state.factory.factoryConfig.robotMapOfError),
     }),
   },
   mixins: [role],
@@ -117,6 +136,7 @@ export default {
     return {
       ws: null,
       loading: true,
+      errorDisplay: true,
       timeInterval: null,
       warehouseInfo: null,
       formatTime: formatTime(new Date()),
@@ -156,6 +176,9 @@ export default {
     this.timeInterval && clearInterval(this.timeInterval);
   },
   methods: {
+    errorChange() {
+      this.errorDisplay = !this.errorDisplay;
+    },
     onBatchConfirm(map) {
       const arr = [];
       Object.keys(map).forEach((key) => {
@@ -271,6 +294,36 @@ export default {
       &.s1::before { background: #e1021d; }
       &.s2::before { background: #037aff; }
       &.s3::before { background: #009e63; }
+    }
+  }
+  .error {
+    min-width: 120px;
+    min-height: 60px;
+    border-radius: 4px;
+    top: 40px; left: 10px;
+    border: solid 1px #ccc;
+    .error-title {
+      height: 30px;
+      display: flex;
+      color: #333;
+      cursor: pointer;
+      padding: 0 10px;
+      background: #ccc;
+      align-items: center;
+    }
+    .error-body {
+      display: flex;
+      min-height: 30px;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      p { margin: 0; }
+    }
+    &.now {
+      border: 0;
+      min-width: auto;
+      min-height: auto;
+      .error-title { background: #fff; }
     }
   }
   .bottom {

@@ -234,8 +234,8 @@ class Scene {
       });
       floorSprite.on('mouseup', () => {
         floorSelect = false;
-        Object.keys(this.info.containerMap).forEach((containerId) => {
-          const container = this.info.containerMap[containerId];
+        Object.values(this.info.containerMap).forEach((container) => {
+          const { containerId } = container;
           const containerContainer = container.containerContainer;
           const containerPosition = containerContainer.getGlobalPosition();
           if (containerSelector.containsPoint(containerPosition)) {
@@ -271,8 +271,8 @@ class Scene {
       });
       floorSprite.on('touchend', () => {
         floorSelect = false;
-        Object.keys(this.info.containerMap).forEach((containerId) => {
-          const container = this.info.containerMap[containerId];
+        Object.values(this.info.containerMap).forEach((container) => {
+          const { containerId } = container;
           const containerContainer = container.containerContainer;
           const containerPosition = containerContainer.getGlobalPosition();
           if (containerSelector.containsPoint(containerPosition)) {
@@ -629,13 +629,15 @@ class Scene {
       if (!space) continue;
       const { z } = space;
       space.containerId = containerId; // 记录点位存在货架Id
-      this.building.floors[z].containerSprites.addChild(this.createContainer(container));
+      const one = this.createContainer(container);
+      one && this.building.floors[z].containerSprites.addChild(one);
       validLen++;
     }
     this.info.containerCount = validLen;
   }
 
   createContainer(container) {
+    // console.log('createContainer container', container);
     const { containerId, spaceId, frequence, orientation, type } = container;
     const space = this.info.spaceMap[spaceId];
     const { x, y } = space;
@@ -1277,10 +1279,8 @@ class Scene {
   }
 
   doMove() {
-    Object.keys(this.waitingMoveList).forEach((key) => {
-      const { robotContainer, containerContainerPosition, x, y, endX, endY, offsetX, offsetY } = this.waitingMoveList[
-        key
-      ];
+    Object.values(this.waitingMoveList).forEach((item) => {
+      const { robotContainer, containerContainerPosition, x, y, endX, endY, offsetX, offsetY } = item;
       const robotPath = robotContainer.getChildAt(0);
       const { x: currX, y: currY } = robotContainer;
       const offset = Math.sqrt(Math.pow(x - currX, 2) + Math.pow(y - currY, 2)) / 10;
@@ -1404,22 +1404,22 @@ class Scene {
   }
 
   showOfflineRobots(flag) {
-    Object.keys(this.info.robotMap).forEach((key) => {
-      const { status, robotContainer } = this.info.robotMap[key];
+    Object.values(this.info.robotMap).forEach((robot) => {
+      const { status, robotContainer } = robot;
       status === -1 && (robotContainer.visible = flag);
     });
   }
 
   showRobotsPath(flag) {
-    Object.keys(this.info.robotMap).forEach((key) => {
-      const { robotContainer } = this.info.robotMap[key];
+    Object.values(this.info.robotMap).forEach((robot) => {
+      const { robotContainer } = robot;
       robotContainer.getChildAt(4).visible = flag;
     });
   }
 
   showRobotsId(flag) {
-    Object.keys(this.info.robotMap).forEach((key) => {
-      const { robotContainer } = this.info.robotMap[key];
+    Object.values(this.info.robotMap).forEach((robot) => {
+      const { robotContainer } = robot;
       robotContainer.getChildAt(1).visible = flag;
     });
   }
@@ -1429,8 +1429,8 @@ class Scene {
   }
 
   showContainerId(flag) {
-    Object.keys(this.info.containerMap).forEach((key) => {
-      const { containerContainer } = this.info.containerMap[key];
+    Object.values(this.info.containerMap).forEach((container) => {
+      const { containerContainer } = container;
       containerContainer.getChildAt(3).visible = flag;
     });
   }
@@ -1438,14 +1438,14 @@ class Scene {
   showContainersType(value) {
     const setContainersColorBy = {
       type() {
-        Object.keys(this.info.containerMap).forEach((key) => {
-          const { type, containerContainer } = this.info.containerMap[key];
+        Object.values(this.info.containerMap).forEach((container) => {
+          const { type, containerContainer } = container;
           containerContainer.getChildAt(0).tint = calcShapeColorByType(type);
         });
       },
       frequence() {
-        Object.keys(this.info.containerMap).forEach((key) => {
-          const { frequence, containerContainer } = this.info.containerMap[key];
+        Object.values(this.info.containerMap).forEach((container) => {
+          const { frequence, containerContainer } = container;
           containerContainer.getChildAt(0).tint = calcShapeColorByFrquence(frequence);
         });
       },
@@ -1458,8 +1458,8 @@ class Scene {
   }
 
   showSafeSpace(flag) {
-    Object.keys(this.info.spaceMapOfMark).forEach((key) => {
-      const { spaceSprite, type } = this.info.spaceMapOfMark[key];
+    Object.values(this.info.spaceMapOfMark).forEach((space) => {
+      const { spaceSprite, type } = space;
       const markedColor = flag ? this.colorConfig.spaceColorMap[-1] : this.colorConfig.spaceColorMap[type];
       spaceSprite.tint = markedColor;
     });
@@ -1470,9 +1470,8 @@ class Scene {
   }
 
   showRobotError(flag) {
-    Object.keys(this.info.robotMap).forEach((robotId) => {
-      const robot = this.info.robotMap[robotId];
-      const { status, robotContainer } = robot;
+    Object.values(this.info.robotMap).forEach((robot) => {
+      const { robotId, status, robotContainer } = robot;
       const [, , , errorTextBox, errorText] = robotContainer.children;
       if (status > 10) {
         errorText.text = `${robotId}, e${status - 10}, ${robotContainer.overtime}min`;
