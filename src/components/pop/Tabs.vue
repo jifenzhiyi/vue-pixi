@@ -32,8 +32,7 @@ export default {
     themes: {
       immediate: true,
       handler() {
-        console.log('themes', this.themes);
-        this.tabList[4].list[2].options = this.themes;
+        this.tabList[4].list[1].options = this.themes;
       },
     },
   },
@@ -95,9 +94,10 @@ export default {
           tab: 'Others',
           list: [
             { label: 'Marker', param: 'showMarker', value: storage.get('scada_params_showMarker'), type: 'switch' },
-            { label: 'stats', value: false, type: 'switch' },
+            // { label: 'stats', value: false, type: 'switch' },
             {
               label: 'tempColor',
+              param: 'themeId',
               value: storage.get('scada_themeId'),
               type: 'radio',
               options: [],

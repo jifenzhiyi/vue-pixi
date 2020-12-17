@@ -37,10 +37,10 @@
       <div
         v-show="errorDisplay"
         class="error-body">
-        <p v-if="errorRobotList.length === 0">当前无异常机器</p>
+        <p v-if="Object.keys(robotMapOfError).length === 0">当前无异常机器</p>
         <div
           class="red"
-          v-for="item in errorRobotList"
+          v-for="item in robotMapOfError"
           :key="item">{{ item }}</div>
       </div>
     </div>
@@ -131,7 +131,7 @@ export default {
       application: (state) => state.application,
       config: (state) => state.factory.config,
       params: (state) => state.factory.params,
-      errorRobotList: (state) => Object.values(state.factory.factoryConfig.robotMapOfError),
+      robotMapOfError: (state) => state.factory.factoryConfig.robotMapOfError,
     }),
   },
   mixins: [role],
@@ -275,7 +275,11 @@ export default {
     pointer-events: none;
     transition: all 350ms;
     background: rgba(0, 0, 0, 0.7);
-    p { white-space: nowrap; margin: 0; }
+    p {
+      white-space: nowrap;
+      margin: 0;
+      &.robotId span { padding-left: 10px; color: #e1021d; }
+    }
   }
   .top {
     height: 30px;
@@ -325,8 +329,10 @@ export default {
       justify-content: center;
       p { margin: 0; }
       .red {
-        color: #e1021d;
+        width: 100%;
         padding: 5px 0;
+        color: #e1021d;
+        text-align: center;
         border-bottom: solid 1px #ccc;
         &:last-child { border: 0; }
       }
@@ -335,7 +341,7 @@ export default {
       border: 0;
       min-width: auto;
       min-height: auto;
-      .error-title { background: #fff; }
+      .error-title { background: none; }
     }
   }
   .bottom {

@@ -70,8 +70,8 @@ class Scene {
     }; // 场景内容信息
     // this.pendingContainerMap = {};
     this.textures = null;
-    !this.app && this.createScene(el); // 场景创建
     loadTextures().then((res) => {
+      this.createScene(el); // 场景创建
       this.textures = res;
       this.events.onInitWS && this.events.onInitWS();
       this.events.onMarkerList && this.events.onMarkerList();
@@ -307,8 +307,8 @@ class Scene {
     const { spaces, terminals, robots, containers } = data;
     spaces && this.initSpaces(spaces);
     terminals && this.initTerminals(terminals);
-    robots && this.initRobots(robots);
     containers && this.initContainers(containers);
+    robots && this.initRobots(robots);
     sprites.hoverBorder = createGraphics(
       this.spaceWidth,
       this.spaceLength,
@@ -627,17 +627,15 @@ class Scene {
       if (status === -9 || !spaceId) continue;
       const space = this.info.spaceMap[spaceId];
       if (!space) continue;
-      const { z } = space;
       space.containerId = containerId; // 记录点位存在货架Id
       const one = this.createContainer(container);
-      one && this.building.floors[z].containerSprites.addChild(one);
+      this.building.floors[0].containerSprites.addChild(one);
       validLen++;
     }
     this.info.containerCount = validLen;
   }
 
   createContainer(container) {
-    // console.log('createContainer container', container);
     const { containerId, spaceId, frequence, orientation, type } = container;
     const space = this.info.spaceMap[spaceId];
     const { x, y } = space;
@@ -734,7 +732,6 @@ class Scene {
   // 添加 warn 计时（时间到达后 显示错误代码，机器变红，闪烁，统计）
   robotStatusControl(robot, oldStatus) {
     const { robotId, robotContainer, status } = robot;
-    console.log('ErrRobotTimeout', params.ErrRobotTimeout, 'robotId', robotId, 'status', status);
     const [, robotSprite, , errorTextBox, errorText] = robotContainer.children;
     robotContainer.errTimer = setTimeout(() => {
       params.allowSound && sound.play();
@@ -798,7 +795,7 @@ class Scene {
         posZ,
         spaceId: spaceId || '-',
         robotId: robotId || '-',
-        robotErr: status <= 10 ? '' : status - 10,
+        robotErr: status <= 10 ? '' : `e${status - 10}`,
         containerId: containerId || '-',
         terminalId: terminalId || '-',
       };
