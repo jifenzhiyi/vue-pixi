@@ -4,7 +4,7 @@
       v-if="$noMobile"
       v-show="!fullScreen" />
     <div :class="['content', (fullScreen || !$noMobile) && 'fullScreen']">
-      <scada-canvas />
+      <router-view />
       <scada-aside
         v-if="$noMobile"
         v-show="!fullScreen" />
@@ -16,7 +16,6 @@
 import { mapState } from 'vuex';
 import scadaHeader from './template/Header.vue';
 import scadaAside from './template/Aside.vue';
-import scadaCanvas from './Canvas.vue';
 
 export default {
   name: 'Scada',
@@ -28,7 +27,6 @@ export default {
   components: {
     scadaHeader,
     scadaAside,
-    scadaCanvas,
   },
 };
 </script>

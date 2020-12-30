@@ -77,7 +77,7 @@ class Request {
           title: '错误信息',
           content: res.data.msg,
           onOk() {
-            ['0002', '0006', '0007', '0008'].includes(res.data.code) && (window.location.href = '/login');
+            ['0002', '0006', '0007', '0008', '0009'].includes(res.data.code) && (window.location.href = '/login');
             // ['9999', '0012'].includes(res.data.code) && (window.location.href = `/error?code=${res.data.code}&url=${url}`);
           },
         });

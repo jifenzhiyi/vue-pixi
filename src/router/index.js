@@ -10,7 +10,22 @@ Vue.use(VueRouter);
 const routes = [
   { path: '/', redirect: '/login' },
   {
-    path: '/scada', name: 'Scada', component: Scada, meta: { requiresAuth: true },
+    path: '/',
+    component: Scada,
+    children: [
+      {
+        path: '/2D',
+        name: '2D',
+        component: () => import(/* webpackChunkName: "pages" */ '../views/2D.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/3D',
+        name: '3D',
+        component: () => import(/* webpackChunkName: "pages" */ '../views/3D.vue'),
+        meta: { requiresAuth: true },
+      },
+    ],
   },
   { path: '/login', name: 'login', component: Login },
   { path: '*', name: 'notFound', component: notFound },

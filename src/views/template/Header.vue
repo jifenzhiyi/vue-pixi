@@ -5,6 +5,16 @@
       src="logo.png" />
     <div class="title">{{$t('SCADA')}} v{{$version}}</div>
     <div class="line" />
+    <!--2D，3D切换-->
+    <a-select
+      class="select"
+      :value="status"
+      @change="statusChange">
+      <a-select-option
+        v-for="item in statusArr"
+        :key="item"
+        :value="item"> {{ item }}</a-select-option>
+    </a-select>
     <!--仓库选择-->
     <a-select
       class="select"
@@ -41,6 +51,7 @@
 
 <script>
 import role from '@/mixins/role.js';
+import storage from '@/utils/storage';
 import ToggleLanguage from 'comps/ToggleLanguage/index.vue';
 
 export default {
@@ -48,6 +59,19 @@ export default {
   mixins: [role],
   components: {
     ToggleLanguage,
+  },
+  data() {
+    return {
+      status: storage.get('scada_status') || '2D',
+      statusArr: ['2D', '3D'],
+    };
+  },
+  methods: {
+    statusChange(val) {
+      this.status = val;
+      storage.set('scada_status', val);
+      this.$router.push(`/${val}`);
+    },
   },
 };
 </script>
@@ -61,8 +85,8 @@ header {
   .logo { height: 40px; }
   .title { padding-left: 10px; }
   .line { flex: 1; }
-  .select { width: 100px; }
-  .setting { padding: 0 20px; color: #666 !important; }
+  .select { width: 100px; padding-right: 10px; }
+  .setting { padding-right: 10px; color: #666 !important; }
 }
 .anticon { padding-right: 5px; }
 </style>

@@ -157,7 +157,6 @@ export default {
         this.queryVariablesList(),
         this.configSystemTheme(),
       ]).then((res) => {
-        this.loading = false;
         const result = res.every((o) => o === 'success');
         if (result) {
           this.$store.commit('SET_APPLICATION', new Scene(this.$refs.gameView, this.warehouseInfo, {
@@ -170,6 +169,11 @@ export default {
             onMarkSpace: this.onMark,
             onBatchConfirm: this.onBatchConfirm,
           }, this.$refs.spaceInfo));
+          setTimeout(() => {
+            this.loading = false;
+          }, 1000);
+        } else {
+          this.loading = false;
         }
       });
     }
