@@ -28,6 +28,7 @@ import {
   Line, LineLoop,
   Raycaster,
 } from 'three';
+import storage from '@/utils/storage';
 import store from '@/store/index.js';
 import { base64ToBlob } from '@/utils/help.js'; // thottle, 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -452,12 +453,15 @@ export default class Game {
 
   animate = () => {
     requestAnimationFrame(this.animate);
-    const t = clock.getDelta();
-    timeS += t;
-    if (timeS > renderT) {
-      this.testRaycaster();
-      this.render();
-      timeS = 0;
+    const scadaStatus = storage.get('scada_status');
+    if (scadaStatus === '3D') {
+      const t = clock.getDelta();
+      timeS += t;
+      if (timeS > renderT) {
+        this.testRaycaster();
+        this.render();
+        timeS = 0;
+      }
     }
   }
 

@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import storage from '@/utils/storage';
 import store from '@/store/index.js';
-import { thottle } from '@/utils/help.js';
+import { debounce } from '@/utils/help.js';
 import { isPC } from '@/utils/device.js';
 import sound from './sound';
 import { createGraphics, loadTextures, getMinAndSec, calcShapeColorByFrquence, calcShapeColorByType } from './func.js';
@@ -199,7 +199,7 @@ class Scene {
       buildingContainer.pivot.y = Math.floor(buildingContainer.height / 2);
       this.app.stage.addChild(buildingContainer);
       this.resize();
-      window.addEventListener('resize', thottle(300, this.resize.bind(this)));
+      window.addEventListener('resize', debounce(300, this.resize.bind(this)));
       // 浏览器 tab 页切换到后台时将机器的移动速度置为 0，即无动画
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
