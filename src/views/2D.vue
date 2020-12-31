@@ -180,9 +180,13 @@ export default {
   },
   activated() {
     this.isFirst && this.initWS();
+    this.timeInterval = setInterval(() => {
+      this.formatTime = formatTime(new Date());
+    }, 1000);
   },
   deactivated() {
     this.ws && this.ws.close();
+    this.timeInterval && clearInterval(this.timeInterval);
   },
   beforeDestroy() {
     this.modeChange('view');

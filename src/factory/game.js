@@ -35,6 +35,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import onBeforeCompile from './utils/compile.js';
 
+const TweenMax = window.gsap; // 在index.html中引入了gsap.min.js
 const { params } = store.state.factory;
 let timeS = 0;
 const model = {};
@@ -52,6 +53,7 @@ const raycaster = new Raycaster();
 const mouse = new Vector2();
 let onOverSpace, mouseHolding, draging; // clickLeft, clickRight;
 let onOver = {};
+let waitingMoveList = {};
 const spaceMapByIndex = {};
 
 const spaceColorMap = {
@@ -486,13 +488,145 @@ export default class Game {
       }
       this.animate();
     } else {
-      // spaces && spaces.length && this.updateSpaces1(spaces);
-      // terminals && terminals.length && this.updateTerminals1(terminals);
-      // robots && robots.length && this.updateRobots1(robots);
-      // containers && containers.length && this.updateContainers1(containers);
-      // this.doMove();
+      spaces && this.updateSpaces(spaces);
+      terminals && terminals.length && this.updateTerminals(terminals);
+      robots && robots.length && this.updateRobots(robots);
+      containers && containers.length && this.updateContainers(containers);
+      this.doMove();
     }
     return Promise.resolve(this.info);
+  }
+
+  updateSpaces(spaces) {
+    const spaceColorList = instanceMesh.spacesMesh.geometry.attributes.instanceColor;
+    spaceColorList.needsUpdate = false;
+    const length = spaces.length;
+    for (let i = 0; i < length; i++) {
+      const { spaceId, status: nStatus, type } = spaces[i];
+      const oSpace = this.info.spaceMap[spaceId];
+      const { index, status: oStatus } = oSpace;
+      if (nStatus !== oStatus) {
+        const { r, g, b } = spaceColorMap[nStatus === 1 ? -1 : type];
+        spaceColorList.setXYZ(index, r, g, b);
+        oSpace.status = nStatus;
+      }
+    }
+    spaceColorList.needsUpdate = true;
+  }
+
+  updateTerminals(terminals) {
+    const length = terminals.length;
+    for (let i = 0; i < length; i++) {
+      const { terminalId, status: nStatus } = terminals[i];
+      const oTerminal = this.info.terminalMap[terminalId];
+      const { status: oStatus, mesh } = oTerminal;
+      if (nStatus !== oStatus) {
+        mesh[0].material.color = mesh[1].material.color = terminalColorMap[nStatus];
+        this.info.terminalMap[terminalId] = terminals[i];
+      }
+    }
+  }
+
+  updateRobots(robots) {
+    const length = robots.length;
+    for (let i = 0; i < length; i++) {
+      const robot = robots[i];
+      const { robotId, spaceId: meshToSpaceId, endId: endIdNew, status } = robot;
+      const endId = endIdNew.split(',')[0];
+      const fromRobot = this.info.robotMap[robotId];
+      if (!fromRobot) continue;
+      const pathToSpace = this.info.spaceMap[endId];
+      const { mesh, spaceId: meshFromSpaceId } = fromRobot;
+      // 切换警告图标可见性
+      const robotWarnSprite = mesh.getObjectByName('robotWarnSprite');
+      if (robotWarnSprite.userData.status !== status) {
+        if (status > 10) {
+          robotWarnSprite.material = this.createRobotWarnMat(`${robotId}, e${status}`);
+          robotWarnSprite.visible = true;
+        } else {
+          robotWarnSprite.visible = false;
+        }
+        robotWarnSprite.userData.status = status;
+        fromRobot.status = status;
+      }
+      const robotPathMesh = mesh.getObjectByName('robotPath');
+      const { x, y, z } = this.info.spaceMap[meshToSpaceId]; // 机器新的 space 位置
+      const { x: cx, y: cy, z: cz } = mesh.position; // 机器当前所处位置
+      const { x: px, y: py, z: pz } = pathToSpace; // 路径终点新的位置
+      const robotPathPoint2 = robotPathMesh.geometry.vertices[1]; // 路径终点坐标
+      const oldTweenOfPath = TweenMax.getTweensOf(robotPathPoint2)[0];
+      oldTweenOfPath && oldTweenOfPath.kill();
+      let flagX = 0, flagZ = 0;
+      if (x !== cx) flagX = 1;
+      if (z !== cz) flagZ = -1;
+      const count = flagX + flagZ;
+      if (count === 1) { // x 变了， z 没变， 路径 z 为 0， x 取差值
+        robotPathPoint2.set(px - cx, py - cy, 0);
+      } else if (count === -1) { // x 没变， z 变了， 路径 x 为 0， z 取差值
+        robotPathPoint2.set(0, py - cy, pz - cz);
+      } else { // 都变了或都没变
+        robotPathPoint2.set(px - cx, py - cy, pz - cz);
+      }
+      robotPathMesh.geometry.verticesNeedUpdate = true;
+      waitingMoveList[meshToSpaceId] = {
+        px: flagZ ? 0 : px - x,
+        py: py - y,
+        pz: flagX ? 0 : pz - z,
+        robotPathPoint2,
+        robotPathMesh,
+      };
+      if (meshFromSpaceId !== meshToSpaceId) { // 机器移动
+        fromRobot.spaceId = meshToSpaceId;
+        const oldTweenOfMesh = TweenMax.getTweensOf(mesh.position)[0];
+        oldTweenOfMesh && oldTweenOfMesh.kill();
+        waitingMoveList[meshToSpaceId] = Object.assign(waitingMoveList[meshToSpaceId], { x, y, z, robotMesh: mesh });
+      }
+    }
+  }
+
+  updateContainers(containers) {
+    const length = containers.length;
+    for (let i = 0; i < length; i++) {
+      const container = containers[i]; // 新的 container 信息
+      const meshToSpaceId = container.spaceId; // 新的 spaceId
+      const meshToSpace = this.info.spaceMap[meshToSpaceId];
+      const { posX, posY } = meshToSpace;
+      const fromContainer = this.info.containerMap[container.containerId]; // 旧的 container 信息
+      fromContainer.posX = posX;
+      fromContainer.posY = posY;
+      const { mesh, spaceId: meshFromSpaceId } = fromContainer;
+      container.orientation != null && (mesh.rotation.y = -Math.PI / 2 * container.orientation);
+      // 更新时 orientation 为 0 的话需要转回原始方向
+      if (meshFromSpaceId !== meshToSpaceId) { // 货架移动
+        fromContainer.spaceId = meshToSpaceId;
+        const { x, y, z } = this.info.spaceMap[meshToSpaceId];
+        const oldTweenOfMesh = TweenMax.getTweensOf(mesh.position)[0];
+        oldTweenOfMesh && oldTweenOfMesh.kill();
+        const waitingTo = waitingMoveList[meshToSpaceId];
+        if (waitingTo) {
+          waitingTo.containerMesh = mesh;
+        } else {
+          waitingMoveList[meshToSpaceId] = { x, y, z, containerMesh: mesh };
+        }
+      }
+    }
+  }
+
+  doMove() {
+    Object.keys(waitingMoveList).forEach((spaceId) => {
+      const { x, y, z, robotMesh, containerMesh, px, py, pz, robotPathPoint2, robotPathMesh } = waitingMoveList[spaceId];
+      robotPathPoint2 && TweenMax.to(robotPathPoint2, params.moveDuration, {
+        x: px,
+        y: py,
+        z: pz,
+        onUpdate: () => {
+          robotPathMesh.geometry.verticesNeedUpdate = true;
+        },
+      });
+      robotMesh && TweenMax.to(robotMesh.position, params.moveDuration, { x, y, z });
+      containerMesh && TweenMax.to(containerMesh.position, params.moveDuration, { x, y, z });
+    });
+    waitingMoveList = {};
   }
 
   initSpaces(spaces) {

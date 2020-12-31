@@ -80,8 +80,14 @@ export default {
       ws: null,
       loading: true,
       isFirst: false,
+      timeInterval: null,
       formatTime: formatTime(new Date()),
     };
+  },
+  created() {
+    this.timeInterval = setInterval(() => {
+      this.formatTime = formatTime(new Date());
+    }, 1000);
   },
   mounted() {
     console.log('mounted 3D');
@@ -118,13 +124,17 @@ export default {
   },
   activated() {
     this.isFirst && this.initWS();
+    this.timeInterval = setInterval(() => {
+      this.formatTime = formatTime(new Date());
+    }, 1000);
   },
   deactivated() {
     this.ws && this.ws.close();
+    this.timeInterval && clearInterval(this.timeInterval);
   },
   beforeDestroy() {
     this.ws && this.ws.close();
-    // this.game && this.game.destroy();
+    this.timeInterval && clearInterval(this.timeInterval);
   },
   methods: {
     toggleScreen() {
