@@ -6,15 +6,14 @@
     <div class="title">{{$t('SCADA')}} v{{$version}}</div>
     <div class="line" />
     <!--2D，3D切换-->
-    <a-select
-      class="select"
-      :value="status"
+    <a-radio-group
+      :default-value="status"
       @change="statusChange">
-      <a-select-option
+      <a-radio
         v-for="item in statusArr"
         :key="item"
-        :value="item"> {{ item }}</a-select-option>
-    </a-select>
+        :value="item">{{ item }}</a-radio>
+    </a-radio-group>
     <!--仓库选择-->
     <a-select
       class="select"

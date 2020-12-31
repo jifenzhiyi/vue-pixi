@@ -79,7 +79,7 @@ export default {
     return {
       ws: null,
       loading: true,
-      isFirst: false,
+      isFirst: true,
       timeInterval: null,
       formatTime: formatTime(new Date()),
     };
@@ -90,7 +90,6 @@ export default {
     }, 1000);
   },
   mounted() {
-    console.log('mounted 3D');
     Promise.all([
       this.queryWarehouse(),
     ]).then((res) => {
@@ -113,24 +112,18 @@ export default {
           this.queryDimensionList();
           this.initWS(); // 使用真实数据
         }));
-        setTimeout(() => {
-          this.loading = false;
-        }, 1000);
       } else {
         this.loading = false;
       }
-      this.isFirst = true;
     });
   },
   activated() {
-    this.isFirst && this.initWS();
-    this.timeInterval = setInterval(() => {
-      this.formatTime = formatTime(new Date());
-    }, 1000);
+    this.loading = true;
+    !this.isFirst && this.initWS();
+    // console.log('activated 3D isFirst', this.isFirst);
   },
   deactivated() {
     this.ws && this.ws.close();
-    this.timeInterval && clearInterval(this.timeInterval);
   },
   beforeDestroy() {
     this.ws && this.ws.close();
@@ -139,9 +132,9 @@ export default {
   methods: {
     toggleScreen() {
       this.$store.commit('SET_PARAMS', { key: 'fullScreen', value: !this.params.fullScreen });
-      // this.$nextTick(() => {
-      //   this.game && this.game.resize();
-      // });
+      this.$nextTick(() => {
+        this.game && this.game.onWindowResize();
+      });
     },
     screenshot() {
       // this.$message.warn('功能正在开发，请稍后。。。');

@@ -42,14 +42,14 @@ export default {
         { title: 'Charging', value: 2 },
       ],
       colorConfig,
-      wsFirst: true,
     };
   },
   methods: {
-    statusChange(val) {
-      this.status = val;
-      storage.set('scada_status', val);
-      this.$router.push(`/${val}`);
+    statusChange(e) {
+      this.$store.commit('SET_MODE', 'view');
+      this.status = e.target.value;
+      storage.set('scada_status', e.target.value);
+      this.$router.push(`/${e.target.value}`);
     },
     initWS() {
       const getToken = encodeURIComponent(storage.get('scada_user_token'));
@@ -57,6 +57,7 @@ export default {
         `ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`,
       );
       this.ws.onopen = () => {
+        this.loading = false;
         console.log('WS onopen', new Date().toLocaleTimeString());
         console.log('====================================');
       };
@@ -72,8 +73,8 @@ export default {
         const jsonData = JSON.parse(e.data);
         jsonData.status != null && this.$store.commit('SET_SYSTEM_STATUS', Number(jsonData.status));
         if (this.status === '2D') {
-          if (this.wsFirst) {
-            this.wsFirst = false;
+          if (this.isFirst) {
+            this.isFirst = false;
             this.application && this.application.init(jsonData).then((res) => {
               this.$store.commit('SET_FACTORY_CONFIG', res);
             });
@@ -82,10 +83,18 @@ export default {
               this.$store.commit('SET_FACTORY_CONFIG', res);
             });
           }
-        } else {
-          this.game && this.game.update(jsonData).then((res) => {
-            this.$store.commit('SET_FACTORY_CONFIG', res);
-          });
+        } 
+        if (this.status === '3D') {
+          if (this.isFirst) {
+            this.isFirst = false;
+            this.game && this.game.initData(jsonData).then((res) => {
+              this.$store.commit('SET_FACTORY_CONFIG', res);
+            });
+          } else {
+            this.game && this.game.updateData(jsonData).then((res) => {
+              this.$store.commit('SET_FACTORY_CONFIG', res);
+            });
+          }
         }
       };
     },

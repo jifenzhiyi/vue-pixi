@@ -139,9 +139,9 @@ export default {
     return {
       ws: null,
       loading: true,
+      isFirst: true,
       errorDisplay: true,
       timeInterval: null,
-      isFirst: false,
       formatTime: formatTime(new Date()),
     };
   },
@@ -151,7 +151,7 @@ export default {
     }, 1000);
   },
   mounted() {
-    console.log('mounted 2D');
+    // console.log('mounted 2D isFirst', this.isFirst);
     Promise.all([
       this.queryWarehouse(),
       this.queryVariablesList(),
@@ -169,24 +169,18 @@ export default {
           onMarkSpace: this.onMark,
           onBatchConfirm: this.onBatchConfirm,
         }, this.$refs.spaceInfo));
-        setTimeout(() => {
-          this.loading = false;
-        }, 1000);
       } else {
         this.loading = false;
       }
-      this.isFirst = true;
     });
   },
   activated() {
-    this.isFirst && this.initWS();
-    this.timeInterval = setInterval(() => {
-      this.formatTime = formatTime(new Date());
-    }, 1000);
+    this.loading = true;
+    !this.isFirst && this.initWS();
+    // console.log('activated 2D isFirst', this.isFirst);
   },
   deactivated() {
     this.ws && this.ws.close();
-    this.timeInterval && clearInterval(this.timeInterval);
   },
   beforeDestroy() {
     this.modeChange('view');

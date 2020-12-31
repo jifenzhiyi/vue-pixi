@@ -29,14 +29,14 @@ import {
   Raycaster,
 } from 'three';
 import store from '@/store/index.js';
-import { thottle, base64ToBlob } from '@/utils/help.js';
+import { base64ToBlob } from '@/utils/help.js'; // thottle, 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import onBeforeCompile from './utils/compile.js';
 
 const TweenMax = window.gsap; // 在index.html中引入了gsap.min.js
-const { params } = store.state.factory;
+// const { params } = store.state.factory;
 let timeS = 0;
 const model = {};
 const spaceGap = 0; // space 之间是否留空隙，默认为 0
@@ -45,14 +45,13 @@ const clock = new Clock();
 const fps = 24;
 const renderT = 1 / fps;
 let modelLoadedCB;
-let isFirst = true;
 const floorHeight = 1000;
 const instanceMesh = {};
-const defaultMoveDuration = 1.2;
 const raycaster = new Raycaster();
 const mouse = new Vector2();
 let onOverSpace, mouseHolding, draging; // clickLeft, clickRight;
 let onOver = {};
+let moveDuration = 1.2; // 移动速度
 let waitingMoveList = {};
 const spaceMapByIndex = {};
 
@@ -352,19 +351,19 @@ export default class Game {
         const { posX, posY, posZ, robotId, status, containerId, terminalId } = space;
         instanceMesh.spaceHoverBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
         instanceMesh.spaceHoverBorderMesh.visible = true;
-        thottle(() => {
-          const config = {
-            posX,
-            posY,
-            posZ,
-            spaceId: spaceId || '-',
-            robotId: robotId || '-',
-            robotErr: status <= 10 ? '' : `e${status - 10}`,
-            containerId: containerId || '-',
-            terminalId: terminalId || '-',
-          };
-          store.commit('SET_CONFIG_ALL', config);
-        }, 2000)();
+        // thottle(() => {
+        const config = {
+          posX,
+          posY,
+          posZ,
+          spaceId: spaceId || '-',
+          robotId: robotId || '-',
+          robotErr: status <= 10 ? '' : `e${status - 10}`,
+          containerId: containerId || '-',
+          terminalId: terminalId || '-',
+        };
+        store.commit('SET_CONFIG_ALL', config);
+        // }, 2000)();
       }
       return;
     }
@@ -395,9 +394,9 @@ export default class Game {
     window.addEventListener('resize', this.onWindowResize.bind(this));
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
-        params.moveDuration = 0;
+        moveDuration = 0;
       } else {
-        params.moveDuration = defaultMoveDuration;
+        moveDuration = 1.2;
       }
     }, false);
     this.viewBox.addEventListener('mousedown', () => {
@@ -466,34 +465,35 @@ export default class Game {
     this.containerTypeMap = containerTypeMap;
   }
 
-  update(data) {
+  initData(data) {
     const { spaces, containers, robots, terminals } = data;
-    if (isFirst) {
-      isFirst = false;
-      if (spaces) {
-        this.info.spaceCount = spaces.length;
-        this.initSpaces(spaces);
-      }
-      if (terminals) {
-        this.info.terminalCount.sum = terminals.length;
-        this.initTerminals(terminals);
-      }
-      if (robots) {
-        this.info.robotCount.sum = robots.length;
-        this.initRobots(robots);
-      }
-      if (containers) {
-        this.info.containerCount = containers.length;
-        this.initContainers(containers);
-      }
-      this.animate();
-    } else {
-      spaces && this.updateSpaces(spaces);
-      terminals && terminals.length && this.updateTerminals(terminals);
-      robots && robots.length && this.updateRobots(robots);
-      containers && containers.length && this.updateContainers(containers);
-      this.doMove();
+    if (spaces) {
+      this.info.spaceCount = spaces.length;
+      this.initSpaces(spaces);
     }
+    if (terminals) {
+      this.info.terminalCount.sum = terminals.length;
+      this.initTerminals(terminals);
+    }
+    if (robots) {
+      this.info.robotCount.sum = robots.length;
+      this.initRobots(robots);
+    }
+    if (containers) {
+      this.info.containerCount = containers.length;
+      this.initContainers(containers);
+    }
+    this.animate();
+    return Promise.resolve(this.info);
+  }
+
+  updateData(data) {
+    const { spaces, containers, robots, terminals } = data;
+    spaces && this.updateSpaces(spaces);
+    terminals && terminals.length && this.updateTerminals(terminals);
+    robots && robots.length && this.updateRobots(robots);
+    containers && containers.length && this.updateContainers(containers);
+    this.doMove();
     return Promise.resolve(this.info);
   }
 
@@ -615,7 +615,7 @@ export default class Game {
   doMove() {
     Object.keys(waitingMoveList).forEach((spaceId) => {
       const { x, y, z, robotMesh, containerMesh, px, py, pz, robotPathPoint2, robotPathMesh } = waitingMoveList[spaceId];
-      robotPathPoint2 && TweenMax.to(robotPathPoint2, params.moveDuration, {
+      robotPathPoint2 && TweenMax.to(robotPathPoint2, moveDuration, {
         x: px,
         y: py,
         z: pz,
@@ -623,8 +623,8 @@ export default class Game {
           robotPathMesh.geometry.verticesNeedUpdate = true;
         },
       });
-      robotMesh && TweenMax.to(robotMesh.position, params.moveDuration, { x, y, z });
-      containerMesh && TweenMax.to(containerMesh.position, params.moveDuration, { x, y, z });
+      robotMesh && TweenMax.to(robotMesh.position, moveDuration, { x, y, z });
+      containerMesh && TweenMax.to(containerMesh.position, moveDuration, { x, y, z });
     });
     waitingMoveList = {};
   }

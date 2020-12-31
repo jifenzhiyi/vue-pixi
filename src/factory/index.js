@@ -6,8 +6,8 @@ import { isPC } from '@/utils/device.js';
 import sound from './sound';
 import { createGraphics, loadTextures, getMinAndSec, calcShapeColorByFrquence, calcShapeColorByType } from './func.js';
 
-let nowStamp;
 const TweenMax = window.gsap; // 在index.html中引入了gsap.min.js
+let nowStamp;
 const deviceIsPC = isPC();
 const { params } = store.state.factory;
 const floorPadding = 10;
