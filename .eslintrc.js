@@ -45,5 +45,6 @@ module.exports = {
     'object-curly-newline': 0,
     'class-methods-use-this': 0,
     'no-restricted-properties': 0,
+    'space-unary-ops': 0,
   },
 };

@@ -141,7 +141,7 @@ export default {
       loading: true,
       errorDisplay: true,
       timeInterval: null,
-      warehouseInfo: null,
+      isFirst: false,
       formatTime: formatTime(new Date()),
     };
   },
@@ -151,37 +151,43 @@ export default {
     }, 1000);
   },
   mounted() {
-    if (this.$route.name !== 'login') {
-      Promise.all([
-        this.queryWarehouse(),
-        this.queryVariablesList(),
-        this.configSystemTheme(),
-      ]).then((res) => {
-        const result = res.every((o) => o === 'success');
-        if (result) {
-          this.$store.commit('SET_APPLICATION', new Scene(this.$refs.gameView, this.warehouseInfo, {
-            onInitWS: this.initWS,
-            onMarkerList: this.queryMarkerList,
-            onDimensionList: this.queryDimensionList,
-            onUpdateInfo: this.updateInfo,
-            onSelectFrom: this.onSelectFrom,
-            onSelectTo: this.onSelectTo,
-            onMarkSpace: this.onMark,
-            onBatchConfirm: this.onBatchConfirm,
-          }, this.$refs.spaceInfo));
-          setTimeout(() => {
-            this.loading = false;
-          }, 1000);
-        } else {
+    console.log('mounted 2D');
+    Promise.all([
+      this.queryWarehouse(),
+      this.queryVariablesList(),
+      this.configSystemTheme(),
+    ]).then((res) => {
+      const result = res.every((o) => o === 'success');
+      if (result) {
+        this.$store.commit('SET_APPLICATION', new Scene(this.$refs.gameView, this.warehouseInfo, {
+          onInitWS: this.initWS,
+          onMarkerList: this.queryMarkerList,
+          onDimensionList: this.queryDimensionList,
+          onUpdateInfo: this.updateInfo,
+          onSelectFrom: this.onSelectFrom,
+          onSelectTo: this.onSelectTo,
+          onMarkSpace: this.onMark,
+          onBatchConfirm: this.onBatchConfirm,
+        }, this.$refs.spaceInfo));
+        setTimeout(() => {
           this.loading = false;
-        }
-      });
-    }
+        }, 1000);
+      } else {
+        this.loading = false;
+      }
+      this.isFirst = true;
+    });
+  },
+  activated() {
+    this.isFirst && this.initWS();
+  },
+  deactivated() {
+    this.ws && this.ws.close();
   },
   beforeDestroy() {
     this.modeChange('view');
-    this.$store.commit('DESTROY_APPLICATION');
     this.ws && this.ws.close();
+    this.$store.commit('DESTROY_APPLICATION');
     this.timeInterval && clearInterval(this.timeInterval);
   },
   methods: {
@@ -215,9 +221,6 @@ export default {
     allowSound() {
       this.$store.commit('SET_PARAMS', { key: 'allowSound', value: !this.params.allowSound });
     },
-    refresh() {
-      location.reload();
-    },
     screenshot() {
       this.application && this.application.takeScreenshot();
     },
@@ -250,22 +253,6 @@ export default {
   background-color: #e6f7ff;
 }
 .main {
-  flex: 1;
-  position: relative;
-  border: solid 1px #dcdfe6;
-  .box {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    background: #fff;
-    align-items: center;
-    justify-content: center;
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-  }
   .space-info {
     z-index: 10;
     padding: 8px;
@@ -347,31 +334,6 @@ export default {
       min-height: auto;
       .error-title { background: none; }
     }
-  }
-  .bottom {
-    display: flex;
-    justify-content: space-between;
-    bottom: 10px; left: 10px; right: 10px;
-    .btn-center {
-      flex: 1;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      .btn {
-        margin: 0 5px;
-        padding: 0 10px;
-      }
-    }
-  }
-}
-.btnCss {
-  padding: 0;
-  width: 32px;
-  .audioCss {
-    top: 0;
-    left: 2px;
-    font-size: 21px;
-    position: absolute !important;
   }
 }
 </style>

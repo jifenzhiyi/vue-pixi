@@ -29,13 +29,11 @@ export default {
       return obj;
     },
   },
-  watch: {
-    systemStatus() {
-      console.log('系统状态更新为：', this.$t(this.statusMap.title));
-    },
-  },
   data() {
     return {
+      warehouseInfo: null,
+      statusArr: ['2D', '3D'],
+      status: storage.get('scada_status') || '2D',
       username: storage.get('scada_user_name') || '未登录', // 管理员账号
       systemStatusMap: [
         { title: 'Starting', value: 3 },
@@ -44,11 +42,16 @@ export default {
         { title: 'Charging', value: 2 },
       ],
       colorConfig,
+      wsFirst: true,
     };
   },
   methods: {
+    statusChange(val) {
+      this.status = val;
+      storage.set('scada_status', val);
+      this.$router.push(`/${val}`);
+    },
     initWS() {
-      let isFirst = true;
       const getToken = encodeURIComponent(storage.get('scada_user_token'));
       this.ws = new WebSocket(
         `ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`,
@@ -68,13 +71,19 @@ export default {
       this.ws.onmessage = (e) => {
         const jsonData = JSON.parse(e.data);
         jsonData.status != null && this.$store.commit('SET_SYSTEM_STATUS', Number(jsonData.status));
-        if (isFirst) {
-          isFirst = false;
-          this.application.init(jsonData).then((res) => {
-            this.$store.commit('SET_FACTORY_CONFIG', res);
-          });
+        if (this.status === '2D') {
+          if (this.wsFirst) {
+            this.wsFirst = false;
+            this.application && this.application.init(jsonData).then((res) => {
+              this.$store.commit('SET_FACTORY_CONFIG', res);
+            });
+          } else {
+            this.application && this.application.update(jsonData).then((res) => {
+              this.$store.commit('SET_FACTORY_CONFIG', res);
+            });
+          }
         } else {
-          this.application.update(jsonData).then((res) => {
+          this.game && this.game.update(jsonData).then((res) => {
             this.$store.commit('SET_FACTORY_CONFIG', res);
           });
         }
@@ -91,14 +100,18 @@ export default {
     async queryDimensionList() {
       const res = await queryDimensionList({ parameter: 1 });
       if (res && res.data && res.data.length > 0) {
-        const containerTypeMap = {};
-        res.data.forEach((item) => {
-          item.width *= 10;
-          item.length *= 10;
-          item.height *= 10;
-          containerTypeMap[item.type] = item;
-        });
-        this.application.updateContainersType(containerTypeMap);
+        console.log('status', this.status);
+        this.status === '3D' && this.game.updateContainersType(res.data);
+        if (this.status === '2D') {
+          const containerTypeMap = {};
+          res.data.forEach((item) => {
+            item.width *= 10;
+            item.length *= 10;
+            item.height *= 10;
+            containerTypeMap[item.type] = item;
+          });
+          this.application.updateContainersType(containerTypeMap);
+        }
       }
     },
     async queryMarkerList() {
@@ -179,6 +192,9 @@ export default {
           this.$router.push('/login');
         },
       });
+    },
+    refresh() {
+      location.reload();
     },
   },
 };

@@ -4,7 +4,9 @@
       v-if="$noMobile"
       v-show="!fullScreen" />
     <div :class="['content', (fullScreen || !$noMobile) && 'fullScreen']">
-      <router-view />
+      <keep-alive>
+        <router-view />
+      </keep-alive>
       <scada-aside
         v-if="$noMobile"
         v-show="!fullScreen" />

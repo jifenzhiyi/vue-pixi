@@ -857,8 +857,8 @@ class Scene {
   updateTerminals(terminals) {
     for (let i = 0; i < terminals.length; i++) {
       const terminal = terminals[i];
-      const { spaceId, status } = terminal;
-      const oldTerminal = this.info.terminalMap[spaceId];
+      const { terminalId, status } = terminal;
+      const oldTerminal = this.info.terminalMap[terminalId];
       const { terminalContainer, status: oldStatus } = oldTerminal;
       if (status !== oldStatus) {
         terminalContainer.getChildAt(0).tint = this.colorConfig.terminalColorMap[status];
@@ -867,7 +867,7 @@ class Scene {
         this.info.terminalCount[`terminalCountOf${oldStatus}`]--;
         this.info.terminalCount[`terminalCountOf${status}`]++;
         // 刷新工作站状态， 给右侧栏使用
-        this.info.terminalMap[spaceId].status = status;
+        this.info.terminalMap[terminalId].status = status;
       }
     }
   }

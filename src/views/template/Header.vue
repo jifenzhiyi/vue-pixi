@@ -51,7 +51,6 @@
 
 <script>
 import role from '@/mixins/role.js';
-import storage from '@/utils/storage';
 import ToggleLanguage from 'comps/ToggleLanguage/index.vue';
 
 export default {
@@ -59,19 +58,6 @@ export default {
   mixins: [role],
   components: {
     ToggleLanguage,
-  },
-  data() {
-    return {
-      status: storage.get('scada_status') || '2D',
-      statusArr: ['2D', '3D'],
-    };
-  },
-  methods: {
-    statusChange(val) {
-      this.status = val;
-      storage.set('scada_status', val);
-      this.$router.push(`/${val}`);
-    },
   },
 };
 </script>

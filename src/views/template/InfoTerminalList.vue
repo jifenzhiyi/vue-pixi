@@ -17,7 +17,9 @@
       <span>{{ item.posZ }}</span>
       <span :class="`s${item.status}`">{{ $t(item.statusName) }}</span>
     </div>
-    <div class="info-one"><p>暂无数据</p></div>
+    <div
+      v-if="terminalMapList.length === 0"
+      class="info-one"><p>暂无数据</p></div>
   </div>
 </div>
 </template>

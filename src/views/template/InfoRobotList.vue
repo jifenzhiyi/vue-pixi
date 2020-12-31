@@ -18,6 +18,9 @@
       <span :class="`s${item.status}`">{{ $t(item.statusName) }}</span>
       <span>{{ item.voltageNew }}</span>
     </div>
+    <div
+      v-if="robotMapList.length === 0"
+      class="info-one"><p>暂无数据</p></div>
   </div>
 </div>
 </template>

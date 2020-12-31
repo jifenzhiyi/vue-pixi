@@ -20,9 +20,10 @@ export default new Vuex.Store({
     popShowConfigure: false, // 设置弹窗
     popShowAddContainer: false, // 新增货架弹窗
     popShowUpdateContainerOrit: false, // 更新货架方向弹窗
-    application: null, // 全局保存工程
-    themes: [], // 模版列表
-    themeId: storage.get('scada_themeId') || null, // 当前选中的模版Id
+    application: null, // 全局保存工程 pixi
+    game: null, // 全局3D工程 three
+    themes: [{ value: 0, label: '默认' }], // 模版列表
+    themeId: storage.get('scada_themeId') || 0, // 当前选中的模版Id
     colorConfig,
   },
   mutations: {
@@ -48,10 +49,17 @@ export default new Vuex.Store({
     SET_APPLICATION(state, app) {
       state.application = app;
     },
+    SET_GAME(state, app) {
+      state.game = app;
+    },
     // 删除工程
     DESTROY_APPLICATION(state) {
       state.application && state.application.destroy();
       state.application = null;
+    },
+    DESTROY_GAME(state) {
+      state.game && state.game.destroy();
+      state.game = null;
     },
     SET_CONTAINER_ORIT(state) {
       state.popShowUpdateContainerOrit = !state.popShowUpdateContainerOrit;

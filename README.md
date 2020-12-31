@@ -17,6 +17,7 @@ yarn add XXXXXX
 ├── src
 │   ├── assets               # 本地静态资源
 │   ├── components           # 业务通用组件
+|   ├── factory              # 工厂组件 pixi.js three.js
 │   ├── icons                # 定制化icon （svg）
 │   ├── locales              # 国际化资源
 │   ├── mixins               # 特殊模块抽取公共属性和方法
@@ -39,6 +40,9 @@ yarn add XXXXXX
 1.https://www.pixijs.com/
 2.https://www.iconfont.cn/
 3.https://antdv.com/docs/vue/introduce-cn/
+
+npm install three --save-dev
+项目中引入three.js
 ```
 
 ### Customize configuration
