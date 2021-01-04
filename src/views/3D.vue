@@ -38,6 +38,30 @@
           icon="camera"
           @click="screenshot"></a-button>
       </a-button-group>
+      <div
+        v-if="$noMobile"
+        class="btn-center">
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'view'"
+          @click="modeChange('edit')">{{$t('EditMode')}}</a-button>
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'view'"
+          @click="modeChange('mark')">{{$t('SpaceMode')}}</a-button>
+        <!-- <a-button
+          class="btn"
+          v-if="modeStatus === 'view'"
+          @click="modeChange('batch')">{{$t('editContainers')}}</a-button> -->
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'edit' || modeStatus === 'batch'"
+          @click="modeChange('view')">{{$t('ExitEditMode')}}</a-button>
+        <a-button
+          class="btn"
+          v-if="modeStatus === 'mark'"
+          @click="modeChange('view')">{{$t('ExitSpaceMode')}}</a-button>
+      </div>
       <a-button-group>
         <a-button
           icon="zoom-out"
@@ -74,6 +98,7 @@ export default {
       game: (state) => state.game,
       config: (state) => state.factory.config,
       params: (state) => state.factory.params,
+      modeStatus: (state) => state.modeStatus,
     }),
   },
   data() {
@@ -113,6 +138,7 @@ export default {
     this.ws && this.ws.close();
   },
   beforeDestroy() {
+    this.modeChange('view');
     this.ws && this.ws.close();
     this.timeInterval && clearInterval(this.timeInterval);
   },
@@ -134,6 +160,9 @@ export default {
     },
     floorDirectionChange(value) {
       console.log('floorDirectionChange val', value);
+    },
+    modeChange(status) {
+      this.$store.commit('SET_MODE', status);
     },
   },
 };
