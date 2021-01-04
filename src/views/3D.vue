@@ -3,12 +3,14 @@
     id="gameBox"
     class="main">
     <div class="box">
-      <div class="abs middle">
+      <canvas ref="gameView"></canvas>
+      <div
+        v-if="loading"
+        class="middle">
         <a-spin
           tip="Loading..."
           :spinning="loading" />
       </div>
-      <canvas ref="gameView"></canvas>
     </div>
     <div
       ref="spaceInfo"
@@ -41,10 +43,10 @@
       <div
         v-if="$noMobile"
         class="btn-center">
-        <a-button
+        <!-- <a-button
           class="btn"
           v-if="modeStatus === 'view'"
-          @click="modeChange('edit')">{{$t('EditMode')}}</a-button>
+          @click="modeChange('edit')">{{$t('EditMode')}}</a-button> -->
         <a-button
           class="btn"
           v-if="modeStatus === 'view'"
@@ -114,8 +116,6 @@ export default {
     this.timeInterval = setInterval(() => {
       this.formatTime = formatTime(new Date());
     }, 1000);
-  },
-  mounted() {
     Promise.all([
       this.queryWarehouse(),
     ]).then((res) => {
@@ -132,7 +132,10 @@ export default {
   },
   activated() {
     this.loading = true;
-    !this.isFirst && this.initWS();
+    if (!this.isFirst) {
+      this.isFirst = true;
+      this.initWS();
+    }
   },
   deactivated() {
     this.ws && this.ws.close();

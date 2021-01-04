@@ -68,8 +68,8 @@ export default {
       };
       this.ws.onmessage = (e) => {
         const jsonData = JSON.parse(e.data);
+        // console.log('jsonData', jsonData);
         jsonData.status != null && this.$store.commit('SET_SYSTEM_STATUS', Number(jsonData.status));
-        this.loading = false;
         if (this.modeType === '2D') {
           if (this.isFirst) {
             this.isFirst = false;
@@ -94,6 +94,7 @@ export default {
             });
           }
         }
+        this.loading = false;
       };
     },
     updateInfo(info) {

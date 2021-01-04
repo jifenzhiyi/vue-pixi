@@ -1,7 +1,9 @@
 <template>
   <div class="main">
     <div class="box">
-      <div class="abs middle">
+      <div
+        v-if="loading"
+        class="middle">
         <a-spin
           tip="Loading..."
           :spinning="loading" />
@@ -146,12 +148,10 @@ export default {
     };
   },
   created() {
+    console.log('2D created');
     this.timeInterval = setInterval(() => {
       this.formatTime = formatTime(new Date());
     }, 1000);
-  },
-  mounted() {
-    // console.log('mounted 2D isFirst', this.isFirst);
     Promise.all([
       this.queryWarehouse(),
       this.queryVariablesList(),
@@ -176,8 +176,10 @@ export default {
   },
   activated() {
     this.loading = true;
-    !this.isFirst && this.initWS();
-    // console.log('activated 2D isFirst', this.isFirst);
+    if (!this.isFirst) {
+      this.isFirst = true;
+      this.initWS();
+    }
   },
   deactivated() {
     this.ws && this.ws.close();

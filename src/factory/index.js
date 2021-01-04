@@ -23,7 +23,7 @@ class Scene {
     this.el = el;
     this.spaceInfoBox = spaceInfoBox;
     const { mapWidth, mapLength, spaceWidth, spaceLength, warehouseLayerNo } = warehouseInfo;
-    console.log('warehouseInfo', warehouseInfo);
+    // console.log('warehouseInfo', warehouseInfo);
     this.mapWidth = mapLength * 10;
     this.mapLength = mapWidth * 10;
     this.spaceWidth = spaceLength * 10;
@@ -214,6 +214,7 @@ class Scene {
   }
 
   floorSpriteEvent(floorSprite, containerSelector) {
+    console.log('floorSpriteEvent');
     let p1 = null;
     let p2 = null;
     if (deviceIsPC) {
@@ -1194,6 +1195,7 @@ class Scene {
 
   // 绑定事件 拖动,点击,放大缩小等
   domEvent() {
+    console.log('domEvent');
     let preX;
     let preY;
     if (deviceIsPC) {

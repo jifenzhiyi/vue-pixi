@@ -50,7 +50,7 @@ const floorHeight = 1000;
 const instanceMesh = {};
 const raycaster = new Raycaster();
 const mouse = new Vector2();
-let onOverSpace, mouseHolding, draging; // clickLeft, clickRight;
+let onOverSpace; // mouseHolding, draging; // clickLeft, clickRight;
 let onOver = {};
 let moveDuration = 1.2; // 移动速度
 let waitingMoveList = {};
@@ -208,13 +208,14 @@ function createRectBorder(w, l, color, linewidth = 1) {
 }
 
 export default class Game {
-  constructor(viewBox, warehouseInfo, cb) {
+  constructor(viewBox, warehouseInfo, cb, events) {
     modelLoadedCB = cb;
     this.scene = null;
     this.camera = null;
     this.renderer = null;
     this.controls = null;
     this.viewBox = viewBox;
+    this.events = events;
     this.domW = this.viewBox.clientWidth;
     this.domH = this.viewBox.clientHeight;
     const { mapLength, mapWidth } = warehouseInfo;
@@ -354,7 +355,6 @@ export default class Game {
         const { posX, posY, posZ, robotId, status, containerId, terminalId } = space;
         instanceMesh.spaceHoverBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
         instanceMesh.spaceHoverBorderMesh.visible = true;
-        // thottle(() => {
         const config = {
           posX,
           posY,
@@ -366,7 +366,6 @@ export default class Game {
           terminalId: terminalId || '-',
         };
         store.commit('SET_CONFIG_ALL', config);
-        // }, 2000)();
       }
       return;
     }
@@ -388,6 +387,51 @@ export default class Game {
   }
 
   initEvents() {
+    this.viewBox.addEventListener('click', () => {
+      const modeStatus = store.state.modeStatus;
+      if (modeStatus === 'mark' && onOverSpace) {
+        console.log('click modeStatus', modeStatus, 'onOverSpace', onOverSpace);
+        this.events.onSpaceClick(onOverSpace, 'mark');
+      }
+    });
+    // this.viewBox.addEventListener('mouseup', (e) => {
+    //   const modeStatus = store.state.modeStatus;
+    //   console.log('click modeStatus', modeStatus);
+    //   mouseHolding = false;
+    //   if (draging) { // 发生了拖拽
+    //     draging = false;
+    //   } else if (onOverSpace) { // 未拖拽且点击了且光标在有效的 space 上
+    //     // if (modeStatus === 'mark') {
+    //     //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
+    //     //     // _events.onSpaceClick(onOverSpace, 'mark')
+    //     //   }
+    //     // } else if (modeStatus === 'edit') {
+    //     //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
+    //     //     // _events.onSpaceClick(onOverSpace, 'edit')
+    //     //     instanceMesh.spaceLeftSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
+    //     //     instanceMesh.spaceLeftSelBorderMesh.visible = true;
+    //     //   }
+    //     //   if (e.button === 2 & clickRight && _events.onSpaceContextMenu) { // 右键抬起时、右键之前已被按下、注册了onSpaceContextMenu事件
+    //     //     // _events.onSpaceContextMenu(onOverSpace, 'edit')
+    //     //     instanceMesh.spaceRightSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
+    //     //     instanceMesh.spaceRightSelBorderMesh.visible = true;
+    //     //   }
+    //     // }
+    //   }
+    //   // if (e.button === 0) {
+    //   //   clickLeft = 0;
+    //   // }
+    //   // if (e.button === 2) {
+    //   //   clickRight = 0;
+    //   // }
+    // }, false);
+    this.viewBox.addEventListener('mousemove', (event) => {
+      event.preventDefault();
+      const getBoundingClientRect = this.viewBox.getBoundingClientRect();
+      mouse.x = ((event.clientX - getBoundingClientRect.left) / this.domW) * 2 - 1;
+      mouse.y = -((event.clientY - getBoundingClientRect.top) / this.domH) * 2 + 1;
+      // mouseHolding && (draging = true); // 发生了拖拽
+    }, false);
     // 添加辅助模型，如 spaceBorderOfHover、spaceBorderOfLeft、spaceBorderOfRight
     instanceMesh.spaceHoverBorderMesh = createRectBorder(this.spaceLength * 100, this.spaceWidth * 100, 0x0000ff);
     this.scene.add(instanceMesh.spaceHoverBorderMesh);
@@ -402,53 +446,6 @@ export default class Game {
       } else {
         moveDuration = 1.2;
       }
-    }, false);
-    this.viewBox.addEventListener('mousedown', () => {
-      mouseHolding = true;
-      // if (e.button === 0) {
-      //   clickLeft = 1;
-      // }
-      // if (e.button === 2) {
-      //   clickRight = 1;
-      // }
-    }, false);
-    this.viewBox.addEventListener('mouseup', () => {
-      const modeStatus = store.state.modeStatus;
-      console.log('modeStatus', modeStatus);
-      mouseHolding = false;
-      if (draging) { // 发生了拖拽
-        draging = false;
-      } else if (onOverSpace) { // 未拖拽且点击了且光标在有效的 space 上
-        // if (modeStatus === 'mark') {
-        //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
-        //     // _events.onSpaceClick(onOverSpace, 'mark')
-        //   }
-        // } else if (modeStatus === 'edit') {
-        //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
-        //     // _events.onSpaceClick(onOverSpace, 'edit')
-        //     instanceMesh.spaceLeftSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
-        //     instanceMesh.spaceLeftSelBorderMesh.visible = true;
-        //   }
-        //   if (e.button === 2 & clickRight && _events.onSpaceContextMenu) { // 右键抬起时、右键之前已被按下、注册了onSpaceContextMenu事件
-        //     // _events.onSpaceContextMenu(onOverSpace, 'edit')
-        //     instanceMesh.spaceRightSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
-        //     instanceMesh.spaceRightSelBorderMesh.visible = true;
-        //   }
-        // }
-      }
-      // if (e.button === 0) {
-      //   clickLeft = 0;
-      // }
-      // if (e.button === 2) {
-      //   clickRight = 0;
-      // }
-    }, false);
-    this.viewBox.addEventListener('mousemove', (event) => {
-      event.preventDefault();
-      const getBoundingClientRect = this.viewBox.getBoundingClientRect();
-      mouse.x = ((event.clientX - getBoundingClientRect.left) / this.domW) * 2 - 1;
-      mouse.y = -((event.clientY - getBoundingClientRect.top) / this.domH) * 2 + 1;
-      mouseHolding && (draging = true); // 发生了拖拽
     }, false);
   }
 
@@ -709,7 +706,8 @@ export default class Game {
       this.scene.add(mesh2);
       terminal.index = i;
       terminal.mesh = [mesh, mesh2];
-      this.info.terminalMap[terminalId] = { terminalId, spaceId, posX, posY, posZ, status, mesh, mesh2 };
+      this.info.terminalMap[terminalId] = { terminalId, spaceId, posX, posY, posZ, status };
+      this.info.terminalMap[terminalId].mesh = [mesh, mesh2];
     }
   }
 
@@ -818,8 +816,8 @@ export default class Game {
       item.visible = flag;
     });
     Object.keys(this.info.terminalMap).forEach((key) => {
-      this.info.terminalMap[key].mesh.visible = flag;
-      this.info.terminalMap[key].mesh2.visible = flag;
+      this.info.terminalMap[key].mesh[0].visible = flag;
+      this.info.terminalMap[key].mesh[1].visible = flag;
     });
   }
 }
