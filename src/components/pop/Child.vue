@@ -66,6 +66,7 @@ export default {
   computed: {
     ...mapState({
       application: (state) => state.application,
+      game: (state) => state.game,
     }),
   },
   data() {
@@ -109,7 +110,8 @@ export default {
     switchChange(value) {
       if (this.param) {
         this.$store.commit('SET_PARAMS', { key: this.param, value });
-        this.application && this.application[this.param](value);
+        this.application && this.application[this.param](value); // 2D场景更新内容
+        this.game && this.game[this.param](value); // 3D场景更新内容
       } else {
         console.log('该功能正在开发。。。请稍后');
       }

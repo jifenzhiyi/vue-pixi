@@ -248,6 +248,7 @@ export default class Game {
       chargerMap: {}, // 充电桩信息
     }; // 场景内容信息
     this.containerTypeMap = {};
+    this.workerMeshList = [];
 
     this.init();
   }
@@ -667,6 +668,7 @@ export default class Game {
         const workerMesh = model.fenjianqiang.clone();
         workerMesh.position.set(x, y, z);
         workerMesh.rotateY(0);
+        this.workerMeshList.push(workerMesh);
         this.scene.add(workerMesh);
       }
     }
@@ -705,7 +707,7 @@ export default class Game {
       this.scene.add(mesh2);
       terminal.index = i;
       terminal.mesh = [mesh, mesh2];
-      this.info.terminalMap[terminalId] = { terminalId, spaceId, posX, posY, posZ, status };
+      this.info.terminalMap[terminalId] = { terminalId, spaceId, posX, posY, posZ, status, mesh, mesh2 };
     }
   }
 
@@ -791,5 +793,31 @@ export default class Game {
     a.href = URL.createObjectURL(imgUrl);
     a.click();
     a.remove();
+  }
+
+  showSpaces(flag) {
+    instanceMesh.spacesMesh.visible = flag;
+  }
+
+  showRobots(flag) {
+    Object.keys(this.info.robotMap).forEach((key) => {
+      this.info.robotMap[key].mesh.visible = flag;
+    });
+  }
+
+  showContainers(flag) {
+    Object.keys(this.info.containerMap).forEach((key) => {
+      this.info.containerMap[key].mesh.visible = flag;
+    });
+  }
+
+  showTerminals(flag) {
+    this.workerMeshList.forEach((item) => {
+      item.visible = flag;
+    });
+    Object.keys(this.info.terminalMap).forEach((key) => {
+      this.info.terminalMap[key].mesh.visible = flag;
+      this.info.terminalMap[key].mesh2.visible = flag;
+    });
   }
 }
