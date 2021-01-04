@@ -9,7 +9,6 @@ function loadTextures() {
       .add('lift', 'textures/lift.svg')
       .add('Manipulator', 'textures/Manipulator.png')
       .add('ConveyerBelt', 'textures/ConveyerBelt.png');
-
     loader.load((obj, resources) => {
       Object.keys(resources).forEach((key) => {
         textures[key] = resources[key].texture;

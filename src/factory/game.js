@@ -224,6 +224,7 @@ export default class Game {
     this.mapLength = mapLength;
     model.rect = createRect(this.spaceLength * 100 - spaceGap, this.spaceWidth * 100 - spaceGap);
     this.info = {
+      floorsCount: 1,
       spaceCount: 0, // 点位数量
       spaceMap: {}, // 储存点位信息
       spaceMapOfMark: {}, // 标红的点位信息
@@ -378,9 +379,10 @@ export default class Game {
 
   onWindowResize() {
     setTimeout(() => {
-      this.camera.aspect = this.domW / this.domH;
+      const dom = document.getElementById('gameBox');
+      this.camera.aspect = dom.clientWidth / dom.clientHeight;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(this.domW, this.domH);
+      this.renderer.setSize(dom.clientWidth, dom.clientHeight);
     }, 0);
   }
 

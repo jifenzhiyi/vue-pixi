@@ -47,7 +47,7 @@ export default {
           const charger = this.chargerMap[spaceId];
           robot.statusName = charger ? 'Charging' : 'ToBeCharged';
         }
-        robot.voltageNew = `${voltage * 100}%`;
+        robot.voltageNew = `${parseInt(voltage * 100, 10)}%`;
         return robot;
       });
     },

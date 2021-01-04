@@ -1,5 +1,7 @@
 <template>
-  <div class="main">
+  <div 
+    id="gameBox"
+    class="main">
     <div class="box">
       <div class="abs middle">
         <a-spin
@@ -25,18 +27,10 @@
     </div>
     <div class="abs bottom">
       <a-button-group>
-        <!-- <a-button
-          icon="audio"
-          v-if="$noMobile"
-          class="btnCss">
-          <span
-            v-show="!params.allowSound"
-            class="abs audioCss">\</span>
-        </a-button> -->
         <a-button
+          icon="menu"
           v-if="$noMobile"
-          :icon="params.fullScreen ? 'shrink' : 'arrows-alt'"
-          @click="toggleScreen"></a-button>
+          @click="popHide"></a-button>
         <a-button
           icon="sync"
           @click="refresh"></a-button>
@@ -54,8 +48,13 @@
         <a-button
           icon="zoom-in"
           @click="zoomer(-1)"></a-button>
+        <a-button
+          v-if="$noMobile"
+          :icon="params.fullScreen ? 'shrink' : 'arrows-alt'"
+          @click="toggleScreen"></a-button>
       </a-button-group>
     </div>
+    <configure @on-change="floorDirectionChange" />
   </div>
 </template>
 
@@ -64,10 +63,12 @@ import { mapState } from 'vuex';
 import role from '@/mixins/role.js';
 import Game from '@/factory/game.js';
 import { formatTime } from '@/utils/help.js';
+import Configure from 'comps/pop/Configure.vue';
 
 export default {
   name: 'base3D',
   mixins: [role],
+  components: { Configure },
   computed: {
     ...mapState({
       game: (state) => state.game,
@@ -95,19 +96,6 @@ export default {
     ]).then((res) => {
       const result = res.every((o) => o === 'success');
       if (result) {
-        /*
-        this.$store.commit('SET_APPLICATION', new Scene(this.$refs.gameView, this.warehouseInfo, {
-          onInitWS: this.initWS,
-          onMarkerList: this.queryMarkerList,
-          onDimensionList: this.queryDimensionList,
-          onUpdateInfo: this.updateInfo,
-          onSelectFrom: this.onSelectFrom,
-          onSelectTo: this.onSelectTo,
-          onMarkSpace: this.onMark,
-          onBatchConfirm: this.onBatchConfirm,
-        }, this.$refs.spaceInfo));
-        */
-        // three.js Game() 初始化
         this.$store.commit('SET_GAME', new Game(this.$refs.gameView, this.warehouseInfo, () => {
           this.queryDimensionList();
           this.initWS(); // 使用真实数据
@@ -120,7 +108,6 @@ export default {
   activated() {
     this.loading = true;
     !this.isFirst && this.initWS();
-    // console.log('activated 3D isFirst', this.isFirst);
   },
   deactivated() {
     this.ws && this.ws.close();
@@ -130,6 +117,9 @@ export default {
     this.timeInterval && clearInterval(this.timeInterval);
   },
   methods: {
+    popHide() {
+      this.$store.commit('SET_CONFIGURE_SHOW');
+    },
     toggleScreen() {
       this.$store.commit('SET_PARAMS', { key: 'fullScreen', value: !this.params.fullScreen });
       this.$nextTick(() => {
@@ -137,11 +127,13 @@ export default {
       });
     },
     screenshot() {
-      // this.$message.warn('功能正在开发，请稍后。。。');
       this.game && this.game.takeScreenshot();
     },
     zoomer(offset) {
       this.game && this.game.zoom(offset);
+    },
+    floorDirectionChange(value) {
+      console.log('floorDirectionChange val', value);
     },
   },
 };
@@ -149,6 +141,7 @@ export default {
 
 <style lang="less" scoped>
 .main {
+  overflow: hidden;
   .space-info {
     z-index: 10;
     padding: 12px;

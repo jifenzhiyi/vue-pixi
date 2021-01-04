@@ -1,5 +1,7 @@
 <template>
-  <div class="pop_tabs">
+  <div
+    v-if="tabList.length > 0"
+    class="pop_tabs">
     <div class="nav">
       <div
         v-for="item in tabList"
@@ -26,13 +28,15 @@ import PopChild from './Child.vue';
 export default {
   name: 'PopTabs',
   computed: {
-    ...mapState(['themes']),
+    ...mapState(['themes', 'modeType']),
   },
   watch: {
     themes: {
       immediate: true,
       handler() {
-        this.tabList[4].list[1].options = this.themes;
+        if (this.modeType === '2D' && this.tabList.length === 5) {
+          this.tabList[4].list[1].options = this.themes;
+        }
       },
     },
   },
@@ -42,7 +46,23 @@ export default {
   data() {
     return {
       tabKey: 0,
-      tabList: [
+      tabList: [],
+    };
+  },
+  created() {
+    this.modeType === '2D' ? this.tabList2D() : this.tabList3D();
+  },
+  methods: {
+    tabList3D() {
+      this.tabList = [
+        { key: 0, tab: 'Space', list: [{ label: 'SpacePlace', param: 'showSpaces', value: storage.get('scada_params_showSpaces'), type: 'switch' }] },
+        { key: 1, tab: 'Robot', list: [{ label: 'Robot', param: 'showRobots', value: storage.get('scada_params_showRobots'), type: 'switch' }] },
+        { key: 2, tab: 'Container', list: [{ label: 'ContainerPlace', param: 'showContainers', value: storage.get('scada_params_showContainers'), type: 'switch' }] },
+        { key: 3, tab: 'Terminal', list: [{ label: 'Terminal', param: 'showTerminals', value: storage.get('scada_params_showTerminals'), type: 'switch' }] },
+      ];
+    },
+    tabList2D() {
+      this.tabList = [
         {
           key: 0,
           tab: 'Space',
@@ -99,14 +119,12 @@ export default {
               param: 'themeId',
               value: storage.get('scada_themeId') || 0,
               type: 'radio',
-              options: [],
+              options: [{ value: 0, label: '默认' }],
             },
           ],
         },
-      ],
-    };
-  },
-  methods: {
+      ];
+    },
     tabChange(key) {
       this.tabKey = key;
     },

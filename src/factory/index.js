@@ -23,6 +23,7 @@ class Scene {
     this.el = el;
     this.spaceInfoBox = spaceInfoBox;
     const { mapWidth, mapLength, spaceWidth, spaceLength, warehouseLayerNo } = warehouseInfo;
+    console.log('warehouseInfo', warehouseInfo);
     this.mapWidth = mapLength * 10;
     this.mapLength = mapWidth * 10;
     this.spaceWidth = spaceLength * 10;
@@ -71,8 +72,8 @@ class Scene {
     // this.pendingContainerMap = {};
     this.textures = null;
     loadTextures().then((res) => {
-      this.createScene(el); // 场景创建
       this.textures = res;
+      this.createScene(el); // 场景创建
       this.events.onInitWS && this.events.onInitWS();
       this.events.onMarkerList && this.events.onMarkerList();
       this.events.onDimensionList && this.events.onDimensionList();

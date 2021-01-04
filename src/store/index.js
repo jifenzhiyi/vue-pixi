@@ -17,6 +17,7 @@ export default new Vuex.Store({
     systemStatus: storage.get('scada_system_status') || 0, // 系统状态
     // 系统模式modeStatus 默认view 编辑edit 标记地面mark 批量编辑batch
     modeStatus: 'view',
+    modeType: storage.get('scada_status') || '2D', // 系统类型 2D 3D
     popShowConfigure: false, // 设置弹窗
     popShowAddContainer: false, // 新增货架弹窗
     popShowUpdateContainerOrit: false, // 更新货架方向弹窗
@@ -39,6 +40,9 @@ export default new Vuex.Store({
         state.themeId = themes[0].value;
         storage.set('scada_themeId', state.themeId);
       }
+    },
+    SET_MODE_TYPE(state, type) {
+      state.modeType = type;
     },
     // 设置系统模式
     SET_MODE(state, status) {

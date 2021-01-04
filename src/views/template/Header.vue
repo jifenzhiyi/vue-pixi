@@ -7,7 +7,8 @@
     <div class="line" />
     <!--2D，3D切换-->
     <a-radio-group
-      :default-value="status"
+      :autoFocus="true"
+      :default-value="modeType"
       @change="statusChange">
       <a-radio
         v-for="item in statusArr"

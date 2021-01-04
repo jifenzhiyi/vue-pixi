@@ -14,7 +14,7 @@ import {
 
 export default {
   computed: {
-    ...mapState(['warehouseId', 'warehouseIds', 'systemStatus', 'menuList', 'themeId']),
+    ...mapState(['warehouseId', 'warehouseIds', 'systemStatus', 'menuList', 'themeId', 'modeType']),
     statusMap() {
       return this.systemStatusMap.find((o) => o.value === this.systemStatus);
     },
@@ -33,7 +33,6 @@ export default {
     return {
       warehouseInfo: null,
       statusArr: ['2D', '3D'],
-      status: storage.get('scada_status') || '2D',
       username: storage.get('scada_user_name') || '未登录', // 管理员账号
       systemStatusMap: [
         { title: 'Starting', value: 3 },
@@ -47,8 +46,7 @@ export default {
   methods: {
     statusChange(e) {
       this.$store.commit('SET_MODE', 'view');
-      this.status = e.target.value;
-      storage.set('scada_status', e.target.value);
+      this.$store.commit('SET_MODE_TYPE', e.target.value);
       this.$router.push(`/${e.target.value}`);
     },
     initWS() {
@@ -57,7 +55,6 @@ export default {
         `ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`,
       );
       this.ws.onopen = () => {
-        this.loading = false;
         console.log('WS onopen', new Date().toLocaleTimeString());
         console.log('====================================');
       };
@@ -72,7 +69,8 @@ export default {
       this.ws.onmessage = (e) => {
         const jsonData = JSON.parse(e.data);
         jsonData.status != null && this.$store.commit('SET_SYSTEM_STATUS', Number(jsonData.status));
-        if (this.status === '2D') {
+        this.loading = false;
+        if (this.modeType === '2D') {
           if (this.isFirst) {
             this.isFirst = false;
             this.application && this.application.init(jsonData).then((res) => {
@@ -84,7 +82,7 @@ export default {
             });
           }
         } 
-        if (this.status === '3D') {
+        if (this.modeType === '3D') {
           if (this.isFirst) {
             this.isFirst = false;
             this.game && this.game.initData(jsonData).then((res) => {
@@ -109,9 +107,9 @@ export default {
     async queryDimensionList() {
       const res = await queryDimensionList({ parameter: 1 });
       if (res && res.data && res.data.length > 0) {
-        console.log('status', this.status);
-        this.status === '3D' && this.game.updateContainersType(res.data);
-        if (this.status === '2D') {
+        console.log('modeType', this.modeType);
+        this.modeType === '3D' && this.game.updateContainersType(res.data);
+        if (this.modeType === '2D') {
           const containerTypeMap = {};
           res.data.forEach((item) => {
             item.width *= 10;
