@@ -403,47 +403,45 @@ export default class Game {
         moveDuration = 1.2;
       }
     }, false);
-    this.viewBox.addEventListener('mousedown', (e) => {
+    this.viewBox.addEventListener('mousedown', () => {
       mouseHolding = true;
-      console.log('mousedown', e);
-    //   const modeStatus = store.state.modeStatus;
-    //   console.log('modeStatus', modeStatus);
-    //   // if (e.button === 0) {
-    //   //   clickLeft = 1;
-    //   // }
-    //   // if (e.button === 2) {
-    //   //   clickRight = 1;
-    //   // }
-    }, false);
-    this.viewBox.addEventListener('mouseup', (e) => {
-      mouseHolding = false;
-      console.log('mouseup', e);
-    //   if ( ) { // 发生了拖拽
-    //     draging = false;
-    //   } else if (onOverSpace) { // 未拖拽且点击了且光标在有效的 space 上
-    //     // if (modeStatus === 'mark') {
-    //     //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
-    //     //     // _events.onSpaceClick(onOverSpace, 'mark')
-    //     //   }
-    //     // } else if (modeStatus === 'edit') {
-    //     //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
-    //     //     // _events.onSpaceClick(onOverSpace, 'edit')
-    //     //     instanceMesh.spaceLeftSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
-    //     //     instanceMesh.spaceLeftSelBorderMesh.visible = true;
-    //     //   }
-    //     //   if (e.button === 2 & clickRight && _events.onSpaceContextMenu) { // 右键抬起时、右键之前已被按下、注册了onSpaceContextMenu事件
-    //     //     // _events.onSpaceContextMenu(onOverSpace, 'edit')
-    //     //     instanceMesh.spaceRightSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
-    //     //     instanceMesh.spaceRightSelBorderMesh.visible = true;
-    //     //   }
-    //     // }
+      // if (e.button === 0) {
+      //   clickLeft = 1;
       // }
-    //   // if (e.button === 0) {
-    //   //   clickLeft = 0;
-    //   // }
-    //   // if (e.button === 2) {
-    //   //   clickRight = 0;
-    //   // }
+      // if (e.button === 2) {
+      //   clickRight = 1;
+      // }
+    }, false);
+    this.viewBox.addEventListener('mouseup', () => {
+      const modeStatus = store.state.modeStatus;
+      console.log('modeStatus', modeStatus);
+      mouseHolding = false;
+      if (draging) { // 发生了拖拽
+        draging = false;
+      } else if (onOverSpace) { // 未拖拽且点击了且光标在有效的 space 上
+        // if (modeStatus === 'mark') {
+        //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
+        //     // _events.onSpaceClick(onOverSpace, 'mark')
+        //   }
+        // } else if (modeStatus === 'edit') {
+        //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
+        //     // _events.onSpaceClick(onOverSpace, 'edit')
+        //     instanceMesh.spaceLeftSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
+        //     instanceMesh.spaceLeftSelBorderMesh.visible = true;
+        //   }
+        //   if (e.button === 2 & clickRight && _events.onSpaceContextMenu) { // 右键抬起时、右键之前已被按下、注册了onSpaceContextMenu事件
+        //     // _events.onSpaceContextMenu(onOverSpace, 'edit')
+        //     instanceMesh.spaceRightSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
+        //     instanceMesh.spaceRightSelBorderMesh.visible = true;
+        //   }
+        // }
+      }
+      // if (e.button === 0) {
+      //   clickLeft = 0;
+      // }
+      // if (e.button === 2) {
+      //   clickRight = 0;
+      // }
     }, false);
     this.viewBox.addEventListener('mousemove', (event) => {
       event.preventDefault();
