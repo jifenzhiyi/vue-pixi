@@ -44,6 +44,14 @@ export default {
     };
   },
   methods: {
+    async onMark(spaceInfo) {
+      const obj = {};
+      obj.code = 4;
+      obj.object = spaceInfo.spaceId;
+      obj.objectId = spaceInfo.spaceId;
+      obj.parameter = spaceInfo.status === 0 ? 1 : 0,
+      await operation(obj, '/markGround');
+    },
     statusChange(e) {
       this.$store.commit('SET_MODE', 'view');
       this.$store.commit('SET_MODE_TYPE', e.target.value);

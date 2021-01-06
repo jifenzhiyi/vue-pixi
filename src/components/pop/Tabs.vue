@@ -14,8 +14,8 @@
         v-for="item in tabList"
         v-show="tabKey === item.key"
         :key="item.tab"
-        :title="$t(item.tab)"
-        :list="item.list" />
+        :list="item.list"
+        :title="$t(item.tab)" />
     </div>
   </div>
 </template>
@@ -34,9 +34,7 @@ export default {
     themes: {
       immediate: true,
       handler() {
-        if (this.modeType === '2D' && this.tabList.length === 5) {
-          this.tabList[4].list[1].options = this.themes;
-        }
+        this.modeType === '2D' ? this.tabList2D(this.themes) : this.tabList3D();
       },
     },
   },
@@ -49,9 +47,6 @@ export default {
       tabList: [],
     };
   },
-  created() {
-    this.modeType === '2D' ? this.tabList2D() : this.tabList3D();
-  },
   methods: {
     tabList3D() {
       this.tabList = [
@@ -61,7 +56,7 @@ export default {
         { key: 3, tab: 'Terminal', list: [{ label: 'Terminal', param: 'showTerminals', value: storage.get('scada_params_showTerminals'), type: 'switch' }] },
       ];
     },
-    tabList2D() {
+    tabList2D(themes) {
       this.tabList = [
         {
           key: 0,
@@ -119,7 +114,7 @@ export default {
               param: 'themeId',
               value: storage.get('scada_themeId') || 0,
               type: 'radio',
-              options: [{ value: 0, label: '默认' }],
+              options: themes.length > 0 ? themes : [{ value: 0, label: '默认' }],
             },
           ],
         },

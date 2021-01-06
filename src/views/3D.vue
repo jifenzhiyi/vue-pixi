@@ -124,6 +124,10 @@ export default {
         this.$store.commit('SET_GAME', new Game(this.$refs.gameView, this.warehouseInfo, () => {
           this.queryDimensionList();
           this.initWS(); // 使用真实数据
+        }, {
+          onSpaceClick: (space, type) => {
+            if (type === 'mark') this.onMark(space);
+          },
         }));
       } else {
         this.loading = false;

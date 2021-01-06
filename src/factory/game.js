@@ -50,11 +50,12 @@ const floorHeight = 1000;
 const instanceMesh = {};
 const raycaster = new Raycaster();
 const mouse = new Vector2();
-let onOverSpace; // mouseHolding, draging; // clickLeft, clickRight;
+let onOverSpace, mouseHolding, draging; // clickLeft, clickRight;
 let onOver = {};
 let moveDuration = 1.2; // 移动速度
 let waitingMoveList = {};
 const spaceMapByIndex = {};
+let onOverSpaceNow;
 
 const spaceColorMap = {
   '-1': new Color(0xFF3296), // for status
@@ -174,8 +175,7 @@ function getTerminalId(text) {
 function createRobotPath(vertices) {
   const material = new LineBasicMaterial({
     vertexColors: true,
-    // 定义线条材质是否使用顶点元素，这是一个boolean值。
-    // 意思是线条各部分的颜色根据顶点的颜色来进行插值。
+    linewidth: 2, // 默认为1，暂时无法修改
   });
   const geometry = new Geometry();
   geometry.colors.push(
@@ -188,10 +188,10 @@ function createRobotPath(vertices) {
   return robotPath;
 }
 
-function createRectBorder(w, l, color, linewidth = 1) {
+function createRectBorder(w, l, color) {
   const material = new LineBasicMaterial({
     color,
-    linewidth,
+    linewidth: 2, // 默认为1，暂时无法修改
   });
   const wHalf = w / 2;
   const hHalf = l / 2;
@@ -387,50 +387,40 @@ export default class Game {
   }
 
   initEvents() {
-    this.viewBox.addEventListener('click', () => {
-      const modeStatus = store.state.modeStatus;
-      if (modeStatus === 'mark' && onOverSpace) {
-        console.log('click modeStatus', modeStatus, 'onOverSpace', onOverSpace);
-        this.events.onSpaceClick(onOverSpace, 'mark');
+    this.viewBox.addEventListener('pointerdown', () => {
+      mouseHolding = true;
+      onOverSpaceNow = onOverSpace;
+      // if (e.button === 0) {
+      //   clickLeft = 1;
+      // }
+      // if (e.button === 2) {
+      //   clickRight = 1;
+      // }
+    }, false);
+    this.viewBox.addEventListener('pointerup', () => {
+      mouseHolding = false;
+      // if (e.button === 0) {
+      //   clickLeft = 0;
+      // }
+      // if (e.button === 2) {
+      //   clickRight = 0;
+      // }
+      if (draging) { // 发生了拖拽
+        draging = false;
+      } else {
+        const modeStatus = store.state.modeStatus;
+        // console.log('pointerup modeStatus', modeStatus, 'onOverSpaceNow', onOverSpaceNow);
+        if (modeStatus === 'mark' && onOverSpaceNow) {
+          this.events.onSpaceClick(onOverSpaceNow, 'mark');
+        }
       }
-    });
-    // this.viewBox.addEventListener('mouseup', (e) => {
-    //   const modeStatus = store.state.modeStatus;
-    //   console.log('click modeStatus', modeStatus);
-    //   mouseHolding = false;
-    //   if (draging) { // 发生了拖拽
-    //     draging = false;
-    //   } else if (onOverSpace) { // 未拖拽且点击了且光标在有效的 space 上
-    //     // if (modeStatus === 'mark') {
-    //     //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
-    //     //     // _events.onSpaceClick(onOverSpace, 'mark')
-    //     //   }
-    //     // } else if (modeStatus === 'edit') {
-    //     //   if (e.button === 0 && clickLeft && _events.onSpaceClick) { // 左键抬起时、左键之前已被按下、注册了onSpaceClick事件
-    //     //     // _events.onSpaceClick(onOverSpace, 'edit')
-    //     //     instanceMesh.spaceLeftSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
-    //     //     instanceMesh.spaceLeftSelBorderMesh.visible = true;
-    //     //   }
-    //     //   if (e.button === 2 & clickRight && _events.onSpaceContextMenu) { // 右键抬起时、右键之前已被按下、注册了onSpaceContextMenu事件
-    //     //     // _events.onSpaceContextMenu(onOverSpace, 'edit')
-    //     //     instanceMesh.spaceRightSelBorderMesh.position.set(onOverSpace.x, onOverSpace.y, onOverSpace.z);
-    //     //     instanceMesh.spaceRightSelBorderMesh.visible = true;
-    //     //   }
-    //     // }
-    //   }
-    //   // if (e.button === 0) {
-    //   //   clickLeft = 0;
-    //   // }
-    //   // if (e.button === 2) {
-    //   //   clickRight = 0;
-    //   // }
-    // }, false);
+    }, false);
     this.viewBox.addEventListener('mousemove', (event) => {
       event.preventDefault();
       const getBoundingClientRect = this.viewBox.getBoundingClientRect();
       mouse.x = ((event.clientX - getBoundingClientRect.left) / this.domW) * 2 - 1;
       mouse.y = -((event.clientY - getBoundingClientRect.top) / this.domH) * 2 + 1;
-      // mouseHolding && (draging = true); // 发生了拖拽
+      mouseHolding && (draging = true); // 发生了拖拽
     }, false);
     // 添加辅助模型，如 spaceBorderOfHover、spaceBorderOfLeft、spaceBorderOfRight
     instanceMesh.spaceHoverBorderMesh = createRectBorder(this.spaceLength * 100, this.spaceWidth * 100, 0x0000ff);

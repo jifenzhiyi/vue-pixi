@@ -119,7 +119,6 @@ import { mapState } from 'vuex';
 import role from '@/mixins/role.js';
 import Scene from '@/factory/index.js';
 import { formatTime } from '@/utils/help.js';
-import { operation } from '@/views/api.js';
 import Configure from 'comps/pop/Configure.vue';
 import AddContainer from 'comps/pop/AddContainer.vue';
 import UpdateContainerOrit from 'comps/pop/UpdateContainerOrit.vue';
@@ -200,14 +199,6 @@ export default {
         arr.push(map[key]);
       });
       this.$store.commit('SET_SELECT_CONTAINERS', arr);
-    },
-    async onMark(spaceInfo) {
-      const obj = {};
-      obj.code = 4;
-      obj.object = spaceInfo.spaceId;
-      obj.objectId = spaceInfo.spaceId;
-      obj.parameter = spaceInfo.status === 0 ? 1 : 0,
-      await operation(obj, '/markGround');
     },
     onSelectTo(spaceInfo) {
       this.$store.commit('SET_TO_SPACE_INFO', spaceInfo);
