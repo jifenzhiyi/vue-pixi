@@ -19,7 +19,7 @@ let floorSelect = false; // 批量编辑模式下的选中状态
 let noPCflag = true;
 
 class Scene {
-  constructor(el, warehouseInfo, events, spaceInfoBox) {
+  constructor(el, warehouseInfo, events, spaceInfoBox, equipments) {
     this.el = el;
     this.spaceInfoBox = spaceInfoBox;
     const { mapWidth, mapLength, spaceWidth, spaceLength, warehouseLayerNo } = warehouseInfo;
@@ -71,7 +71,7 @@ class Scene {
     }; // 场景内容信息
     // this.pendingContainerMap = {};
     this.textures = null;
-    loadTextures().then((res) => {
+    loadTextures(equipments).then((res) => {
       this.textures = res;
       this.createScene(el); // 场景创建
       this.events.onInitWS && this.events.onInitWS();
@@ -1256,10 +1256,28 @@ class Scene {
         this.zoom(-0.1);
       }
     });
+    // 火狐浏览器
+    document.addEventListener('DOMMouseScroll', (e) => {
+      if (e.detail > 0) {
+        this.zoom(0.1);
+      } else {
+        this.zoom(-0.1);
+      }
+    });
     // 禁止右键的默认操作
     this.el.addEventListener('contextmenu', (e) => {
       e.preventDefault();
     });
+
+    const sceneW = this.el.parentElement.clientWidth;
+    const sceneH = this.el.parentElement.clientHeight;
+    if (sceneW > sceneH && sceneW > this.mapWidth) {
+      const biliw = (sceneW / this.mapWidth).toFixed(1);
+      biliw > 1.6 && this.zoom((biliw - 0.6) / 2);
+    } else if (sceneH > sceneW && sceneH > this.mapLength) {
+      const bilih = (sceneH / this.mapLength).toFixed(1);
+      bilih > 1.6 && this.zoom((bilih - 0.6) / 2);
+    }
   }
 
   zoom(offset) {
@@ -1518,6 +1536,19 @@ class Scene {
     });
     this.selectedContainers = {};
     this.events.onBatchConfirm && this.events.onBatchConfirm(this.selectedContainers);
+  }
+
+  initEquipments(equipments) {
+    equipments.forEach((item) => {
+      const { posX, posY, posZ = 0, itemType, length, width, rotate } = item;
+      const sprite = new PIXI.Sprite(this.textures[itemType]);
+      sprite.width = width * 10;
+      sprite.height = length * 10;
+      sprite.anchor.set(0.5);
+      sprite.rotation = rotate * Math.PI / 2;
+      sprite.position.set(posY * 10, posX * 10);
+      this.building.floors[posZ].markerSprites.addChild(sprite);
+    });
   }
 }
 

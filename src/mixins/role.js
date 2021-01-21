@@ -10,6 +10,7 @@ import {
   operation,
   queryUserSystemThemeInfo,
   queryTheme,
+  queryEquipments,
 } from '@/views/api.js';
 
 export default {
@@ -63,6 +64,7 @@ export default {
         `ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`,
       );
       this.ws.onopen = () => {
+        this.application.initEquipments(this.equipmentsList);
         console.log('WS onopen', new Date().toLocaleTimeString());
         console.log('====================================');
       };
@@ -107,6 +109,10 @@ export default {
     },
     updateInfo(info) {
       this.$store.commit('SET_FACTORY_CONFIG', info);
+    },
+    async queryEquipmentsList() {
+      const res = await queryEquipments();
+      return res;
     },
     async queryWarehouse() {
       const res = await queryWarehouse();

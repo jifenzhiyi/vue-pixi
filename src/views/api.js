@@ -53,3 +53,9 @@ export const queryTheme = (data) => {
   const result = request.send('/api/configSystemTheme/querySystemThemeByThemeId', { method: 'POST', data });
   return result;
 };
+
+// equipments/findAll
+export const queryEquipments = () => {
+  const result = request.send('/api/equipments/findAll', { method: 'POST' });
+  return result;
+};

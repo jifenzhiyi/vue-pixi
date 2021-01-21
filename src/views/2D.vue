@@ -144,6 +144,7 @@ export default {
       errorDisplay: true,
       timeInterval: null,
       formatTime: formatTime(new Date()),
+      equipmentsList: [],
     };
   },
   created() {
@@ -155,9 +156,12 @@ export default {
       this.queryWarehouse(),
       this.queryVariablesList(),
       this.configSystemTheme(),
-    ]).then((res) => {
+    ]).then(async (res) => {
       const result = res.every((o) => o === 'success');
       if (result) {
+        const list = await this.queryEquipmentsList();
+        this.equipmentsList = list.data;
+        const equipments = Array.from(new Set(list.data.map((item) => item.itemType)));
         this.$store.commit('SET_APPLICATION', new Scene(this.$refs.gameView, this.warehouseInfo, {
           onInitWS: this.initWS,
           onMarkerList: this.queryMarkerList,
@@ -167,7 +171,7 @@ export default {
           onSelectTo: this.onSelectTo,
           onMarkSpace: this.onMark,
           onBatchConfirm: this.onBatchConfirm,
-        }, this.$refs.spaceInfo));
+        }, this.$refs.spaceInfo, equipments));
       } else {
         this.loading = false;
       }
