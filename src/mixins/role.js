@@ -64,7 +64,7 @@ export default {
         `ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`,
       );
       this.ws.onopen = () => {
-        this.application.initEquipments(this.equipmentsList);
+        this.application && this.application.initEquipments(this.equipmentsList);
         console.log('WS onopen', new Date().toLocaleTimeString());
         console.log('====================================');
       };
