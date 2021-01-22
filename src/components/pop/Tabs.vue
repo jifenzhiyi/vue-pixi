@@ -109,6 +109,7 @@ export default {
           tab: 'Others',
           list: [
             { label: 'Marker', param: 'showMarker', value: storage.get('scada_params_showMarker'), type: 'switch' },
+            { label: 'Stats', param: 'showStats', value: storage.get('scada_params_showStats'), type: 'switch' },
             {
               label: 'tempColor',
               param: 'themeId',

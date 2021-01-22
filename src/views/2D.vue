@@ -1,6 +1,8 @@
 <template>
   <div class="main">
-    <div class="box">
+    <div
+      class="box"
+      ref="gameBox">
       <div
         v-if="loading"
         class="middle">
@@ -116,6 +118,7 @@
 
 <script>
 import { mapState } from 'vuex';
+import Stats from 'stats.js';
 import role from '@/mixins/role.js';
 import Scene from '@/factory/index.js';
 import { formatTime } from '@/utils/help.js';
@@ -123,11 +126,13 @@ import Configure from 'comps/pop/Configure.vue';
 import AddContainer from 'comps/pop/AddContainer.vue';
 import UpdateContainerOrit from 'comps/pop/UpdateContainerOrit.vue';
 
+let statser;
 export default {
   name: 'ScadaCanvas',
   components: { Configure, AddContainer, UpdateContainerOrit },
   computed: {
     ...mapState({
+      stats: (state) => state.factory.stats,
       modeStatus: (state) => state.modeStatus,
       application: (state) => state.application,
       config: (state) => state.factory.config,
@@ -177,6 +182,9 @@ export default {
       }
     });
   },
+  mounted() {
+    this.createStats();
+  },
   activated() {
     this.loading = true;
     if (!this.isFirst) {
@@ -192,8 +200,27 @@ export default {
     this.ws && this.ws.close();
     this.$store.commit('DESTROY_APPLICATION');
     this.timeInterval && clearInterval(this.timeInterval);
+    cancelAnimationFrame(statser);
+    this.$store.commit('SET_STATS', null);
   },
   methods: {
+    createStats() {
+      const stats = new Stats();
+      stats.dom.className = 'stats';
+      stats.dom.style.position = 'absolute';
+      stats.dom.style.top = '28px';
+      stats.dom.style.left = 'initial';
+      stats.dom.style.right = '10px';
+      !this.params.showStats && (stats.dom.style.display = 'none');
+      stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+      this.$store.commit('SET_STATS', stats);
+      this.$refs.gameBox.appendChild(stats.dom);
+      this.animate();
+    },
+    animate() {
+      this.stats.update();
+      statser = requestAnimationFrame(this.animate);
+    },
     errorChange() {
       this.errorDisplay = !this.errorDisplay;
     },

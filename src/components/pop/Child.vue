@@ -108,6 +108,12 @@ export default {
       this.param = param;
     },
     switchChange(value) {
+      console.log('switchChange value', value, 'param', this.param);
+      if (this.param === 'showStats') {
+        this.$store.commit('SET_PARAMS', { key: this.param, value });
+        this.$store.commit('UPDATE_STATS', value);
+        return;
+      }
       if (this.param) {
         this.$store.commit('SET_PARAMS', { key: this.param, value });
         this.application && this.application[this.param](value); // 2D场景更新内容

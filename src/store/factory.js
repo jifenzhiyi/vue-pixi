@@ -54,8 +54,10 @@ export default {
       showTerminals: storage.get('scada_params_showTerminals') || false, // 展示工作站
       showMarker: storage.get('scada_params_showMarker') || false, // 展示标记
       fullScreen: storage.get('scada_params_fullScreen') || false,
+      showStats: storage.get('scada_params_showStats') || false,
       allowSound: false,
     },
+    stats: null,
     // 鼠标移动中显示的space信息
     config: {
       posX: '-',
@@ -81,6 +83,12 @@ export default {
     selectedContainers: [], // 批量编辑模式中选中的所有货架
   },
   mutations: {
+    SET_STATS(state, stats) {
+      state.stats = stats;
+    },
+    UPDATE_STATS(state, value) {
+      value ? (state.stats.dom.style.display = 'block') : (state.stats.dom.style.display = 'none');
+    },
     SET_SELECT_CONTAINERS(state, arr) {
       state.selectedContainers = arr;
     },
