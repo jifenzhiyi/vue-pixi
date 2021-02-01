@@ -514,12 +514,15 @@ export default class Scene {
         return;
       }
       noPCflag = true;
-      const { spaceId, x, y, z } = space;
+      const { spaceId, containerId, robotId, terminalId, x, y, z, posX, posY } = space;
+      // const { spaceId, x, y, z } = space;
       sprites.toBorder.setParent(building.floors[z].other);
-      sprites.toBorder.position.set(x - floorPadding / 2, y - floorMargin / 4);
+      sprites.toBorder.position.set(x, y);
       sprites.toBorder.visible = true;
       spaceSelectArr[1] = spaceId;
-      $root.events.onSelectTo && $root.events.onSelectTo(space);
+
+      $root.events.onSelectTo && $root.events.onSelectTo({ spaceId, containerId, robotId, terminalId, x, y, z, posX, posY });
+      // $root.events.onSelectTo && $root.events.onSelectTo(space);
     }
   }
 
