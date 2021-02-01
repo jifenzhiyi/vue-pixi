@@ -30,7 +30,6 @@ export function getLocaleMessage(lang) {
 
 export function loadLanguageAsync(lang = defaultLang) {
   return new Promise((resolve) => {
-    storage.set('scada_lang', lang);
     if (i18n.locale !== lang) {
       return resolve(setI18nLanguage(lang));
     }

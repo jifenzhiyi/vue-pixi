@@ -93,4 +93,11 @@ export default {
   containerArea: '所属片区',
   RemoveAllContainer: '确定要删除所有选中的货架吗？货架一旦删除，将无法恢复！',
   tempColor: '模版颜色',
+  OrderMode: '订单模式设置',
+  ReadOrdersMode: '读取模式',
+  Start: '开始读单',
+  Stop: '停止读单',
+  HandelingMode: '分配模式',
+  EfficiencyFirst: '效率优先',
+  PathFirst: '路线优先',
 };

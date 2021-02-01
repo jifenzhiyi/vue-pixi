@@ -64,7 +64,7 @@
         </div>
         <div
           class="info-one"
-          v-for="item in selectedContainers"
+          v-for="item of selectedContainers"
           :key="item.containerId">
           <span>{{ item.containerId }}</span>
           <span>{{ item.type }}</span>
@@ -87,7 +87,6 @@ export default {
       application: (state) => state.application,
       menuList: (state) => state.menuList,
       selectedContainers: (state) => state.factory.selectedContainers,
-      objectIdList: (state) => state.factory.selectedContainers.map((one) => one.containerId),
     }),
     buttonTypeList() {
       const obj = {};

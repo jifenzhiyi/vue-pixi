@@ -11,6 +11,7 @@ import {
   queryUserSystemThemeInfo,
   queryTheme,
   queryEquipments,
+  updateSystemParameter,
 } from '@/views/api.js';
 
 export default {
@@ -42,9 +43,22 @@ export default {
         { title: 'Charging', value: 2 },
       ],
       colorConfig,
+      ReadOrdersMode: '0',
+      HandelingMode: '1',
     };
   },
   methods: {
+    async statusChangeNew(e, param) {
+      this[param] = e.target.value;
+      let objectId = 'db_fetch_order';
+      if (param === 'HandelingMode') objectId = 'group2terminal_method';
+      const res = await updateSystemParameter({
+        code: 11,
+        parameter: Number(this[param]),
+        objectId,
+      });
+      res && this.$message.success(this.$t('TaskReceivedMsg'));
+    },
     async onMark(spaceInfo) {
       const obj = {};
       obj.code = 4;
@@ -64,7 +78,6 @@ export default {
         `ws://${END_POINT.substring(7)}/api/realTimeMapData/${this.warehouseId}?accessToken=${getToken}`,
       );
       this.ws.onopen = () => {
-        this.application && this.application.initEquipments(this.equipmentsList);
         console.log('WS onopen', new Date().toLocaleTimeString());
         console.log('====================================');
       };
@@ -78,12 +91,12 @@ export default {
       };
       this.ws.onmessage = (e) => {
         const jsonData = JSON.parse(e.data);
-        // console.log('jsonData', jsonData);
         jsonData.status != null && this.$store.commit('SET_SYSTEM_STATUS', Number(jsonData.status));
         if (this.modeType === '2D') {
           if (this.isFirst) {
             this.isFirst = false;
             this.application && this.application.init(jsonData).then((res) => {
+              console.log('init load res', res);
               this.$store.commit('SET_FACTORY_CONFIG', res);
             });
           } else {
@@ -133,6 +146,7 @@ export default {
             containerTypeMap[item.type] = item;
           });
           this.application.updateContainersType(containerTypeMap);
+          this.application.initEquipments(this.equipmentsList);
         }
       }
     },

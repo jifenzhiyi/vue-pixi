@@ -6,9 +6,9 @@ function loadTextures(equipments) {
     const loader = new PIXI.Loader();
     loader
       .add('robot', 'textures/robot.svg')
-      .add('lift', 'textures/lift.svg');
-    // .add('Manipulator', 'textures/Manipulator.png')
-    // .add('ConveyerBelt', 'textures/ConveyerBelt.png');
+      .add('lift', 'textures/lift.svg')
+      .add('space1jpg', 'textures/space1.jpg')
+      .add('space1png', 'textures/space1.png');
     equipments.forEach((item) => loader.add(item, `textures/${item}.png`));
     loader.load((obj, resources) => {
       Object.keys(resources).forEach((key) => {
@@ -22,10 +22,11 @@ function loadTextures(equipments) {
 function createGraphics(w, h, c, n, isStroke = false, native = false, alpha = 1) {
   const graphics = new PIXI.Graphics();
   graphics.name = n;
-  graphics.lineStyle(2, c, 1, 0.5, native);
-  isStroke && graphics.beginFill(0xffffff);
+  graphics.lineStyle(1, c, 1, 0.5, native);
+  isStroke && graphics.beginFill(c);
   graphics.drawRect(0, 0, w, h);
   graphics.endFill();
+  graphics.pivot.set(w / 2, h / 2);
   graphics.alpha = alpha;
   graphics.visible = false;
   return graphics;

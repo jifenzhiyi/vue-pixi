@@ -93,4 +93,11 @@ export default {
   containerArea: 'Container Area',
   RemoveAllContainer: 'Are you sure you want to delete all selected shelves?',
   tempColor: 'Template Color',
+  OrderMode: 'Order Mode',
+  ReadOrdersMode: 'Read Orders Mode',
+  Start: 'Start',
+  Stop: 'Stop',
+  HandelingMode: 'Handeling Mode',
+  EfficiencyFirst: 'Efficiency First',
+  PathFirst: 'Path First',
 };

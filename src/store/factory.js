@@ -80,7 +80,7 @@ export default {
     },
     // 鼠标右键选中的space信息
     toSpaceInfo: {},
-    selectedContainers: [], // 批量编辑模式中选中的所有货架
+    selectedContainers: {}, // 批量编辑模式中选中的所有货架
   },
   mutations: {
     SET_STATS(state, stats) {
@@ -96,6 +96,7 @@ export default {
       state.toSpaceInfo = space;
     },
     SET_HOVER_SPACE_INFO(state, space) {
+      console.log('SET_HOVER_SPACE_INFO space', space);
       state.hoverSpaceInfo = space;
     },
     SET_HOVER_SPACE_INFO_ONE(state, obj) {

@@ -59,3 +59,6 @@ export const queryEquipments = () => {
   const result = request.send('/api/equipments/findAll', { method: 'POST' });
   return result;
 };
+
+// updateSystemParameter
+export const updateSystemParameter = (data) => request.send('/api/superuserOperations/add/updateSystemParameter', { method: 'POST', data });

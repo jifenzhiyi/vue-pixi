@@ -13,6 +13,32 @@
           :value="item.value">{{ $t(item.title) }}</a-radio>
       </a-radio-group>
     </div>
+
+    <div
+      v-show="modeStatus === 'view' || modeStatus === 'mark'"
+      v-if="buttonTypeList.updateSystemParameter"
+      class="aside-desc">
+      <h4>{{$t('OrderMode')}}</h4>
+      <div class="one">
+        <p>{{$t('ReadOrdersMode')}}</p>
+        <a-radio-group
+          :default-value="ReadOrdersMode"
+          @change="(e) => statusChangeNew(e, 'ReadOrdersMode')">
+          <a-radio value="1">{{$t('Start')}}</a-radio>
+          <a-radio value="0">{{$t('Stop')}}</a-radio>
+        </a-radio-group>
+      </div>
+      <div class="one">
+        <p>{{$t('HandelingMode')}}</p>
+        <a-radio-group
+          :default-value="HandelingMode"
+          @change="(e) => statusChangeNew(e, 'HandelingMode')">
+          <a-radio value="0">{{$t('EfficiencyFirst')}}</a-radio>
+          <a-radio value="1">{{$t('PathFirst')}}</a-radio>
+        </a-radio-group>
+      </div>
+    </div>
+
     <div class="aside-main">
       <aside-info v-show="modeStatus === 'view' || modeStatus === 'mark'" />
       <aside-edit v-show="modeStatus === 'edit'" />
@@ -41,7 +67,6 @@ export default {
   },
 };
 </script>
-    AsideBatch
 
 <style lang="less" scoped>
 aside {
@@ -67,6 +92,22 @@ aside {
     .radio_group {
       display: flex;
       justify-content: space-between;
+    }
+  }
+  .aside-desc {
+    height: 150px;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 4px;
+    border: solid 1px #ddd;
+    .one {
+      padding-bottom: 10px;
+      .ant-radio-wrapper {
+        margin-right: 50px;
+      }
+      p {
+        margin: 0;
+      }
     }
   }
   .aside-main {

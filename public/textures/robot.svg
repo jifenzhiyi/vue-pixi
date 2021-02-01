@@ -1,20 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="100px" height="100px" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 54.1 (76490) - https://sketchapp.com -->
-    <title>mdpi/机器充电中</title>
+    <title>mdpi/robot</title>
     <desc>Created with Sketch.</desc>
     <defs>
-        <rect id="path-1" x="0" y="0" width="20" height="20" rx="9"></rect>
+        <rect id="path-1" x="0" y="0" width="100" height="100" rx="46"></rect>
+        <rect id="path-3" x="0" y="0" width="100" height="100" rx="46"></rect>
+        <rect id="path-5" x="0" y="0" width="100" height="100" rx="46"></rect>
     </defs>
-    <g id="页面1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="机器充电中" transform="translate(10.000000, 10.000000) rotate(-180.000000) translate(-10.000000, -10.000000) ">
-            <mask id="mask-2" fill="white">
-                <use xlink:href="#path-1"></use>
-            </mask>
-            <use id="Mask" fill="#FFFFFF" xlink:href="#path-1"></use>
-            <circle id="Oval" fill="#000000" mask="url(#mask-2)" cx="10" cy="10" r="5.45454545"></circle>
-            <polygon id="Path" fill="#000000" mask="url(#mask-2)" transform="translate(10.000000, 10.000000) scale(-1, 1) translate(-10.000000, -10.000000) " points="9.04756191 14.2857143 9.04756191 10.0000643 7.14285714 10.0000643 10.9522667 5.71428571 10.9522667 10.0000643 12.8571429 10.0000643"></polygon>
-            <polygon id="Path-6" fill="#000000" mask="url(#mask-2)" points="3.64955357 -0.396379743 7.20354353 2.85714286 13.0212151 2.85714286 15.9238979 -0.0200544085"></polygon>
+    <g id="页面2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="画板">
+            <g id="robot">
+                <g id="机器充电中" transform="translate(50.000000, 50.000000) rotate(-180.000000) translate(-50.000000, -50.000000) ">
+                    <g id="Mask" fill="#FFFFFF" fill-rule="nonzero">
+                        <rect id="path-1" x="0" y="0" width="100" height="100" rx="46"></rect>
+                    </g>
+                    <g id="Oval-Clipped">
+                        <mask id="mask-2" fill="white">
+                            <use xlink:href="#path-1"></use>
+                        </mask>
+                        <g id="path-1"></g>
+                        <circle id="Oval" fill="#000000" fill-rule="nonzero" mask="url(#mask-2)" cx="50" cy="50" r="27.2727273"></circle>
+                    </g>
+                    <g id="Path-Clipped">
+                        <mask id="mask-4" fill="white">
+                            <use xlink:href="#path-3"></use>
+                        </mask>
+                        <g id="path-1"></g>
+                        <polygon id="Path" fill="#000000" fill-rule="nonzero" mask="url(#mask-4)" transform="translate(50.000000, 50.000000) scale(-1, 1) translate(-50.000000, -50.000000) " points="45.2378094 71.4285715 45.2378094 50.0003215 35.7142855 50.0003215 54.7613333 28.5714286 54.7613333 50.0003215 64.2857143 50.0003215"></polygon>
+                    </g>
+                    <g id="Path-6-Clipped">
+                        <mask id="mask-6" fill="white">
+                            <use xlink:href="#path-5"></use>
+                        </mask>
+                        <g id="path-1"></g>
+                        <polygon id="Path-6" fill="#000000" fill-rule="nonzero" mask="url(#mask-6)" points="18.2477678 -1.98189872 36.0177176 14.2857143 65.1060755 14.2857143 79.6194895 -0.100272042"></polygon>
+                    </g>
+                </g>
+            </g>
         </g>
     </g>
 </svg>

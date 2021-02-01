@@ -36,7 +36,7 @@
         <a-icon
           type="bell"
           theme="filled" />
-        <span v-show="errorDisplay">【异常机器】</span>
+        <span v-show="errorDisplay">【异常机器】{{ Object.keys(robotMapOfError).length }}</span>
       </div>
       <div
         v-show="errorDisplay"
@@ -120,7 +120,8 @@
 import { mapState } from 'vuex';
 import Stats from 'stats.js';
 import role from '@/mixins/role.js';
-import Scene from '@/factory/index.js';
+// import Scene from '@/factory/index.js';
+import Scene from '@/factory/build.js';
 import { formatTime } from '@/utils/help.js';
 import Configure from 'comps/pop/Configure.vue';
 import AddContainer from 'comps/pop/AddContainer.vue';
@@ -334,17 +335,15 @@ export default {
       align-items: center;
     }
     .error-body {
-      display: flex;
+      overflow: auto;
       min-height: 30px;
+      max-height: 400px;
       background: #fff;
-      align-items: center;
-      flex-direction: column;
-      justify-content: center;
       p { margin: 0; }
       .red {
         width: 100%;
-        padding: 5px 0;
         color: #e1021d;
+        padding: 5px 10px;
         text-align: center;
         border-bottom: solid 1px #ccc;
         &:last-child { border: 0; }
