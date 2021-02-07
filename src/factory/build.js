@@ -79,11 +79,11 @@ export default class Scene {
     this.waitingMoveList = []; // 等待移动的列表
     this.selectedContainers = {}; // 选中的货架
     this.createScene(el); // 场景创建
-    this.events.onDimensionList && this.events.onDimensionList();
     loadTextures(equipments).then((res) => {
       this.textures = res;
       this.events.onInitWS && this.events.onInitWS();
       this.events.onMarkerList && this.events.onMarkerList();
+      this.events.onDimensionList && this.events.onDimensionList();
     });
   }
 
