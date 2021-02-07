@@ -75,4 +75,7 @@ header {
   .setting { padding-right: 10px; color: #666 !important; }
 }
 .anticon { padding-right: 5px; }
+@media all and (orientation: portrait) and (max-width: 700px) {
+  header .title { display: none !important; }
+}
 </style>

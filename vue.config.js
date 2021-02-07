@@ -6,7 +6,7 @@ const NODE_ENV = process.env.NODE_ENV;
 module.exports = {
   lintOnSave: true,
   devServer: {
-    // hot: true,
+    hot: true,
     open: true,
     port: 7777,
     host: '0.0.0.0',

@@ -120,7 +120,6 @@
 import { mapState } from 'vuex';
 import Stats from 'stats.js';
 import role from '@/mixins/role.js';
-// import Scene from '@/factory/index.js';
 import Scene from '@/factory/build.js';
 import { formatTime } from '@/utils/help.js';
 import Configure from 'comps/pop/Configure.vue';
@@ -355,6 +354,11 @@ export default {
       min-height: auto;
       .error-title { background: none; }
     }
+  }
+}
+@media all and (orientation: portrait) and (max-width: 700px) {
+  .btn-center {
+    display: none !important;
   }
 }
 </style>

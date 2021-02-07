@@ -10,7 +10,7 @@ import createComp from './utils/create.js';
 import './styles/main.less';
 import './styles/pop.less';
 import './utils/antd.js';
-// import './icons/index.js';
+import './icons/index.js';
 
 Vue.config.productionTip = false;
 Vue.prototype.$storage = storage;

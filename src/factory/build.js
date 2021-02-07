@@ -2,7 +2,6 @@ import * as PIXI from 'pixi.js';
 import store from '@/store/index.js';
 import storage from '@/utils/storage';
 import { isPC } from '@/utils/device.js';
-import { debounce } from '@/utils/help.js';
 import { createGraphics, loadTextures, getMinAndSec, calcShapeColorByFrquence, calcShapeColorByType } from './func.js';
 import sound from './sound';
 
@@ -188,7 +187,8 @@ export default class Scene {
     app.stage.addChild(buildingSprite);
 
     this.resize();
-    window.addEventListener('resize', debounce(300, this.resize.bind(this)));
+    console.log('resize');
+    window.addEventListener('resize', this.resize.bind(this));
     // 浏览器 tab 页切换到后台时将机器的移动速度置为 0，即无动画
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
@@ -198,6 +198,16 @@ export default class Scene {
       }
     });
     this.domEvent();
+  }
+
+  resize() {
+    setTimeout(() => {
+      this.el.style.display = 'none';
+      console.log('clientWidth', this.el.parentElement.clientWidth);
+      console.log('clientHeight', this.el.parentElement.clientHeight);
+      app && app.renderer.resize(this.el.parentElement.clientWidth, this.el.parentElement.clientHeight);
+      this.el.style.display = 'block';
+    }, 0);
   }
 
   domEvent() {
@@ -385,12 +395,6 @@ export default class Scene {
     }
   }
 
-  resize() {
-    this.el.style.display = 'none';
-    app && app.renderer.resize(this.el.parentElement.clientWidth, this.el.parentElement.clientHeight);
-    this.el.style.display = 'block';
-  }
-
   init(data) {
     nowStamp = +new Date();
     const { spaces, terminals, robots, containers } = data;
@@ -515,14 +519,12 @@ export default class Scene {
       }
       noPCflag = true;
       const { spaceId, containerId, robotId, terminalId, x, y, z, posX, posY } = space;
-      // const { spaceId, x, y, z } = space;
       sprites.toBorder.setParent(building.floors[z].other);
       sprites.toBorder.position.set(x, y);
       sprites.toBorder.visible = true;
       spaceSelectArr[1] = spaceId;
 
       $root.events.onSelectTo && $root.events.onSelectTo({ spaceId, containerId, robotId, terminalId, x, y, z, posX, posY });
-      // $root.events.onSelectTo && $root.events.onSelectTo(space);
     }
   }
 

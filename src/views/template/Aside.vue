@@ -121,4 +121,14 @@ aside {
   }
 }
 .radio_css { color: #ccc; }
+@media screen and (max-width: 850px) {
+  aside {
+    display: none;
+  }
+}
+@media all and (orientation: portrait) and (max-width: 700px) {
+  aside {
+    display: none;
+  }
+}
 </style>
