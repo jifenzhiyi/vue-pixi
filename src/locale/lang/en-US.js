@@ -100,4 +100,6 @@ export default {
   HandelingMode: 'Handeling Mode',
   EfficiencyFirst: 'Efficiency First',
   PathFirst: 'Path First',
+  errRobots: '【Abnormal AGV】',
+  robotsFine: 'no Abnormal AGV',
 };

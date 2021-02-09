@@ -4,6 +4,7 @@
       <h3>{{ $t('SystemStatus') }}</h3>
       <a-radio-group
         class="radio_group"
+        :class="language === 'ja-JP' && 'radio_group_ja'"
         :value="systemStatus"
         @change="radioChange">
         <a-radio
@@ -57,7 +58,7 @@ import asideBatch from './AsideBatch.vue';
 export default {
   name: 'ScadaAside',
   computed: {
-    ...mapState(['modeStatus']),
+    ...mapState(['modeStatus', 'language']),
   },
   mixins: [role],
   components: {
@@ -92,6 +93,9 @@ aside {
     .radio_group {
       display: flex;
       justify-content: space-between;
+    }
+    .radio_group_ja {
+      display: block;
     }
   }
   .aside-desc {

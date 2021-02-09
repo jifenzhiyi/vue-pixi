@@ -36,12 +36,14 @@
         <a-icon
           type="bell"
           theme="filled" />
-        <span v-show="errorDisplay">【异常机器】{{ Object.keys(robotMapOfError).length }}</span>
+        <span v-show="errorDisplay">{{ $t('errRobots') }}{{ Object.keys(robotMapOfError).length }}</span>
       </div>
       <div
         v-show="errorDisplay"
         class="error-body">
-        <p v-if="Object.keys(robotMapOfError).length === 0">当前无异常机器</p>
+        <p
+          class="noneError"
+          v-if="Object.keys(robotMapOfError).length === 0">{{ $t('robotsFine') }}</p>
         <div
           class="red"
           v-for="item in robotMapOfError"
@@ -355,6 +357,10 @@ export default {
       .error-title { background: none; }
     }
   }
+}
+.noneError {
+  padding-top: 5px;
+  text-align: center;
 }
 @media all and (orientation: portrait) and (max-width: 700px) {
   .btn-center {

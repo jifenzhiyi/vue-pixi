@@ -13,5 +13,6 @@ export default (store) => {
     mutation.type === 'SET_SYSTEM_STATUS' && storage.set('scada_system_status', state.systemStatus);
     mutation.type === 'SET_THEMES_ID' && storage.set('scada_themeId', state.themeId);
     mutation.type === 'SET_MODE_TYPE' && storage.set('scada_status', state.modeType);
+    mutation.type === 'SET_LANG' && storage.set('scada_lang', state.language);
   });
 };

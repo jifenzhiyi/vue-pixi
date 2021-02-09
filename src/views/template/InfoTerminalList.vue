@@ -57,7 +57,12 @@ export default {
 <style lang="less" scoped>
 .info-main {
   padding: 10px 0;
-  .info-list .info-one .ellipsis { width: 20%; }
+  .info-list .info-one .ellipsis {
+    flex: 1;
+    padding: 10px 0;
+    border-right: solid 1px #ccc;
+    &:last-child { border-right: 0; }
+  }
   .info-one p {
     margin: 0;
     width: 100%;

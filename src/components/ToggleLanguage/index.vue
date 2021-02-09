@@ -6,8 +6,10 @@
       <svg-icon iconClass="fa-language" />
     </a>
     <a-menu slot="overlay">
+      <!--🇬🇧 🇰🇷 🇦🇺-->
       <a-menu-item @click="menuSelect('zh-CN')">🇨🇳 简体中文</a-menu-item>
       <a-menu-item @click="menuSelect('en-US')">🇺🇸 English</a-menu-item>
+      <a-menu-item @click="menuSelect('ja-JP')">🇯🇵 日语</a-menu-item>
     </a-menu>
   </a-dropdown>
 </template>

@@ -21,7 +21,9 @@
     </div>
     <div class="one">
       <div class="title">{{ $t('TerminalNum') }}：{{ factoryConfig.terminalCount.sum }}</div>
-      <div class="sub">
+      <div
+        class="sub"
+        :class="language === 'ja-JP' && 'sub_ja'">
         <div class="child c2">{{ $t('Run') }}：{{ factoryConfig.terminalCount['terminalCountOf1'] }}</div>
         <div class="child c3">{{ $t('Pausing') }}：{{ factoryConfig.terminalCount['terminalCountOf2'] }}</div>
         <div class="child c4">{{ $t('Offline') }}：{{ factoryConfig.terminalCount['terminalCountOf0'] }}</div>
@@ -37,6 +39,7 @@ export default {
   name: 'InfoMessages',
   computed: {
     ...mapState({
+      language: (state) => state.language,
       factoryConfig: (state) => state.factory.factoryConfig,
     }),
   },
@@ -55,6 +58,7 @@ export default {
       display: flex;
       padding-top: 10px;
       justify-content: space-between;
+      &.sub_ja { display: block; }
       .child {
         padding-left: 20px;
         position: relative;

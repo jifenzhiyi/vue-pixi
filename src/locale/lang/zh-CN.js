@@ -100,4 +100,6 @@ export default {
   HandelingMode: '分配模式',
   EfficiencyFirst: '效率优先',
   PathFirst: '路线优先',
+  errRobots: '【异常机器】',
+  robotsFine: '当前无异常机器',
 };

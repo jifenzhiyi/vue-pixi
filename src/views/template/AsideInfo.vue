@@ -74,7 +74,7 @@ export default {
 }
 .content {
   overflow: auto;
-  padding: 0 15px;
+  padding: 0 10px;
   border: solid 1px #ddd;
   border-top: 0;
 }

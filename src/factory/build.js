@@ -203,8 +203,6 @@ export default class Scene {
   resize() {
     setTimeout(() => {
       this.el.style.display = 'none';
-      console.log('clientWidth', this.el.parentElement.clientWidth);
-      console.log('clientHeight', this.el.parentElement.clientHeight);
       app && app.renderer.resize(this.el.parentElement.clientWidth, this.el.parentElement.clientHeight);
       this.el.style.display = 'block';
     }, 0);
