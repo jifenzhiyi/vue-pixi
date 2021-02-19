@@ -81,6 +81,8 @@
       </a-button-group>
     </div>
     <configure @on-change="floorDirectionChange" />
+    <add-container />
+    <update-container-orit />
   </div>
 </template>
 
@@ -90,11 +92,13 @@ import role from '@/mixins/role.js';
 import Game from '@/factory/game.js';
 import { formatTime } from '@/utils/help.js';
 import Configure from 'comps/pop/Configure.vue';
+import AddContainer from 'comps/pop/AddContainer.vue';
+import UpdateContainerOrit from 'comps/pop/UpdateContainerOrit.vue';
 
 export default {
   name: 'base3D',
   mixins: [role],
-  components: { Configure },
+  components: { Configure, AddContainer, UpdateContainerOrit },
   computed: {
     ...mapState({
       game: (state) => state.game,

@@ -96,7 +96,6 @@ export default {
       state.toSpaceInfo = space;
     },
     SET_HOVER_SPACE_INFO(state, space) {
-      console.log('SET_HOVER_SPACE_INFO space', space);
       state.hoverSpaceInfo = space;
     },
     SET_HOVER_SPACE_INFO_ONE(state, obj) {

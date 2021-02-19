@@ -547,7 +547,6 @@ export default class Scene {
     if (modeStatus === 'mark') {
       $root.events.onMarkSpace && $root.events.onMarkSpace(space);
     }
-    console.log('spaceUp modeStatus', modeStatus);
     if (modeStatus === 'batch') {
       if (!containerId) return;
       const container = $root.info.containerMap[containerId];
@@ -1221,6 +1220,22 @@ export default class Scene {
     const containerList = spacesContainerNew;
     const container = containerList.find((o) => o.name === startId);
     container.children.length = 1;
+  }
+
+  removeContainer(containerId) {
+    const container = this.info.containerMap[containerId];
+    const { spaceId, containerContainer } = container;
+    const { z } = this.info.spaceMap[spaceId];
+    TweenMax.to(containerContainer, 0.1, {
+      alpha: 0,
+      repeat: 8,
+      yoyo: true,
+      onComplete() {
+        building.floors[z].containerSprites.removeChild(containerContainer);
+      },
+    });
+    delete this.info.containerMap[containerId];
+    this.info.containerCount--; // 货架数量减少
   }
 
   updateContainers(containers) {

@@ -78,6 +78,7 @@ export default {
       toSpaceInfo: (state) => state.factory.toSpaceInfo,
       factoryConfig: (state) => state.factory.factoryConfig,
       application: (state) => state.application,
+      game: (state) => state.game,
       menuList: (state) => state.menuList,
     }),
     buttonTypeList() {
@@ -131,6 +132,7 @@ export default {
       this.application.spaceUp(space, this.application);
     },
     async actionTask(url, obj) {
+      console.log('actionTask url', url, 'obj', obj);
       obj.objectId = obj.object;
       !obj.spaceId && (obj.spaceId = this.toSpaceInfo.spaceId);
       const res = await taskAdd(url, obj);
@@ -138,7 +140,14 @@ export default {
         this.$message.success(this.$t('TaskReceivedMsg'));
         if (url === '/deleteContainer') {
           this.$store.commit('SET_HOVER_SPACE_INFO_ONE', { key: 'containerId', value: null });
-          this.application.removeContainer(obj.object, this.application); // TODO 手动删除货架
+          this.application && this.application.removeContainer(obj.object, this.application); // TODO 手动删除货架
+          this.game && this.game.removeContainer(obj.object);
+        }
+        if (url === '/moveContainer' || url === '/updateContainer') {
+          this.game && this.game.updateContainerInfo(obj.object);
+        }
+        if (url === '/moveRobot') {
+          this.game && this.game.moveRobot(obj.object);
         }
       }
     },
@@ -148,6 +157,7 @@ export default {
       res && this.$message.success(this.$t('TaskReceivedMsg'));
     },
     updateContainerOrit(obj) {
+      console.log('updateContainerOrit', obj);
       this.$store.commit('ADD_CONTAINER_CONFIG', obj);
       this.$store.commit('SET_CONTAINER_ORIT');
     },

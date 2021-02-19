@@ -50,12 +50,11 @@ const floorHeight = 1000;
 const instanceMesh = {};
 const raycaster = new Raycaster();
 const mouse = new Vector2(1, 1);
-let onOverSpace, mouseHolding, draging; // clickLeft, clickRight;
+let onOverSpace, mouseHolding, draging;
 let onOver = {};
 let moveDuration = 1.2; // 移动速度
 let waitingMoveList = {};
 const spaceMapByIndex = {};
-let onOverSpaceNow;
 
 const spaceColorMap = {
   '-1': new Color(0xFF3296), // for status
@@ -393,37 +392,96 @@ export default class Game {
     }, 0);
   }
 
+  spaceSelectArr = [];
+
+  updateModel() {
+    const modeStatus = store.state.modeStatus;
+    // 退出编辑模式
+    if (modeStatus !== 'edit') {
+      this.clearSpaceBorderMesh();
+    }
+  }
+
+  updateContainerInfo(cid) {
+    const from = this.info.spaceMap[this.spaceSelectArr[0]];
+    const to = this.info.spaceMap[this.spaceSelectArr[1]];
+    from.containerId = null;
+    to.containerId = cid;
+    this.clearSpaceBorderMesh();
+  }
+  
+  moveRobot(rid) {
+    const from = this.info.spaceMap[this.spaceSelectArr[0]];
+    const to = this.info.spaceMap[this.spaceSelectArr[1]];
+    from.robotId = null;
+    to.robotId = rid;
+    this.clearSpaceBorderMesh();
+  }
+
+  clearSpaceBorderMesh() {
+    this.spaceSelectArr = [];
+    instanceMesh.spaceRightSelBorderMesh.visible = false;
+    instanceMesh.spaceLeftSelBorderMesh.visible = false;
+    store.commit('SET_HOVER_SPACE_INFO', {});
+    store.commit('SET_TO_SPACE_INFO', {});
+  }
+
   initEvents() {
     this.viewBox.addEventListener('pointerdown', () => {
       mouseHolding = true;
-      onOverSpaceNow = onOverSpace;
-      // if (e.button === 0) {
-      //   clickLeft = 1;
-      // }
-      // if (e.button === 2) {
-      //   clickRight = 1;
-      // }
     }, false);
-    this.viewBox.addEventListener('pointerup', () => {
+    this.viewBox.addEventListener('pointerup', (e) => {
       mouseHolding = false;
-      // if (e.button === 0) {
-      //   clickLeft = 0;
-      // }
-      // if (e.button === 2) {
-      //   clickRight = 0;
-      // }
       if (draging) { // 发生了拖拽
         draging = false;
       } else {
         const modeStatus = store.state.modeStatus;
-        // console.log('pointerup modeStatus', modeStatus, 'onOverSpaceNow', onOverSpaceNow);
-        if (modeStatus === 'mark' && onOverSpaceNow) {
-          this.events.onSpaceClick(onOverSpaceNow, 'mark');
+        // 标记地板模式
+        if (modeStatus === 'mark' && onOverSpace) {
+          this.events.onSpaceClick(onOverSpace, modeStatus);
+        }
+        // 编辑模式
+        if (modeStatus === 'edit') {
+          if (e.button === 0) {
+            // 点击左键
+            if (onOverSpace) {
+              if (this.spaceSelectArr[0] === onOverSpace.spaceId) {
+                this.clearSpaceBorderMesh();
+                return;
+              }
+              if (this.spaceSelectArr[1] === onOverSpace.spaceId) {
+                instanceMesh.spaceRightSelBorderMesh.visible = false;
+                this.spaceSelectArr[1] = null;
+                store.commit('SET_TO_SPACE_INFO', {});
+              }
+              const { x, y, z } = onOverSpace;
+              instanceMesh.spaceLeftSelBorderMesh.position.set(x, y, z);
+              instanceMesh.spaceLeftSelBorderMesh.visible = true;
+              store.commit('SET_HOVER_SPACE_INFO', onOverSpace);
+              this.spaceSelectArr[0] = onOverSpace.spaceId;
+            }
+          } else if (e.button === 2) {
+            // 点击右键
+            if (onOverSpace) {
+              if (!this.spaceSelectArr[0]
+                || this.spaceSelectArr[0] === onOverSpace.spaceId
+                || this.spaceSelectArr[1] === onOverSpace.spaceId) {
+                instanceMesh.spaceRightSelBorderMesh.visible = false;
+                this.spaceSelectArr[1] = null;
+                store.commit('SET_TO_SPACE_INFO', {});
+                return;
+              }
+              const { x, y, z } = onOverSpace;
+              instanceMesh.spaceRightSelBorderMesh.position.set(x, y, z);
+              instanceMesh.spaceRightSelBorderMesh.visible = true;
+              store.commit('SET_TO_SPACE_INFO', onOverSpace);
+              this.spaceSelectArr[1] = onOverSpace.spaceId;
+            }
+          }
         }
       }
     }, false);
     this.viewBox.addEventListener('mousemove', (event) => {
-      console.log('mousemove', event.button);
       event.preventDefault();
       const getBoundingClientRect = this.viewBox.getBoundingClientRect();
       mouse.x = ((event.clientX - getBoundingClientRect.left) / this.domW) * 2 - 1;
@@ -589,6 +647,34 @@ export default class Game {
     }
   }
 
+  // 新增货架
+  addContainer(container) {
+    this.info.containerCount++; // 货架数量增加
+    const { containerId, spaceId, orientation, type } = container;
+    const { width, length, height } = this.containerTypeMap[type];
+    const meshToSpace = this.info.spaceMap[spaceId];
+    meshToSpace.containerId = containerId;
+    const { posX, posY, x, y, z } = meshToSpace;
+    const mesh = (model[`container${type}`] || model.container0).clone();
+    mesh.visible = true;
+    mesh.position.set(x, y, z);
+    type === 0
+      ? mesh.scale.set(width * 2, length * 2, height * 2)
+      : mesh.scale.set(width * 2, length * 2, height);
+    // 初始化时 orientation 为 0 的话不转向，使用原始角度
+    orientation && (mesh.rotation.y = -Math.PI / 2 * orientation);
+    this.scene.add(mesh);
+    container.mesh = mesh;
+    this.info.containerMap[containerId] = { posX, posY, ...container };
+  }
+
+  removeContainer(containerId) {
+    const container = this.info.containerMap[containerId];
+    container.mesh.visible = false;
+    delete this.info.containerMap[containerId];
+    this.info.containerCount--; // 货架数量减少
+  }
+
   updateContainers(containers) {
     const length = containers.length;
     for (let i = 0; i < length; i++) {
@@ -597,6 +683,10 @@ export default class Game {
       const meshToSpace = this.info.spaceMap[meshToSpaceId];
       const { posX, posY } = meshToSpace;
       const fromContainer = this.info.containerMap[container.containerId]; // 旧的 container 信息
+      if (!fromContainer) {
+        this.addContainer(container);
+        continue;
+      }
       fromContainer.posX = posX;
       fromContainer.posY = posY;
       const { mesh, spaceId: meshFromSpaceId } = fromContainer;

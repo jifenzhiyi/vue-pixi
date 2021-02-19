@@ -72,7 +72,12 @@ export default {
       let parameter = this.orientation % 4;
       if (parameter === 1) parameter = 3;
       else if (parameter === 3) parameter = 1;
-      this.$store.dispatch('updateContainerOrit', parameter);
+      const res = await this.$store.dispatch('updateContainerOrit', parameter);
+      if (res.code === '0000') {
+        this.$message.success(this.$t('TaskReceivedMsg'));
+      } else {
+        this.$message.error(res.msg);
+      }
     },
     rotate() {
       this.orientation += 1;

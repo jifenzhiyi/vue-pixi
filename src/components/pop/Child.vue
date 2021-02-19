@@ -108,7 +108,6 @@ export default {
       this.param = param;
     },
     switchChange(value) {
-      console.log('switchChange value', value, 'param', this.param);
       if (this.param === 'showStats') {
         this.$store.commit('SET_PARAMS', { key: this.param, value });
         this.$store.commit('UPDATE_STATS', value);
