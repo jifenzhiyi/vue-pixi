@@ -221,7 +221,7 @@ export default {
           res && this.$message.success(this.$t('TaskReceivedMsg'));
           setTimeout(() => {
             this.$store.commit('SET_SYSTEM_STATUS', e.target.value);
-          }, 1000);
+          }, 1500);
         }
         this.isClick = true;
       }

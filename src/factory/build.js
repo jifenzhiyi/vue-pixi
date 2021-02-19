@@ -187,7 +187,6 @@ export default class Scene {
     app.stage.addChild(buildingSprite);
 
     this.resize();
-    console.log('resize');
     window.addEventListener('resize', this.resize.bind(this));
     // 浏览器 tab 页切换到后台时将机器的移动速度置为 0，即无动画
     document.addEventListener('visibilitychange', () => {

@@ -43,10 +43,10 @@
       <div
         v-if="$noMobile"
         class="btn-center">
-        <!-- <a-button
+        <a-button
           class="btn"
           v-if="modeStatus === 'view'"
-          @click="modeChange('edit')">{{$t('EditMode')}}</a-button> -->
+          @click="modeChange('edit')">{{$t('EditMode')}}</a-button>
         <a-button
           class="btn"
           v-if="modeStatus === 'view'"
@@ -70,7 +70,7 @@
           @click="zoomer(1)"></a-button>
         <a-button
           class="btnCss"
-          @click="zoomer()">1:1</a-button>
+          @click="reset()">1:1</a-button>
         <a-button
           icon="zoom-in"
           @click="zoomer(-1)"></a-button>
@@ -164,6 +164,9 @@ export default {
     },
     zoomer(offset) {
       this.game && this.game.zoom(offset);
+    },
+    reset() {
+      this.game && this.game.reset();
     },
     floorDirectionChange(value) {
       console.log('floorDirectionChange val', value);

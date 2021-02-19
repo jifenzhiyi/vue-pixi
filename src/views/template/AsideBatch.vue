@@ -45,7 +45,7 @@
     </div>
     <div class="info-edit">
       <div class="edit-one">
-        <div class="title">{{ $t("ContainerPlace") }}</div>
+        <div class="title">{{ $t("ContainerPlace") }}({{ selectedContainers.length }})</div>
         <a-button
           size="small"
           icon="delete"

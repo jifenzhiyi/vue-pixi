@@ -49,7 +49,7 @@ let modelLoadedCB;
 const floorHeight = 1000;
 const instanceMesh = {};
 const raycaster = new Raycaster();
-const mouse = new Vector2();
+const mouse = new Vector2(1, 1);
 let onOverSpace, mouseHolding, draging; // clickLeft, clickRight;
 let onOver = {};
 let moveDuration = 1.2; // 移动速度
@@ -281,8 +281,8 @@ export default class Game {
   }
 
   initCamera() {
-    this.camera = new PerspectiveCamera(50, this.domW / this.domH, 1, 30000);
-    this.camera.position.set(this.mapLength * 100 / 2, 3000, this.mapWidth * 100 * 1.5);
+    this.camera = new PerspectiveCamera(30, this.domW / this.domH, 1, 300000);
+    this.camera.position.set(this.mapLength * 100 / 2, 3000, this.mapWidth * 100 * 1.3);
     this.scene.add(this.camera);
   }
 
@@ -322,22 +322,29 @@ export default class Game {
   }
 
   initControls() {
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.mouseButtons = {
+    const controls = new OrbitControls(this.camera, this.renderer.domElement);
+    controls.mouseButtons = {
       LEFT: MOUSE.PAN,
       MIDDLE: MOUSE.DOLLY,
       RIGHT: MOUSE.ROTATE,
     };
-    this.controls.touches = {
+    controls.touches = {
       ONE: TOUCH.PAN,
       TWO: TOUCH.DOLLY_ROTATE,
     };
-    this.controls.maxPolarAngle = Math.PI / 2; // 能够垂直旋转的角度的上限，范围是 0 到 Math.PI，其默认值为 Math.PI
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = Math.PI * 0.5; // 能够垂直旋转的角度的上限，范围是 0 到 Math.PI，其默认值为 Math.PI
+    // 缩放限制
+    controls.minDistance = 1000;
+    controls.maxDistance = 10000;
     // 是否开启右键拖拽
-    this.controls.enablePan = true; // 是否启用相机平移
-    this.controls.enableRotate = true; // 是否启用相机旋转, 移动设备可能需要设置为禁止旋转
-    this.controls.target = new Vector3(this.mapLength * 100 / 2, 0, this.mapWidth * 100 * 0.8); // 接管相机的 lookAt
-    this.controls.update();
+    controls.enablePan = true; // 是否启用相机平移
+    controls.enableRotate = true; // 是否启用相机旋转, 移动设备可能需要设置为禁止旋转
+    controls.screenSpacePanning = false; // 新版three.js需要添加该属性控制鼠标平移的时候摄像机的方向
+    controls.target = new Vector3(this.mapLength * 100 / 2, 0, this.mapWidth * 100 * 0.8); // 接管相机的 lookAt
+    controls.update();
+    this.controls = controls;
+    this.controls.saveState();
   }
 
   testRaycaster() {
@@ -416,6 +423,7 @@ export default class Game {
       }
     }, false);
     this.viewBox.addEventListener('mousemove', (event) => {
+      console.log('mousemove', event.button);
       event.preventDefault();
       const getBoundingClientRect = this.viewBox.getBoundingClientRect();
       mouse.x = ((event.clientX - getBoundingClientRect.left) / this.domW) * 2 - 1;
@@ -440,6 +448,7 @@ export default class Game {
   }
 
   render = () => {
+    this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -809,5 +818,9 @@ export default class Game {
       this.info.terminalMap[key].mesh[0].visible = flag;
       this.info.terminalMap[key].mesh[1].visible = flag;
     });
+  }
+
+  reset() {
+    this.controls.reset();
   }
 }
