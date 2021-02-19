@@ -217,7 +217,6 @@ export default class Game {
     this.events = events;
     this.domW = this.viewBox.clientWidth;
     this.domH = this.viewBox.clientHeight;
-    console.log('init dowW', this.domW, 'domH', this.domH);
     const { mapLength, mapWidth } = warehouseInfo;
     this.spaceWidth = 1;
     this.spaceLength = 1;
