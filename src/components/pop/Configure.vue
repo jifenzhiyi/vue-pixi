@@ -9,7 +9,12 @@
     <div class="title">{{$t('Setting')}}</div>
     <div class="layer">
       <div class="label">{{$t('Floors')}}</div>
-      <div class="text">{{$t('FloorN', { floor: floorsCount } )}}</div>
+      <div class="text">
+        <a-checkbox-group
+          v-model="floorsVisible"
+          :options="warehouseLayerNo"
+          @change="toggleFloor" />
+      </div>
     </div>
     <div
       v-if="floorsCount > 1"
@@ -41,16 +46,45 @@ export default {
   components: {
     PopTabs,
   },
+  data() {
+    return {
+      floorsVisible: [],
+    };
+  },
   computed: {
-    ...mapState(['popShowConfigure']),
+    ...mapState(['popShowConfigure', 'application']),
     floorDirection() {
       return this.$store.state.factory.params.floorDirection;
     },
     floorsCount() {
       return this.$store.state.factory.factoryConfig.floorsCount;
     },
+    warehouseLayerNo() {
+      const arr = [];
+      for (let i = 0; i < this.floorsCount; i++) {
+        arr.push({ value: i + 1, label: this.$t('FloorN', { floor: i + 1 }) });
+      }
+      return arr;
+    },
+  },
+  watch: {
+    floorsCount: {
+      immediate: false,
+      deep: false,
+      handler() {
+        this.floorsInit();
+      },
+    },
   },
   methods: {
+    floorsInit() {
+      for (let i = 0; i < this.floorsCount; i++) {
+        this.floorsVisible.push(i + 1);
+      }
+    },
+    toggleFloor(checkedValues) {
+      this.application && this.application.toggleFloor(checkedValues);
+    },
     popHide() {
       this.$store.commit('SET_CONFIGURE_SHOW');
     },

@@ -261,7 +261,8 @@ export default {
       }
     },
     floorDirectionChange(value) {
-      this.application && this.application.floorDirectionChange(value);
+      this.$store.commit('SET_PARAMS', { key: 'floorDirection', value });
+      this.application && this.application.floorsDirection(value);
     },
     modeChange(status) {
       this.$store.commit('SET_MODE', status);

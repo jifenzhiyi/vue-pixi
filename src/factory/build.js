@@ -1433,6 +1433,49 @@ export default class Scene {
     });
   }
 
+  floorsDirection(value) {
+    this.zoom(0);
+    let i = 0;
+    Object.keys(building.floors).forEach((floorIndex) => {
+      const floor = building.floors[floorIndex];
+      const floorSprite = floor.floorSprite;
+      if (value === 'Horizontal') {
+        floorSprite.x = (this.mapWidth + floorPadding * 2 + floorMargin) * i;
+        floorSprite.y = 0;
+      } else {
+        floorSprite.x = 0;
+        floorSprite.y = (this.mapLength + floorPadding * 2 + floorMargin) * i;
+      }
+      i++;
+    });
+    const buildingSprite = building.buildingSprite;
+    buildingSprite.pivot.x = Math.floor(buildingSprite.width / 2);
+    buildingSprite.pivot.y = Math.floor(buildingSprite.height / 2);
+  }
+
+  toggleFloor(checkedValues) {
+    let i = 0;
+    Object.keys(building.floors).forEach((floorIndex) => {
+      const floor = building.floors[floorIndex];
+      const index = checkedValues.indexOf(Number(floorIndex) + 1);
+      floor.visible = false;
+      const { floorSprite } = floor;
+      floorSprite.visible = false;
+      if (index !== -1) {
+        floor.visible = true;
+        floorSprite.visible = true;
+        if (params.floorDirection === 'Horizontal') {
+          floorSprite.x = (this.mapWidth + floorPadding * 2 + floorMargin) * i;
+          floorSprite.y = 0;
+        } else {
+          floorSprite.x = 0;
+          floorSprite.y = (this.mapLength + floorPadding * 2 + floorMargin) * i;
+        }
+        i++;
+      }
+    });
+  }
+
   initEquipments(equipments) {
     equipments.forEach((item) => {
       const { posX, posY, posZ = 0, itemType, length, width, rotate } = item;

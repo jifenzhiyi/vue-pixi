@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import {
   Button,
+  Checkbox,
   ConfigProvider,
   Dropdown,
   Form,
@@ -16,6 +17,7 @@ import {
 } from 'ant-design-vue';
 
 Vue.use(Button);
+Vue.use(Checkbox);
 Vue.use(ConfigProvider);
 Vue.use(Dropdown);
 Vue.use(Form);

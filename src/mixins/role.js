@@ -28,6 +28,7 @@ export default {
       this.menuList.forEach((item) => {
         obj[item.buttonType] = item.url;
       });
+      // console.log('obj', obj);
       return obj;
     },
   },

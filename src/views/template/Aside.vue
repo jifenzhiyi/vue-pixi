@@ -6,6 +6,7 @@
         class="radio_group"
         :class="language === 'ja-JP' && 'radio_group_ja'"
         :value="systemStatus"
+        :disabled="!buttonTypeList.updateSystemStatus"
         @change="radioChange">
         <a-radio
           v-for="item in systemStatusMap"
