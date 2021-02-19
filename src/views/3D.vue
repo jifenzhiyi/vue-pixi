@@ -2,7 +2,9 @@
   <div 
     id="gameBox"
     class="main">
-    <div class="box">
+    <div
+      id="gameView"
+      class="box">
       <canvas ref="gameView"></canvas>
       <div
         v-if="loading"

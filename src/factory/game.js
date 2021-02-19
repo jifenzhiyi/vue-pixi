@@ -217,6 +217,7 @@ export default class Game {
     this.events = events;
     this.domW = this.viewBox.clientWidth;
     this.domH = this.viewBox.clientHeight;
+    console.log('init dowW', this.domW, 'domH', this.domH);
     const { mapLength, mapWidth } = warehouseInfo;
     this.spaceWidth = 1;
     this.spaceLength = 1;
@@ -383,15 +384,6 @@ export default class Game {
     }
   }
 
-  onWindowResize() {
-    setTimeout(() => {
-      const dom = document.getElementById('gameBox');
-      this.camera.aspect = dom.clientWidth / dom.clientHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(dom.clientWidth, dom.clientHeight);
-    }, 0);
-  }
-
   spaceSelectArr = [];
 
   updateModel() {
@@ -503,6 +495,18 @@ export default class Game {
         moveDuration = 1.2;
       }
     }, false);
+  }
+
+  onWindowResize() {
+    setTimeout(() => {
+      const gameView = document.getElementById('gameView');
+      this.domW = gameView.clientWidth;
+      this.domH = gameView.clientHeight;
+      // const dom = document.getElementById('gameBox');
+      // this.camera.aspect = dom.clientWidth / dom.clientHeight;
+      // this.camera.updateProjectionMatrix();
+      this.renderer.setSize(this.domW, this.domH);
+    }, 0);
   }
 
   render = () => {

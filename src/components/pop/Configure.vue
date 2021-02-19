@@ -12,6 +12,7 @@
       <div class="text">
         <a-checkbox-group
           v-model="floorsVisible"
+          :disabled="modeType === '3D'"
           :options="warehouseLayerNo"
           @change="toggleFloor" />
       </div>
@@ -52,7 +53,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(['popShowConfigure', 'application']),
+    ...mapState(['popShowConfigure', 'application', 'modeType']),
     floorDirection() {
       return this.$store.state.factory.params.floorDirection;
     },
