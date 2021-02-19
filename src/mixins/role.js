@@ -46,6 +46,7 @@ export default {
       colorConfig,
       ReadOrdersMode: '0',
       HandelingMode: '1',
+      isClick: true, // 按钮是否被点击
     };
   },
   methods: {
@@ -212,9 +213,18 @@ export default {
     },
     // 系统状态更新
     async radioChange(e) {
-      this.$store.commit('SET_SYSTEM_STATUS', e.target.value);
-      const data = { code: 7, parameter: e.target.value, objectId: 'System' };
-      await operation(data, '/updateSystemStatus');
+      if (this.isClick) {
+        this.isClick = false;
+        const data = { code: 7, parameter: e.target.value, objectId: 'System' };
+        const res = await operation(data, '/updateSystemStatus');
+        if (res.code === '0000') {
+          res && this.$message.success(this.$t('TaskReceivedMsg'));
+          setTimeout(() => {
+            this.$store.commit('SET_SYSTEM_STATUS', e.target.value);
+          }, 1000);
+        }
+        this.isClick = true;
+      }
     },
     // 更新仓库id
     warehouseChange(val) {
