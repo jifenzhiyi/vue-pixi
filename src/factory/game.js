@@ -7,6 +7,7 @@ import {
   Vector2,
   Vector3,
   MOUSE, TOUCH,
+  BufferGeometry,
   MeshStandardMaterial,
   BoxBufferGeometry,
   AmbientLight,
@@ -171,15 +172,15 @@ function getTerminalId(text) {
   return canvas;
 }
 
-function createRobotPath(vertices) {
+function createRobotPath(vertices, color1 = '0xff0000', color2 = '0x0000ff') {
   const material = new LineBasicMaterial({
     vertexColors: true,
     linewidth: 2, // 默认为1，暂时无法修改
   });
   const geometry = new Geometry();
   geometry.colors.push(
-    new Color(0xff0000),
-    new Color(0x0000ff),
+    new Color(color1),
+    new Color(color2),
   );
   geometry.vertices = vertices;
   const robotPath = new Line(geometry, material);
@@ -585,7 +586,7 @@ export default class Game {
     spaceColorList.needsUpdate = false;
     const length = spaces.length;
     for (let i = 0; i < length; i++) {
-      const { spaceId, status: nStatus, type } = spaces[i];
+      const { spaceId, status: nStatus, type, linkId, } = spaces[i];
       const oSpace = this.info.spaceMap[spaceId];
       const { index, status: oStatus } = oSpace;
       if (nStatus !== oStatus) {
@@ -783,6 +784,23 @@ export default class Game {
     mesh.geometry.setAttribute('instanceColor', new InstancedBufferAttribute(new Float32Array(spaceColorList), 3));
     mesh.material.onBeforeCompile = onBeforeCompile;
     this.scene.add(instanceMesh.spacesMesh); // 添加 space 点位, 不需要显示则无需执行该行
+    // 绘制路径
+    for (let i = 0; i < spaces.length; i++) {
+      const { x, y, z, linkId } = spaces[i];
+      if (linkId) {
+        const linkIds = linkId.trim().split(' ');
+        linkIds.forEach((toId) => {
+          const { x: x1, y: y1, z: z1 } = this.info.spaceMap[toId];
+          console.log('p1', x, y, z, 'p2', x1, y1, z1);
+          const vertices = [
+            new Vector3(x, y, z),
+            new Vector3(x1, y1, z1),
+          ];
+          const robotPathMesh = createRobotPath(vertices, 0x000000, 0x000000);
+          instanceMesh.spacesMesh.add(robotPathMesh);
+        });
+      }
+    }
   }
 
   initTerminals(terminals) {
