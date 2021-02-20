@@ -198,7 +198,7 @@ function createPath(p1, p2) {
   geometry.setPositions(pointArr);
   const material = new LineMaterial({
     linewidth: 1,
-    color: 0xEEEEEE,
+    color: 0x000000,
   });
   material.resolution.set(window.innerWidth + 100, window.innerHeight + 100);
   const line = new Line2(geometry, material);
