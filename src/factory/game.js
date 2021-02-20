@@ -34,7 +34,7 @@ import store from '@/store/index.js';
 import { base64ToBlob } from '@/utils/help.js'; // thottle, 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry'
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { Line2 } from 'three/examples/jsm/lines/Line2';
@@ -194,7 +194,7 @@ function createRobotPath(vertices) {
 
 function createPath(p1, p2) {
   const geometry = new LineGeometry();
-  const pointArr = [ p1.x, p1.y, p1.z, p2.x, p2.y, p2.z ];
+  const pointArr = [p1.x, p1.y, p1.z, p2.x, p2.y, p2.z];
   geometry.setPositions(pointArr);
   const material = new LineMaterial({
     linewidth: 1,
@@ -654,7 +654,12 @@ export default class Game {
         fromRobot.status = status;
       }
       const robotPathMesh = mesh.getObjectByName('robotPath');
-      const { x, y, z } = this.info.spaceMap[meshToSpaceId]; // 机器新的 space 位置
+      const spaceOld = this.info.spaceMap[meshFromSpaceId];
+      spaceOld.robotId = null;
+      // TODO 机器新的点位
+      const spaceNow = this.info.spaceMap[meshToSpaceId];
+      spaceNow.robotId = robotId;
+      const { x, y, z } = spaceNow; // 机器新的 space 位置
       const { x: cx, y: cy, z: cz } = mesh.position; // 机器当前所处位置
       const { x: px, y: py, z: pz } = pathToSpace; // 路径终点新的位置
       const robotPathPoint2 = robotPathMesh.geometry.vertices[1]; // 路径终点坐标
