@@ -7,7 +7,6 @@ import {
   Vector2,
   Vector3,
   MOUSE, TOUCH,
-  BufferGeometry,
   MeshStandardMaterial,
   BoxBufferGeometry,
   AmbientLight,
@@ -585,8 +584,7 @@ export default class Game {
     spaceColorList.needsUpdate = false;
     const length = spaces.length;
     for (let i = 0; i < length; i++) {
-      const { spaceId, status: nStatus, type, } = spaces[i];
-      spaces[i].spaceId === '413' && console.log('spaces', spaces[i]);
+      const { spaceId, status: nStatus, type } = spaces[i];
       const oSpace = this.info.spaceMap[spaceId];
       oSpace.containerId = null; // TODO 2D 3D切换的时候清除一下，updateContainer的时候重新赋值
       const { index, status: oStatus } = oSpace;
@@ -718,11 +716,15 @@ export default class Game {
       fromContainer.posX = posX;
       fromContainer.posY = posY;
       const { mesh, spaceId: meshFromSpaceId } = fromContainer;
+      container.containerId === 'C149' && console.log('mesh', mesh);
       container.orientation != null && (mesh.rotation.y = -Math.PI / 2 * container.orientation);
       // 更新时 orientation 为 0 的话需要转回原始方向
       if (meshFromSpaceId !== meshToSpaceId) { // 货架移动
         fromContainer.spaceId = meshToSpaceId;
-        const { x, y, z } = this.info.spaceMap[meshToSpaceId];
+        const { x, y, z } = meshToSpace;
+        if (!mesh.position.x) {
+          mesh.position.set(x, y, z);
+        }
         const oldTweenOfMesh = TweenMax.getTweensOf(mesh.position)[0];
         oldTweenOfMesh && oldTweenOfMesh.kill();
         const waitingTo = waitingMoveList[meshToSpaceId];

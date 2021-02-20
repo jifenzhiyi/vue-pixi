@@ -1259,7 +1259,7 @@ export default class Scene {
       if (!space) {
         space.containerId = null;
         continue;
-      };
+      }
       const { x, y, z } = space;
       const oldContainer = this.info.containerMap[containerId];
       if (!oldContainer) {
