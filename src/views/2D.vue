@@ -190,7 +190,7 @@ export default {
   activated() {
     this.loading = true;
     if (!this.isFirst) {
-      this.isFirst = true;
+      // this.isFirst = true;
       this.initWS();
     }
   },
@@ -200,9 +200,9 @@ export default {
   beforeDestroy() {
     this.modeChange('view');
     this.ws && this.ws.close();
+    cancelAnimationFrame(statser);
     this.$store.commit('DESTROY_APPLICATION');
     this.timeInterval && clearInterval(this.timeInterval);
-    cancelAnimationFrame(statser);
     this.$store.commit('SET_STATS', null);
   },
   methods: {

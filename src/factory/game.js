@@ -223,6 +223,14 @@ export default class Game {
     this.mapWidth = mapWidth;
     this.mapLength = mapLength;
     model.rect = createRect(this.spaceLength * 100 - spaceGap, this.spaceWidth * 100 - spaceGap);
+    this.info = {}; // 场景内容信息
+    this.containerTypeMap = {};
+    this.workerMeshList = [];
+    this.init();
+  }
+
+  // 数据初始化
+  initReset() {
     this.info = {
       floorsCount: 1,
       spaceCount: 0, // 点位数量
@@ -246,11 +254,10 @@ export default class Game {
       }, // 工作站数量
       robotMapOfError: {}, // 机器错误信息
       chargerMap: {}, // 充电桩信息
-    }; // 场景内容信息
-    this.containerTypeMap = {};
-    this.workerMeshList = [];
-
-    this.init();
+      terminalMap: {}, // 工作站信息
+      containerMap: {}, // 货架信息
+    };
+    console.log('initReset 3D', this.info);
   }
 
   init() {
@@ -398,6 +405,7 @@ export default class Game {
     const to = this.info.spaceMap[this.spaceSelectArr[1]];
     from.containerId = null;
     to.containerId = cid;
+    // const container = this.info.containerMap[cid];
     this.clearSpaceBorderMesh();
   }
   
@@ -527,11 +535,20 @@ export default class Game {
     }
   }
 
+  destroy() {
+    // TODO clear scene
+  }
+
+  empty(elem) {
+    while (elem.lastChild) elem.removeChild(elem.lastChild);
+  }
+
   updateContainersType(containerTypeMap) {
     this.containerTypeMap = containerTypeMap;
   }
 
   initData(data) {
+    this.initReset();
     const { spaces, containers, robots, terminals } = data;
     if (spaces) {
       this.info.spaceCount = spaces.length;
@@ -673,7 +690,7 @@ export default class Game {
 
   removeContainer(containerId) {
     const container = this.info.containerMap[containerId];
-    container.mesh.visible = false;
+    this.scene.remove(container.mesh);
     delete this.info.containerMap[containerId];
     this.info.containerCount--; // 货架数量减少
   }
@@ -769,7 +786,6 @@ export default class Game {
   }
 
   initTerminals(terminals) {
-    this.info.terminalMap = {};
     const geometry = new PlaneBufferGeometry(100, 100);
     model.terminalId = new Mesh(geometry);
     for (let i = 0, len = terminals.length; i < len; i++) {
@@ -847,7 +863,6 @@ export default class Game {
   }
   
   initContainers(containers) {
-    this.info.containerMap = {};
     for (let i = 0; i < containers.length; i++) {
       const container = containers[i];
       const { containerId, spaceId, orientation, status, type } = container;

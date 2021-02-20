@@ -41,14 +41,31 @@ export default class Scene {
     floors.forEach((floorIndex) => {
       building.floors[floorIndex] = { visible: true };
     });
+    this.floors = floors;
     this.mapWidth = mapLength * 10;
     this.mapLength = mapWidth * 10;
     this.spaceWidth = spaceLength * 10;
     this.spaceLength = spaceWidth * 10;
-    console.log('spaceWidth', this.spaceWidth, 'spaceLength', this.spaceLength);
     this.colorConfig = store.state.colorConfig;
+    this.info = {}; // 场景内容信息
+    this.spacesOfContainerSlot = []; // 货架泊位
+    this.spacesOfInvalid = []; // 无效位置
+    this.spacesOfWaiting = []; // 等待位
+    this.waitingMoveList = []; // 等待移动的列表
+    this.selectedContainers = {}; // 选中的货架
+    this.createScene(el); // 场景创建
+    loadTextures(equipments).then((res) => {
+      this.textures = res;
+      this.events.onInitWS && this.events.onInitWS();
+      this.events.onMarkerList && this.events.onMarkerList();
+      this.events.onDimensionList && this.events.onDimensionList();
+    });
+  }
+
+  // 数据初始化
+  initReset() {
     this.info = {
-      floorsCount: floors.length,
+      floorsCount: this.floors.length,
       spaceCount: 0, // 点位数量
       spaceMap: new Map(), // 储存点位信息
       spaceMapOfMark: new Map(), // 标红的点位信息
@@ -72,19 +89,26 @@ export default class Scene {
       chargerMap: {}, // 充电桩信息
       terminalMap: {}, // 工作站信息
       containerMap: {}, // 货架信息
-    }; // 场景内容信息
-    this.spacesOfContainerSlot = []; // 货架泊位
-    this.spacesOfInvalid = []; // 无效位置
-    this.spacesOfWaiting = []; // 等待位
-    this.waitingMoveList = []; // 等待移动的列表
-    this.selectedContainers = {}; // 选中的货架
-    this.createScene(el); // 场景创建
-    loadTextures(equipments).then((res) => {
-      this.textures = res;
-      this.events.onInitWS && this.events.onInitWS();
-      this.events.onMarkerList && this.events.onMarkerList();
-      this.events.onDimensionList && this.events.onDimensionList();
-    });
+    };
+    sprites.hoverBorder = createGraphics(
+      this.spaceWidth,
+      this.spaceLength,
+      this.colorConfig.hoverBorderColor,
+      'hoverBorder',
+    );
+    sprites.fromBorder = createGraphics(
+      this.spaceWidth,
+      this.spaceLength,
+      this.colorConfig.fromBorderColor,
+      'fromBorder',
+    );
+    sprites.toBorder = createGraphics(
+      this.spaceWidth, 
+      this.spaceLength,
+      this.colorConfig.toBorderColor,
+      'toBorder',
+    );
+    building.buildingSprite.addChild(sprites.hoverBorder, sprites.fromBorder, sprites.toBorder);
   }
 
   createDefaultContainer(name, floorIndex, x = floorPadding, y = floorPadding) {
@@ -393,31 +417,13 @@ export default class Scene {
   }
 
   init(data) {
+    this.initReset();
     nowStamp = +new Date();
     const { spaces, terminals, robots, containers } = data;
     spaces && this.initSpaces(spaces);
     terminals && this.initTerminals(terminals);
     containers && this.initContainers(containers);
     robots && this.initRobots(robots);
-    sprites.hoverBorder = createGraphics(
-      this.spaceWidth,
-      this.spaceLength,
-      this.colorConfig.hoverBorderColor,
-      'hoverBorder',
-    );
-    sprites.fromBorder = createGraphics(
-      this.spaceWidth,
-      this.spaceLength,
-      this.colorConfig.fromBorderColor,
-      'fromBorder',
-    );
-    sprites.toBorder = createGraphics(
-      this.spaceWidth, 
-      this.spaceLength,
-      this.colorConfig.toBorderColor,
-      'toBorder',
-    );
-    building.buildingSprite.addChild(sprites.hoverBorder, sprites.fromBorder, sprites.toBorder);
     return Promise.resolve(this.info);
   }
 
@@ -430,9 +436,11 @@ export default class Scene {
       space.x = posY * 10;
       space.y = posX * 10;
       space.z = posZ || 0;
-      const spacesIdLayer = this.createSpaceContainer('spacesIdLayer', space.x, space.y);
-      const spacesIdLayer2 = this.createSpaceContainer('spacesIdLayer', space.x, space.y);
       this.info.spaceMap.set(spaceId, space);
+      const spacesIdLayer = this.createSpaceContainer('spacesIdLayer', space.x, space.y);
+      spacesIdLayer.name = spaceId;
+      const spacesIdLayer2 = this.createSpaceContainer('spacesIdLayer', space.x, space.y);
+      spacesIdLayer2.name = spaceId;
       const spaceSprite = PIXI.Sprite.from('textures/space1.jpg');
       const spaceSprite2 = PIXI.Sprite.from('textures/space1.png');
       if (type === 1) {
@@ -1082,7 +1090,7 @@ export default class Scene {
       } = robot;
       const endIdList = endIdNew ? endIdNew.split(',') : [];
       const endId = endIdList[0]; // endId 第一个坐标点
-      const space = this.info.spaceMap[spaceId]; // 当前的位置
+      const space = this.info.spaceMap.get(spaceId); // 当前的位置
       if (!space) continue; // robot对应的space不存在 直接跳过
       const { posX, posY, posZ, x, y, z } = space;
       const oldRobot = this.info.robotMap[robotId]; // 原机器人信息
@@ -1113,7 +1121,7 @@ export default class Scene {
         robot.robotContainer = robotContainer;
         this.setRobotState(robot, oldStatus);
       }
-      const endSpace = this.info.spaceMap[endId];
+      const endSpace = this.info.spaceMap.get(endId);
       const { x: endX, y: endY } = endSpace; // 需要移动的第一个点位
       // TODO 节流控制运动轨迹的生成
       this.robotlineTo(space, endSpace, robotContainer);
@@ -1131,7 +1139,7 @@ export default class Scene {
       }
       if (spaceId !== oldSpaceId) {
         oldRobot.spaceId = spaceId;
-        const oldSpace = this.info.spaceMap[oldSpaceId];
+        const oldSpace = this.info.spaceMap.get(oldSpaceId);
         const { x: oldX, y: oldY, z: oldZ } = oldSpace;
         // todo: 如果机器人的移动伴随楼层转换，则执行不同的逻辑。包括不需要显示机器的路径（endId 与 spaceId 不同），
         if (z !== oldZ) {
@@ -1201,9 +1209,9 @@ export default class Scene {
       for (let i = 0; i < endIdList.length; i += 1) {
         robotPath2.visible = params.showRobotsPath;
         let space1;
-        i === 0 ? (space1 = space) : (space1 = this.info.spaceMap[endIdList[i - 1]]);
+        i === 0 ? (space1 = space) : (space1 = this.info.spaceMap.get(endIdList[i - 1]));
         const { x: endX1, y: endY1 } = space1;
-        const space2 = this.info.spaceMap[endIdList[i]];
+        const space2 = this.info.spaceMap.get(endIdList[i]);
         const { x: endX2, y: endY2 } = space2;
         const lineTo1 = endX2 - endX1;
         const lineTo2 = endY2 - endY1;
@@ -1225,7 +1233,7 @@ export default class Scene {
   removeContainer(containerId) {
     const container = this.info.containerMap[containerId];
     const { spaceId, containerContainer } = container;
-    const { z } = this.info.spaceMap[spaceId];
+    const { z } = this.info.spaceMap.get(spaceId);
     TweenMax.to(containerContainer, 0.1, {
       alpha: 0,
       repeat: 8,

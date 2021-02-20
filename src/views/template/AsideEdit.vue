@@ -79,6 +79,7 @@ export default {
       factoryConfig: (state) => state.factory.factoryConfig,
       application: (state) => state.application,
       game: (state) => state.game,
+      modeType: (state) => state.modeType,
       menuList: (state) => state.menuList,
     }),
     buttonTypeList() {
@@ -132,7 +133,7 @@ export default {
       this.application.spaceUp(space, this.application);
     },
     async actionTask(url, obj) {
-      console.log('actionTask url', url, 'obj', obj);
+      console.log('actionTask url', url, 'obj', obj, 'modeType', this.modeType);
       obj.objectId = obj.object;
       !obj.spaceId && (obj.spaceId = this.toSpaceInfo.spaceId);
       const res = await taskAdd(url, obj);
@@ -144,10 +145,10 @@ export default {
           this.game && this.game.removeContainer(obj.object);
         }
         if (url === '/moveContainer' || url === '/updateContainer') {
-          this.game && this.game.updateContainerInfo(obj.object);
+          this.modeType === '3D' && this.game.updateContainerInfo(obj.object);
         }
         if (url === '/moveRobot') {
-          this.game && this.game.moveRobot(obj.object);
+          this.modeType === '3D' && this.game.moveRobot(obj.object);
         }
       }
     },

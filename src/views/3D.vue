@@ -143,7 +143,7 @@ export default {
   activated() {
     this.loading = true;
     if (!this.isFirst) {
-      this.isFirst = true;
+      // this.isFirst = true;
       this.initWS();
     }
   },
