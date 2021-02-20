@@ -25,9 +25,10 @@ import {
   CanvasTexture,
   LineBasicMaterial,
   Geometry,
-  Line, LineLoop,
+  Line,
   Raycaster,
 } from 'three';
+// LineLoop
 import storage from '@/utils/storage';
 import store from '@/store/index.js';
 import { base64ToBlob } from '@/utils/help.js'; // thottle, 
@@ -181,7 +182,8 @@ function createRobotPath(vertices) {
   });
   const geometry = new Geometry();
   geometry.colors.push(
-    new Color(0xff0000),
+    // new Color(0xff0000),
+    new Color(0x0000ff),
     new Color(0x0000ff),
   );
   geometry.vertices = vertices;
@@ -195,7 +197,7 @@ function createPath(p1, p2) {
   const pointArr = [ p1.x, p1.y, p1.z, p2.x, p2.y, p2.z ];
   geometry.setPositions(pointArr);
   const material = new LineMaterial({
-    linewidth: 2,
+    linewidth: 1,
     color: 0xEEEEEE,
   });
   material.resolution.set(window.innerWidth + 100, window.innerHeight + 100);
