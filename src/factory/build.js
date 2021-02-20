@@ -1232,8 +1232,11 @@ export default class Scene {
 
   removeContainer(containerId) {
     const container = this.info.containerMap[containerId];
+    if (!container) return;
     const { spaceId, containerContainer } = container;
-    const { z } = this.info.spaceMap.get(spaceId);
+    const spaceNow =  this.info.spaceMap.get(spaceId);
+    spaceNow.containerId = null;
+    const { z } = spaceNow;
     TweenMax.to(containerContainer, 0.1, {
       alpha: 0,
       repeat: 8,
