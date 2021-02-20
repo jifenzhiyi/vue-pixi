@@ -258,7 +258,6 @@ export default class Game {
       terminalMap: {}, // 工作站信息
       containerMap: {}, // 货架信息
     };
-    console.log('initReset 3D', this.info);
   }
 
   init() {
@@ -574,9 +573,9 @@ export default class Game {
   updateData(data) {
     const { spaces, containers, robots, terminals } = data;
     spaces && this.updateSpaces(spaces);
-    terminals && terminals.length && this.updateTerminals(terminals);
-    robots && robots.length && this.updateRobots(robots);
-    containers && containers.length && this.updateContainers(containers);
+    terminals && this.updateTerminals(terminals);
+    robots && this.updateRobots(robots);
+    containers && this.updateContainers(containers);
     this.doMove();
     return Promise.resolve(this.info);
   }
@@ -586,8 +585,10 @@ export default class Game {
     spaceColorList.needsUpdate = false;
     const length = spaces.length;
     for (let i = 0; i < length; i++) {
-      const { spaceId, status: nStatus, type, linkId, } = spaces[i];
+      const { spaceId, status: nStatus, type, } = spaces[i];
+      spaces[i].spaceId === '413' && console.log('spaces', spaces[i]);
       const oSpace = this.info.spaceMap[spaceId];
+      oSpace.containerId = null; // TODO 2D 3D切换的时候清除一下，updateContainer的时候重新赋值
       const { index, status: oStatus } = oSpace;
       if (nStatus !== oStatus) {
         const { r, g, b } = spaceColorMap[nStatus === 1 ? -1 : type];
@@ -700,9 +701,15 @@ export default class Game {
     const length = containers.length;
     for (let i = 0; i < length; i++) {
       const container = containers[i]; // 新的 container 信息
+      container.containerId === 'C149' && console.log('container.containerId', container);
       const meshToSpaceId = container.spaceId; // 新的 spaceId
       const meshToSpace = this.info.spaceMap[meshToSpaceId];
+      if (!meshToSpace) {
+        meshToSpace.containerId = null;
+        continue; // 过滤掉
+      }
       const { posX, posY } = meshToSpace;
+      meshToSpace.containerId = container.containerId;
       const fromContainer = this.info.containerMap[container.containerId]; // 旧的 container 信息
       if (!fromContainer) {
         this.addContainer(container);
@@ -791,7 +798,6 @@ export default class Game {
         const linkIds = linkId.trim().split(' ');
         linkIds.forEach((toId) => {
           const { x: x1, y: y1, z: z1 } = this.info.spaceMap[toId];
-          console.log('p1', x, y, z, 'p2', x1, y1, z1);
           const vertices = [
             new Vector3(x, y, z),
             new Vector3(x1, y1, z1),

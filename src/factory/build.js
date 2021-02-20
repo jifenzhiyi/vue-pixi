@@ -1256,7 +1256,10 @@ export default class Scene {
       }
       const { containerId, spaceId, type, orientation, frequence, zoneId } = container;
       const space = this.info.spaceMap.get(spaceId);
-      if (!space) continue;
+      if (!space) {
+        space.containerId = null;
+        continue;
+      };
       const { x, y, z } = space;
       const oldContainer = this.info.containerMap[containerId];
       if (!oldContainer) {
