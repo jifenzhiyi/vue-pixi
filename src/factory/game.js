@@ -32,8 +32,11 @@ import storage from '@/utils/storage';
 import store from '@/store/index.js';
 import { base64ToBlob } from '@/utils/help.js'; // thottle, 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { Line2 } from 'three/examples/jsm/lines/Line2';
 import onBeforeCompile from './utils/compile.js';
 
 const TweenMax = window.gsap; // 在index.html中引入了gsap.min.js
@@ -171,15 +174,15 @@ function getTerminalId(text) {
   return canvas;
 }
 
-function createRobotPath(vertices, color1 = '0xff0000', color2 = '0x0000ff') {
+function createRobotPath(vertices) {
   const material = new LineBasicMaterial({
     vertexColors: true,
     linewidth: 2, // 默认为1，暂时无法修改
   });
   const geometry = new Geometry();
   geometry.colors.push(
-    new Color(color1),
-    new Color(color2),
+    new Color(0xff0000),
+    new Color(0x0000ff),
   );
   geometry.vertices = vertices;
   const robotPath = new Line(geometry, material);
@@ -187,23 +190,39 @@ function createRobotPath(vertices, color1 = '0xff0000', color2 = '0x0000ff') {
   return robotPath;
 }
 
-function createRectBorder(w, l, color) {
-  const material = new LineBasicMaterial({
-    color,
-    linewidth: 2, // 默认为1，暂时无法修改
+function createPath(p1, p2) {
+  const geometry = new LineGeometry();
+  const pointArr = [ p1.x, p1.y, p1.z, p2.x, p2.y, p2.z ];
+  geometry.setPositions(pointArr);
+  const material = new LineMaterial({
+    linewidth: 2,
+    color: 0xEEEEEE,
   });
+  material.resolution.set(window.innerWidth + 100, window.innerHeight + 100);
+  const line = new Line2(geometry, material);
+  return line;
+}
+
+function createRectBorder(w, l, color) {
   const wHalf = w / 2;
   const hHalf = l / 2;
-  const geometry = new Geometry();
-  geometry.vertices.push(
-    new Vector3(-wHalf, 0, -hHalf),
-    new Vector3(wHalf, 0, -hHalf),
-    new Vector3(wHalf, 0, hHalf),
-    new Vector3(-wHalf, 0, hHalf),
-  );
-  const rectBorder = new LineLoop(geometry, material);
-  rectBorder.visible = false;
-  return rectBorder;
+  const geometry = new LineGeometry();
+  const pointArr = [
+    -wHalf, 0, -hHalf,
+    wHalf, 0, -hHalf,
+    wHalf, 0, hHalf,
+    -wHalf, 0, hHalf,
+    -wHalf, 0, -hHalf,
+  ];
+  geometry.setPositions(pointArr);
+  const material = new LineMaterial({
+    linewidth: 2,
+    color,
+  });
+  material.resolution.set(window.innerWidth + 100, window.innerHeight + 100);
+  const line = new Line2(geometry, material);
+  line.visible = false;
+  return line;
 }
 
 export default class Game {
@@ -699,7 +718,6 @@ export default class Game {
     const length = containers.length;
     for (let i = 0; i < length; i++) {
       const container = containers[i]; // 新的 container 信息
-      container.containerId === 'C149' && console.log('container.containerId', container);
       const meshToSpaceId = container.spaceId; // 新的 spaceId
       const meshToSpace = this.info.spaceMap[meshToSpaceId];
       if (!meshToSpace) {
@@ -716,7 +734,7 @@ export default class Game {
       fromContainer.posX = posX;
       fromContainer.posY = posY;
       const { mesh, spaceId: meshFromSpaceId } = fromContainer;
-      container.containerId === 'C149' && console.log('mesh', mesh);
+      // container.containerId === 'C149' && console.log('mesh', mesh);
       container.orientation != null && (mesh.rotation.y = -Math.PI / 2 * container.orientation);
       // 更新时 orientation 为 0 的话需要转回原始方向
       if (meshFromSpaceId !== meshToSpaceId) { // 货架移动
@@ -800,11 +818,9 @@ export default class Game {
         const linkIds = linkId.trim().split(' ');
         linkIds.forEach((toId) => {
           const { x: x1, y: y1, z: z1 } = this.info.spaceMap[toId];
-          const vertices = [
-            new Vector3(x, y, z),
-            new Vector3(x1, y1, z1),
-          ];
-          const robotPathMesh = createRobotPath(vertices, 0x000000, 0x000000);
+          const p1 = { x, y, z };
+          const p2 = { x: x1, y: y1, z: z1 };
+          const robotPathMesh = createPath(p1, p2);
           instanceMesh.spacesMesh.add(robotPathMesh);
         });
       }
