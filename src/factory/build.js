@@ -1234,7 +1234,7 @@ export default class Scene {
     const container = this.info.containerMap[containerId];
     if (!container) return;
     const { spaceId, containerContainer } = container;
-    const spaceNow =  this.info.spaceMap.get(spaceId);
+    const spaceNow = this.info.spaceMap.get(spaceId);
     spaceNow.containerId = null;
     const { z } = spaceNow;
     TweenMax.to(containerContainer, 0.1, {

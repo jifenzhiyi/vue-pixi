@@ -175,10 +175,10 @@ function getTerminalId(text) {
   return canvas;
 }
 
-function createRobotPath(vertices) {
+function createRobotPath(vertices, name = 'robotPath') {
   const material = new LineBasicMaterial({
     vertexColors: true,
-    linewidth: 2, // 默认为1，暂时无法修改
+    linewidth: 1, // 默认为1，暂时无法修改
   });
   const geometry = new Geometry();
   geometry.colors.push(
@@ -188,7 +188,7 @@ function createRobotPath(vertices) {
   );
   geometry.vertices = vertices;
   const robotPath = new Line(geometry, material);
-  robotPath.name = 'robotPath';
+  robotPath.name = name;
   return robotPath;
 }
 
@@ -198,9 +198,9 @@ function createPath(p1, p2) {
   geometry.setPositions(pointArr);
   const material = new LineMaterial({
     linewidth: 1,
-    color: 0x000000,
+    color: 0x666666,
   });
-  material.resolution.set(window.innerWidth + 100, window.innerHeight + 100);
+  material.resolution.set(window.innerWidth, window.innerHeight);
   const line = new Line2(geometry, material);
   return line;
 }
@@ -221,7 +221,7 @@ function createRectBorder(w, l, color) {
     linewidth: 2,
     color,
   });
-  material.resolution.set(window.innerWidth + 100, window.innerHeight + 100);
+  material.resolution.set(window.innerWidth, window.innerHeight);
   const line = new Line2(geometry, material);
   line.visible = false;
   return line;
@@ -764,7 +764,7 @@ export default class Game {
 
   doMove() {
     Object.keys(waitingMoveList).forEach((spaceId) => {
-      const { x, y, z, robotMesh, containerMesh, px, py, pz, robotPathPoint2, robotPathMesh } = waitingMoveList[spaceId];
+      const { x, y, z, robotMesh, containerMesh, px, py, pz, robotPathPoint2, robotPathMesh } = waitingMoveList[spaceId]; 
       robotPathPoint2 && TweenMax.to(robotPathPoint2, moveDuration, {
         x: px,
         y: py,
