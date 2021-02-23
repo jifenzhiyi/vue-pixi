@@ -476,6 +476,7 @@ export default class Scene {
         spaceSprite.on('touchend', this.spaceNoPCtoClick.bind(spaceSprite, space, this));
       }
       space.spaceSprite = spaceSprite;
+      space.spacesIdLayer = spacesIdLayer;
       spacesIdLayer.addChild(spaceSprite);
       spacesIdLayer2.addChild(spaceSprite2);
       spacesContainerNew.push(spacesIdLayer2);

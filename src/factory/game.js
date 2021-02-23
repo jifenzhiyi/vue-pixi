@@ -29,17 +29,19 @@ import {
   Raycaster,
 } from 'three';
 // LineLoop
-import storage from '@/utils/storage';
-import store from '@/store/index.js';
-import { base64ToBlob } from '@/utils/help.js'; // thottle, 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { Line2 } from 'three/examples/jsm/lines/Line2';
+import { base64ToBlob } from '@/utils/help.js'; // thottle, 
+import { isPC } from '@/utils/device.js';
+import storage from '@/utils/storage';
+import store from '@/store/index.js';
 import onBeforeCompile from './utils/compile.js';
 
+const deviceIsPC = isPC();
 const TweenMax = window.gsap; // 在index.html中引入了gsap.min.js
 // const { params } = store.state.factory;
 let timeS = 0;
@@ -446,42 +448,103 @@ export default class Game {
   }
 
   initEvents() {
-    this.viewBox.addEventListener('pointerdown', () => {
-      mouseHolding = true;
-    }, false);
-    this.viewBox.addEventListener('pointerup', (e) => {
-      mouseHolding = false;
-      if (draging) { // 发生了拖拽
-        draging = false;
-      } else {
-        const modeStatus = store.state.modeStatus;
-        // 标记地板模式
-        if (modeStatus === 'mark' && onOverSpace) {
-          this.events.onSpaceClick(onOverSpace, modeStatus);
+    if (deviceIsPC) {
+      this.viewBox.addEventListener('pointerdown', () => {
+        mouseHolding = true;
+      }, false);
+      this.viewBox.addEventListener('pointerup', (e) => {
+        mouseHolding = false;
+        if (draging) { // 发生了拖拽
+          draging = false;
+        } else {
+          const modeStatus = store.state.modeStatus;
+          // 标记地板模式
+          if (modeStatus === 'mark' && onOverSpace) {
+            this.events.onSpaceClick(onOverSpace, modeStatus);
+          }
+          // 编辑模式
+          if (modeStatus === 'edit') {
+            if (e.button === 0) {
+              // 点击左键
+              if (onOverSpace) {
+                if (this.spaceSelectArr[0] === onOverSpace.spaceId) {
+                  this.clearSpaceBorderMesh();
+                  return;
+                }
+                if (this.spaceSelectArr[1] === onOverSpace.spaceId) {
+                  instanceMesh.spaceRightSelBorderMesh.visible = false;
+                  this.spaceSelectArr[1] = null;
+                  store.commit('SET_TO_SPACE_INFO', {});
+                }
+                const { x, y, z } = onOverSpace;
+                instanceMesh.spaceLeftSelBorderMesh.position.set(x, y, z);
+                instanceMesh.spaceLeftSelBorderMesh.visible = true;
+                store.commit('SET_HOVER_SPACE_INFO', onOverSpace);
+                this.spaceSelectArr[0] = onOverSpace.spaceId;
+              }
+            } else if (e.button === 2) {
+              // 点击右键
+              if (onOverSpace) {
+                if (!this.spaceSelectArr[0]
+                  || this.spaceSelectArr[0] === onOverSpace.spaceId
+                  || this.spaceSelectArr[1] === onOverSpace.spaceId) {
+                  instanceMesh.spaceRightSelBorderMesh.visible = false;
+                  this.spaceSelectArr[1] = null;
+                  store.commit('SET_TO_SPACE_INFO', {});
+                  return;
+                }
+                const { x, y, z } = onOverSpace;
+                instanceMesh.spaceRightSelBorderMesh.position.set(x, y, z);
+                instanceMesh.spaceRightSelBorderMesh.visible = true;
+                store.commit('SET_TO_SPACE_INFO', onOverSpace);
+                this.spaceSelectArr[1] = onOverSpace.spaceId;
+              }
+            }
+          }
         }
-        // 编辑模式
-        if (modeStatus === 'edit') {
-          if (e.button === 0) {
-            // 点击左键
+      }, false);
+      this.viewBox.addEventListener('mousemove', (event) => {
+        event.preventDefault();
+        const getBoundingClientRect = this.viewBox.getBoundingClientRect();
+        mouse.x = ((event.clientX - getBoundingClientRect.left) / this.domW) * 2 - 1;
+        mouse.y = -((event.clientY - getBoundingClientRect.top) / this.domH) * 2 + 1;
+        mouseHolding && (draging = true); // 发生了拖拽
+      }, false);
+    } else {
+      let preX, preY;
+      // TODO 移动端事件
+      this.viewBox.addEventListener('touchstart', (e) => {
+        mouseHolding = true;
+        preX = e.touches[0].clientX;
+        preY = e.touches[0].clientY;
+        const getBoundingClientRect = this.viewBox.getBoundingClientRect();
+        mouse.x = ((preX - getBoundingClientRect.left) / this.domW) * 2 - 1;
+        mouse.y = -((preY - getBoundingClientRect.top) / this.domH) * 2 + 1;
+      });
+      this.viewBox.addEventListener('touchend', (e) => {
+        mouseHolding = false;
+        if (draging) { // 发生了拖拽
+          draging = false;
+        } else {
+          const modeStatus = store.state.modeStatus;
+          // 标记地板模式
+          if (modeStatus === 'mark' && onOverSpace) {
+            this.events.onSpaceClick(onOverSpace, modeStatus);
+          }
+          // 编辑模式 TODO 移动端选中模式更新
+          if (modeStatus === 'edit') {
             if (onOverSpace) {
-              if (this.spaceSelectArr[0] === onOverSpace.spaceId) {
+              if (!this.spaceSelectArr[0]) {
+                const { x, y, z } = onOverSpace;
+                instanceMesh.spaceLeftSelBorderMesh.position.set(x, y, z);
+                instanceMesh.spaceLeftSelBorderMesh.visible = true;
+                store.commit('SET_HOVER_SPACE_INFO', onOverSpace);
+                this.spaceSelectArr[0] = onOverSpace.spaceId;
+                return;
+              } else if (this.spaceSelectArr[0] === onOverSpace.spaceId) {
                 this.clearSpaceBorderMesh();
                 return;
               }
-              if (this.spaceSelectArr[1] === onOverSpace.spaceId) {
-                instanceMesh.spaceRightSelBorderMesh.visible = false;
-                this.spaceSelectArr[1] = null;
-                store.commit('SET_TO_SPACE_INFO', {});
-              }
-              const { x, y, z } = onOverSpace;
-              instanceMesh.spaceLeftSelBorderMesh.position.set(x, y, z);
-              instanceMesh.spaceLeftSelBorderMesh.visible = true;
-              store.commit('SET_HOVER_SPACE_INFO', onOverSpace);
-              this.spaceSelectArr[0] = onOverSpace.spaceId;
-            }
-          } else if (e.button === 2) {
-            // 点击右键
-            if (onOverSpace) {
               if (!this.spaceSelectArr[0]
                 || this.spaceSelectArr[0] === onOverSpace.spaceId
                 || this.spaceSelectArr[1] === onOverSpace.spaceId) {
@@ -498,15 +561,17 @@ export default class Game {
             }
           }
         }
-      }
-    }, false);
-    this.viewBox.addEventListener('mousemove', (event) => {
-      event.preventDefault();
-      const getBoundingClientRect = this.viewBox.getBoundingClientRect();
-      mouse.x = ((event.clientX - getBoundingClientRect.left) / this.domW) * 2 - 1;
-      mouse.y = -((event.clientY - getBoundingClientRect.top) / this.domH) * 2 + 1;
-      mouseHolding && (draging = true); // 发生了拖拽
-    }, false);
+      });
+      this.viewBox.addEventListener('touchmove', (e) => {
+        event.preventDefault();
+        preX = e.touches[0].clientX;
+        preY = e.touches[0].clientY;
+        const getBoundingClientRect = this.viewBox.getBoundingClientRect();
+        mouse.x = ((preX - getBoundingClientRect.left) / this.domW) * 2 - 1;
+        mouse.y = -((preY - getBoundingClientRect.top) / this.domH) * 2 + 1;
+        mouseHolding && (draging = true); // 发生了拖拽
+      });
+    }
     // 添加辅助模型，如 spaceBorderOfHover、spaceBorderOfLeft、spaceBorderOfRight
     instanceMesh.spaceHoverBorderMesh = createRectBorder(this.spaceLength * 100, this.spaceWidth * 100, 0x0000ff);
     this.scene.add(instanceMesh.spaceHoverBorderMesh);
