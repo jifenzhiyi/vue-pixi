@@ -307,12 +307,16 @@ export default class Scene {
 
     const sceneW = this.el.parentElement.clientWidth;
     const sceneH = this.el.parentElement.clientHeight;
-    if (sceneW > sceneH && sceneW > this.mapWidth) {
-      const biliw = (sceneW / this.mapWidth).toFixed(1);
-      biliw > 1.6 && this.zoom((biliw - 0.6) / 2);
-    } else if (sceneH > sceneW && sceneH > this.mapLength) {
-      const bilih = (sceneH / this.mapLength).toFixed(1);
-      bilih > 1.6 && this.zoom((bilih - 0.6) / 2);
+    console.log('floors length', this.floors.length);
+    if (this.floors.length === 1) {
+      console.log('sceneW', sceneW, 'sceneH', sceneH, 'mapWidth', this.mapWidth, 'mapLength', this.mapLength);
+      if (sceneW > sceneH && sceneW > this.mapWidth) {
+        const biliw = (sceneW / this.mapWidth).toFixed(1);
+        biliw > 1.6 && this.zoom((biliw - 0.6) / 2);
+      } else if (sceneH > sceneW && sceneH > this.mapLength) {
+        const bilih = (sceneH / this.mapLength).toFixed(1);
+        bilih > 1.6 && this.zoom((bilih - 0.6) / 2);
+      }
     }
   }
 
