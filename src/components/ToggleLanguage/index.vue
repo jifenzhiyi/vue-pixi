@@ -36,4 +36,9 @@ export default {
 .svg-icon {
   font-size: 20px !important;
 }
+@media all and (orientation: portrait) and (max-width: 700px) {
+  .language {
+    display: none !important;
+  }
+}
 </style>

@@ -592,12 +592,14 @@ export default class Game {
   onWindowResize() {
     setTimeout(() => {
       const gameView = document.getElementById('gameView');
-      this.domW = gameView.clientWidth;
-      this.domH = gameView.clientHeight;
-      // const dom = document.getElementById('gameBox');
-      // this.camera.aspect = dom.clientWidth / dom.clientHeight;
-      // this.camera.updateProjectionMatrix();
-      this.renderer.setSize(this.domW, this.domH);
+      if (gameView) {
+        this.domW = gameView.clientWidth;
+        this.domH = gameView.clientHeight;
+        // const dom = document.getElementById('gameBox');
+        // this.camera.aspect = dom.clientWidth / dom.clientHeight;
+        // this.camera.updateProjectionMatrix();
+        this.renderer.setSize(this.domW, this.domH);
+      }
     }, 0);
   }
 

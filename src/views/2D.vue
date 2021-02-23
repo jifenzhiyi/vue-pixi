@@ -363,9 +363,4 @@ export default {
   padding-top: 5px;
   text-align: center;
 }
-@media all and (orientation: portrait) and (max-width: 700px) {
-  .btn-center {
-    display: none !important;
-  }
-}
 </style>
