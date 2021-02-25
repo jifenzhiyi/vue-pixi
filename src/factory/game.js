@@ -521,7 +521,7 @@ export default class Game {
         mouse.x = ((preX - getBoundingClientRect.left) / this.domW) * 2 - 1;
         mouse.y = -((preY - getBoundingClientRect.top) / this.domH) * 2 + 1;
       });
-      this.viewBox.addEventListener('touchend', (e) => {
+      this.viewBox.addEventListener('touchend', () => {
         mouseHolding = false;
         if (draging) { // 发生了拖拽
           draging = false;
@@ -541,7 +541,8 @@ export default class Game {
                 store.commit('SET_HOVER_SPACE_INFO', onOverSpace);
                 this.spaceSelectArr[0] = onOverSpace.spaceId;
                 return;
-              } else if (this.spaceSelectArr[0] === onOverSpace.spaceId) {
+              }
+              if (this.spaceSelectArr[0] === onOverSpace.spaceId) {
                 this.clearSpaceBorderMesh();
                 return;
               }

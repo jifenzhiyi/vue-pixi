@@ -307,9 +307,7 @@ export default class Scene {
 
     const sceneW = this.el.parentElement.clientWidth;
     const sceneH = this.el.parentElement.clientHeight;
-    console.log('floors length', this.floors.length);
     if (this.floors.length === 1) {
-      console.log('sceneW', sceneW, 'sceneH', sceneH, 'mapWidth', this.mapWidth, 'mapLength', this.mapLength);
       if (sceneW > sceneH && sceneW > this.mapWidth) {
         const biliw = (sceneW / this.mapWidth).toFixed(1);
         biliw > 1.6 && this.zoom((biliw - 0.6) / 2);
