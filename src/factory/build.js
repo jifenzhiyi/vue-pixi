@@ -41,6 +41,7 @@ export default class Scene {
     floors.forEach((floorIndex) => {
       building.floors[floorIndex] = { visible: true };
     });
+    this.containerTypeMap = {};
     this.floors = floors;
     this.mapWidth = mapLength * 10;
     this.mapLength = mapWidth * 10;
@@ -53,12 +54,12 @@ export default class Scene {
     this.spacesOfWaiting = []; // 等待位
     this.waitingMoveList = []; // 等待移动的列表
     this.selectedContainers = {}; // 选中的货架
+    this.events.onMarkerList && this.events.onMarkerList();
+    this.events.onDimensionList && this.events.onDimensionList();
     this.createScene(el); // 场景创建
     loadTextures(equipments).then((res) => {
       this.textures = res;
       this.events.onInitWS && this.events.onInitWS();
-      this.events.onMarkerList && this.events.onMarkerList();
-      this.events.onDimensionList && this.events.onDimensionList();
     });
   }
 
@@ -645,8 +646,7 @@ export default class Scene {
       if (status === -9 || !spaceId) continue;
       const space = this.info.spaceMap.get(spaceId);
       space.containerId = containerId; // 记录点位存在货架Id
-      const one = this.createContainer(container);
-      building.floors[0].containerSprites.addChild(one);
+      building.floors[0].containerSprites.addChild(this.createContainer(container));
       validLen++;
     }
     this.info.containerCount = validLen;
@@ -681,12 +681,7 @@ export default class Scene {
     idSprite.visible = params.showContainerId;
     containerContainer.addChild(idSprite);
     container.containerContainer = containerContainer;
-    // this.info.containerMap.set(containerId, container);
     this.info.containerMap[containerId] = container;
-    // if (!['N', undefined, 'T-virtual'].includes(terminalId)) {
-    //   console.log('error includes 1')
-    //   this.pendingContainerMap[containerId] = container
-    // }
     return containerContainer;
   }
 
@@ -698,7 +693,7 @@ export default class Scene {
     this.info.robotCount.sum = robots.length;
     this.info.robotMap = {};
     for (let i = 0; i < robots.length; i++) {
-      if (robots[i] === -9) {
+      if (robots[i].status === -9) {
         this.info.robotCount.sum--;
         continue;
       }
@@ -757,58 +752,92 @@ export default class Scene {
       errorText.position.x = 6;
       errorText.visible = false;
       robotContainer.addChild(errorText);
-      // 错误信息显示
-      if (endId !== undefined && endId !== spaceId && params.showRobotError) {
-        this.errorMessageDisplay(robot, robotContainer);
-      }
       // other
       robotSprite.calculateBounds();
       robot.robotContainer = robotContainer;
       // 机器列表，给右侧栏用
       this.info.robotMap[robotId] = robot;
+      // 错误信息显示
+      if (endId !== undefined && endId !== spaceId && params.showRobotError) {
+        this.errorMessageDisplay(robot, robotContainer, 'init');
+      }
       // 设置机器颜色、错误代码
       this.setRobotState(robot);
     }
   }
 
-  errorMessageDisplay(robot, robotContainer) {
-    const { lastUpdateTimeStamp, robotId } = robot;
+  // 设置机器报错提示 this.setRobotErrorText(robot)
+  setRobotErrorText(robot, status = 0) {
+    const { robotId, voltage, robotContainer } = robot;
     const [, , , errorTextBox, errorText] = robotContainer.children;
+    if (status > 10 || robotContainer.overtime) {
+      let text = `${robotId}`;
+      if (status > 10) text += `, e${status - 10}`;
+      if (robotContainer.overtime) text += `, ${robotContainer.overtime}min`;
+      if (voltage <= params.voltageLow / 100 && status !== 3) {
+        text += `, ${Math.floor(voltage * 100)}%`;
+      }
+      this.info.robotMapOfError[robotId] = errorText.text = text;
+      errorTextBox.width = errorText.width + 2;
+      errorText.visible = params.showRobotError;
+      errorTextBox.visible = params.showRobotError;
+    } else {
+      // 状态正常切没有移动超时正常验证电量
+      // this.voltageLow(robot, errorText, errorTextBox); // 电量验证
+    }
+    this.events.onUpdateInfo(this.info);
+  }
+
+  // 低电量报警
+  voltageLow(robot, errorText, errorTextBox) {
+    const low = params.voltageLow / 100;
+    const { voltage, robotId, status, robotContainer } = robot;
+    if (voltage <= low && status !== 3) {
+      if (status > 10 || robotContainer.overtime) {
+        let text = `${robotId}`;
+        if (status > 10) {
+          text += `, e${status - 10}`;
+        }
+        if (robotContainer.overtime) {
+          text += `, ${robotContainer.overtime}min`;
+        }
+        errorText.text = `${text}, ${Math.floor(voltage * 100)}%`;
+      } else {
+        errorText.text = `${robotId}, ${Math.floor(voltage * 100)}%`;
+      }
+      this.info.robotMapOfError[robotId] = errorText.text;
+      errorTextBox.width = errorText.width + 2;
+      errorText.visible = params.showRobotError;
+      errorTextBox.visible = params.showRobotError;
+    }
+  }
+
+  // type : init 初始化 update 更新
+  errorMessageDisplay(robot, robotContainer, type) {
+    const { lastUpdateTimeStamp, status } = robot;
     const { min, sec } = getMinAndSec(nowStamp, lastUpdateTimeStamp);
     if (sec > params.RobotTimeout) {
       robotContainer.overtime = min;
-      robot.status > 10
-        ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
-        : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
-      this.info.robotMapOfError[robotId] = errorText.text;
-      errorTextBox.width = errorText.width + 2;
-      errorTextBox.visible = true;
-      errorText.visible = true;
+      type === 'init'
+        ? this.setRobotErrorText(robot)
+        : this.setRobotErrorText(robot, status);
       robotContainer.loop = setInterval(() => {
         ++robotContainer.overtime;
-        robot.status > 10
-          ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
-          : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
-        this.info.robotMapOfError[robotId] = errorText.text;
-        errorTextBox.width = errorText.width + 2;
+        type === 'init'
+          ? this.setRobotErrorText(robot)
+          : this.setRobotErrorText(robot, status);
       }, 60 * 1000);
     } else {
       robotContainer.loop = setTimeout(() => {
         robotContainer.overtime = Math.floor(params.RobotTimeout / 60);
-        robot.status > 10
-          ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
-          : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
-        this.info.robotMapOfError[robotId] = errorText.text;
-        errorTextBox.width = errorText.width + 2;
-        errorTextBox.visible = true;
-        errorText.visible = true;
+        type === 'init'
+          ? this.setRobotErrorText(robot)
+          : this.setRobotErrorText(robot, status);
         robotContainer.loop = setInterval(() => {
           ++robotContainer.overtime;
-          robot.status > 10
-            ? (errorText.text = `${robotId}, e${robot.status - 10}, ${robotContainer.overtime}min`)
-            : (errorText.text = `${robotId}, ${robotContainer.overtime}min`);
-          this.info.robotMapOfError[robotId] = errorText.text;
-          errorTextBox.width = errorText.width + 2;
+          type === 'init'
+            ? this.setRobotErrorText(robot)
+            : this.setRobotErrorText(robot, status);
         }, 60 * 1000);
       }, (params.RobotTimeout - sec) * 1000);
     }
